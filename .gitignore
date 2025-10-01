@@ -1,0 +1,60 @@
+# Rust / Cargo
+/target/
+**/*.rs.bk
+
+# Cargo incremental and build caches
+.cargo/
+/.cargo-ok
+
+# Databases / local state
+memory.db
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# Environment / secrets
+.env
+.env.*
+*.env
+
+# Logs
+logs/
+*.log
+
+# Coverage / test artifacts
+coverage/
+*.lcov
+
+# Editor / IDE
+.vscode/
+.idea/
+*.iml
+
+# OS files (macOS)
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear on external disks
+.Spotlight-V100
+.Trashes
+
+# Backup files
+*~
+*.swp
+*.swo
+
+# Temporary files
+.tmp/
+*.tmp
+
+# Cucumber/BDD artifacts (if any)
+.cucumber/
+
+# SQLx offline data (if used)
+.sqlx/
