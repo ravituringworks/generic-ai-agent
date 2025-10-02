@@ -54,7 +54,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 3. **Clone and build**:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/ravituringworks/generic-ai-agent.git
    cd generic-ai-agent
    cargo build --release
    ```
@@ -724,7 +724,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ```bash
 # Clone repository
-git clone <repo-url>
+git clone https://github.com/ravituringworks/generic-ai-agent.git
 cd generic-ai-agent
 
 # Install development dependencies
@@ -765,11 +765,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - 📜 [Documentation](https://docs.rs/generic-ai-agent)
-- 🌐 [A2A Communication Guide](docs/A2A_COMMUNICATION.md)
-- 🔄 [State Management Guide](docs/PAUSE_EXECUTION.md)
-- 🗄️ [Unified Storage Guide](docs/UNIFIED_STORAGE_README.md)
-- 🐛 [Issue Tracker](https://github.com/your-repo/issues)
-- 💬 [Discussions](https://github.com/your-repo/discussions)
+- 🌐 [A2A Communication Guide](A2A_COMMUNICATION.md)
+- 🔄 [State Management Guide](PAUSE_EXECUTION.md)
+- 🗄️ [Unified Storage Guide](UNIFIED_STORAGE_README.md)
+- 📋 [API Reference](API.md)
+- ⏯️ [Suspend/Resume Guide](SUSPEND_RESUME.md)
+- 🐛 [Issue Tracker](https://github.com/ravituringworks/generic-ai-agent/issues)
+- 💬 [Discussions](https://github.com/ravituringworks/generic-ai-agent/discussions)
 
 ---
 
