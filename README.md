@@ -881,7 +881,7 @@ Areas we're especially looking for help:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Copyright © 2024 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
+Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 
 ## 🙏 Acknowledgments
 
