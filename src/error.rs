@@ -37,6 +37,15 @@ pub enum AgentError {
 
     #[error("Generic error: {0}")]
     Generic(#[from] anyhow::Error),
+
+    #[error("A2A error: {0}")]
+    A2A(String),
+
+    #[error("Network error: {0}")]
+    Network(String),
+
+    #[error("Not found: {0}")]
+    NotFound(String),
 }
 
 /// Errors related to language model operations
@@ -128,6 +137,9 @@ impl AgentError {
             AgentError::Http(_) => "http",
             AgentError::Database(_) => "database",
             AgentError::Generic(_) => "generic",
+            AgentError::A2A(_) => "a2a",
+            AgentError::Network(_) => "network",
+            AgentError::NotFound(_) => "not_found",
         }
     }
 }

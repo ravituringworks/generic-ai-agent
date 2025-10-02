@@ -89,7 +89,7 @@ pub struct A2AMessage {
 }
 
 /// Types of messages that can be exchanged
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MessageType {
     Request,
     Response,
@@ -157,7 +157,7 @@ pub enum ResponseStatus {
 }
 
 /// Communication protocol types
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ProtocolType {
     Http,
     WebSocket,
@@ -401,7 +401,7 @@ impl A2AClient for HttpA2AClient {
             
         if response.status().is_success() {
             let a2a_response: A2AResponse = response.json().await
-                .map_err(|e| AgentError::Serialization(format!("Failed to parse response: {}", e)))?;
+                .map_err(|e| AgentError::Network(format!("Failed to parse response: {}", e)))?;
                 
             // Update stats
             let mut stats = self.stats.lock().await;
