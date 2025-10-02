@@ -1,9 +1,9 @@
 [package]
 name = "generic-ai-agent"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Ravindra B <ravbod@gmail.com>"]
-description = "A generic AI agent with Ollama, vector store, and MCP client capabilities"
+description = "A comprehensive AI agent framework with Ollama LLM, vector memory, Document RAG, MCP tools, and multi-agent communication"
 license = "MIT"
 
 [dependencies]
@@ -63,6 +63,12 @@ tokio-tungstenite = "0.21"
 # Async trait
 async-trait = "0.1"
 
+# PDF processing and document analysis (optional for RAG examples)
+pdf-extract = { version = "0.7", optional = true }
+lopdf = { version = "0.32", optional = true }
+regex = "1.10"
+table-extract = { version = "0.2", optional = true }
+
 [dev-dependencies]
 # Testing frameworks
 tokio-test = "0.4"
@@ -88,6 +94,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 [features]
 default = ["sqlite"]
 sqlite = []
+pdf = ["pdf-extract", "lopdf", "table-extract"]
 
 [[bin]]
 name = "agent-example"

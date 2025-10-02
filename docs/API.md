@@ -142,6 +142,136 @@ pub struct McpServerConfig {
 }
 ```
 
+## Document RAG Integration
+
+### PDF Processing
+
+Process PDF documents with table extraction and semantic indexing.
+
+```rust
+// Enable PDF features in Cargo.toml
+[dependencies]
+generic-ai-agent = { version = "0.1.0", features = ["pdf"] }
+```
+
+### DocumentRAGSystem
+
+Core RAG system for PDF document processing.
+
+```rust
+pub struct DocumentRAGSystem {
+    // Private fields
+}
+
+impl DocumentRAGSystem {
+    /// Create a new RAG system with database configuration
+    pub async fn new(database_path: &str) -> Result<Self>;
+    
+    /// Index a PDF document for retrieval
+    pub async fn index_document(&mut self, pdf_path: &Path) -> Result<String>;
+    
+    /// Answer a question using RAG over indexed documents
+    pub async fn answer_question(&self, question: &str) -> Result<String>;
+    
+    /// Get statistics about indexed documents
+    pub fn get_statistics(&self) -> HashMap<String, serde_json::Value>;
+}
+```
+
+### Document Content Types
+
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentContent {
+    pub title: String,
+    pub authors: Vec<String>,
+    pub abstract_text: String,
+    pub sections: Vec<DocumentSection>,
+    pub tables: Vec<ExtractedTable>,
+    pub figures: Vec<DocumentFigure>,
+    pub references: Vec<String>,
+    pub metadata: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentSection {
+    pub title: String,
+    pub level: u8,
+    pub content: String,
+    pub page_number: Option<u32>,
+    pub subsections: Vec<DocumentSection>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtractedTable {
+    pub table_id: String,
+    pub caption: Option<String>,
+    pub headers: Vec<String>,
+    pub rows: Vec<Vec<String>>,
+    pub page_number: Option<u32>,
+    pub table_type: TableType,
+    pub context: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TableType {
+    DataTable,
+    ComparisonTable,
+    ResultsTable,
+    ParameterTable,
+    Unknown,
+}
+```
+
+### PDF Processing Pipeline
+
+```rust
+pub struct AdvancedPDFProcessor {
+    // Private fields
+}
+
+impl AdvancedPDFProcessor {
+    /// Create a new PDF processor
+    pub fn new() -> Self;
+    
+    /// Extract content from a PDF file
+    pub async fn extract_pdf_content(&self, pdf_path: &Path) -> Result<DocumentContent>;
+    
+    /// Parse table content from text lines
+    pub fn parse_table_content(&self, table_lines: &[&str]) -> Result<(Vec<String>, Vec<Vec<String>>)>;
+}
+```
+
+### Usage Example
+
+```rust
+use generic_ai_agent::{DocumentRAGSystem};
+use std::path::Path;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Initialize RAG system
+    let mut rag_system = DocumentRAGSystem::new("documents.db").await?;
+    
+    // Index a PDF document
+    let pdf_path = Path::new("research_paper.pdf");
+    let document_id = rag_system.index_document(pdf_path).await?;
+    println!("Indexed document: {}", document_id);
+    
+    // Ask questions about the document
+    let answer = rag_system.answer_question("What are the main findings?").await?;
+    println!("Answer: {}", answer);
+    
+    // Get indexing statistics
+    let stats = rag_system.get_statistics();
+    println!("Documents: {}", stats["total_documents"]);
+    println!("Sections: {}", stats["total_sections"]);
+    println!("Tables: {}", stats["total_tables"]);
+    
+    Ok(())
+}
+```
+
 ## Language Model Integration
 
 ### LlmClient Trait

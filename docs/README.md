@@ -7,6 +7,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 - **🧠 Ollama** - Local LLM inference for text generation and embeddings
 - **💾 Vector Store** - Semantic memory and knowledge retrieval 
+- **📄 Document RAG** - PDF processing with table extraction and Q&A
 - **🛠️ MCP Client** - Model Context Protocol for calling external tools
 - **⚡ Workflow Engine** - Orchestrates reasoning, memory, and tool usage
 - **🌐 A2A Communication** - Agent-to-Agent communication for multi-agent systems
@@ -17,6 +18,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 ### Core Capabilities
 - **Memory System**: Persistent vector-based memory with semantic search
+- **Document RAG**: PDF processing with table extraction and semantic indexing
 - **Tool Integration**: Call any MCP-compatible tools and built-in functions
 - **Flexible Configuration**: YAML/JSON/TOML configuration with validation
 - **Conversation Management**: Automatic history management and context preservation

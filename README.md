@@ -17,6 +17,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 ### Core Capabilities
 - **Memory System**: Persistent vector-based memory with semantic search
+- **Document RAG**: PDF processing with table extraction and semantic indexing
 - **Tool Integration**: Call any MCP-compatible tools and built-in functions
 - **Flexible Configuration**: YAML/JSON/TOML configuration with validation
 - **Conversation Management**: Automatic history management and context preservation
@@ -119,6 +120,135 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+### Document RAG (Retrieval-Augmented Generation)
+
+Process and query PDF documents with table extraction:
+
+```rust
+use generic_ai_agent::{
+    memory::{MemoryStore, SqliteMemoryStore},
+    llm::{OllamaClient, LlmClient, user_message},
+    config::MemoryConfig,
+};
+use std::path::Path;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Initialize memory store
+    let memory_config = MemoryConfig {
+        store_type: "sqlite".to_string(),
+        database_url: Some("sqlite:documents.db".to_string()),
+        embedding_dimension: 768,
+        max_search_results: 5,
+        similarity_threshold: 0.6,
+        persistent: true,
+    };
+    
+    let mut memory_store = SqliteMemoryStore::new(memory_config);
+    memory_store.initialize().await?;
+    
+    // Initialize LLM client
+    let llm_config = generic_ai_agent::config::LlmConfig {
+        ollama_url: "http://localhost:11434".to_string(),
+        text_model: "llama3.2".to_string(),
+        embedding_model: "nomic-embed-text".to_string(),
+        max_tokens: 4096,
+        temperature: 0.7,
+        timeout: 60,
+        stream: false,
+    };
+    
+    let llm_client = OllamaClient::new(llm_config);
+    
+    // Index a PDF document
+    let pdf_path = Path::new("document.pdf");
+    let document_text = extract_pdf_text(pdf_path).await?;
+    
+    // Create embeddings and store document sections
+    let sections = split_into_sections(&document_text);
+    for (i, section) in sections.iter().enumerate() {
+        let embedding = llm_client.embed(section).await?.embedding;
+        let metadata = HashMap::from([
+            ("document".to_string(), "document.pdf".to_string()),
+            ("section".to_string(), i.to_string()),
+            ("type".to_string(), "text".to_string()),
+        ]);
+        memory_store.store(section.clone(), embedding, metadata).await?;
+    }
+    
+    // Query the document
+    let question = "What are the main findings?";
+    let question_embedding = llm_client.embed(question).await?.embedding;
+    
+    // Retrieve relevant sections
+    let search_results = memory_store
+        .search(question_embedding, 3, 0.6)
+        .await?;
+    
+    // Prepare context
+    let context: Vec<String> = search_results
+        .iter()
+        .map(|result| result.entry.content.clone())
+        .collect();
+    
+    let context_text = context.join("\n\n");
+    
+    // Generate answer using RAG
+    let system_prompt = "You are an AI assistant that answers questions based on provided document context. Use only the information from the context to answer questions.";
+    
+    let messages = vec![
+        generic_ai_agent::llm::system_message(system_prompt),
+        user_message(&format!("Context:\n{}\n\nQuestion: {}", context_text, question)),
+    ];
+    
+    let response = llm_client.generate(&messages).await?;
+    println!("Answer: {}", response.text);
+    
+    Ok(())
+}
+
+async fn extract_pdf_text(pdf_path: &Path) -> anyhow::Result<String> {
+    // Use pdf-extract or similar library
+    // This is a simplified example
+    Ok("Sample PDF text content...".to_string())
+}
+
+fn split_into_sections(text: &str) -> Vec<String> {
+    // Split document into logical sections
+    text.split("\n\n")
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
+}
+```
+
+### Advanced PDF RAG with Table Extraction
+
+Run the comprehensive PDF table extraction example:
+
+```bash
+# Install PDF processing dependencies
+cargo build --features pdf
+
+# Run the interactive PDF RAG example
+cargo run --example pdf_rag_with_tables --features pdf
+```
+
+This example demonstrates:
+- **Real PDF Text Extraction**: Uses `pdf-extract` library to parse actual PDF files
+- **Table Detection & Parsing**: Identifies and structures tables from PDF content
+- **Semantic Indexing**: Creates embeddings for sections, tables, and abstracts
+- **Multi-modal Search**: Searches across text and tabular data
+- **Interactive Q&A**: Ask questions about the document with context-aware answers
+
+Features include:
+- Automatic section detection and parsing
+- Table structure recognition with headers and data rows
+- Abstract and reference extraction
+- Context-aware question answering
+- Similarity-based content retrieval
+- Support for academic papers and technical documents
 
 ### Run the Interactive Example
 
