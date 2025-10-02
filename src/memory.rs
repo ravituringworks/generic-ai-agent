@@ -22,7 +22,7 @@ pub struct MemoryEntry {
 }
 
 /// Search result from vector store
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchResult {
     pub entry: MemoryEntry,
     pub similarity: f32,
@@ -79,7 +79,7 @@ pub trait VectorStore: Send + Sync {
 }
 
 /// Memory store statistics
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MemoryStats {
     pub total_memories: usize,
     pub embedding_dimension: usize,
@@ -527,12 +527,12 @@ mod tests {
         let mut store = create_test_store().await;
 
         // Store similar vectors
-        let base_embedding = vec![1.0, 0.0, 0.0, 0.0]; // Pad to 384
-        let mut similar_embedding = vec![0.9, 0.1, 0.0, 0.0];
+        let mut base_embedding = vec![1.0, 0.0, 0.0, 0.0]; // Pad to 384
+        base_embedding.resize(384, 0.0);
+        let mut similar_embedding = vec![1.0, 0.1, 0.0, 0.0]; // Similar to base
         let mut different_embedding = vec![0.0, 0.0, 1.0, 0.0];
         
         // Pad vectors to required dimension
-        base_embedding.resize(384, 0.0);
         similar_embedding.resize(384, 0.0);
         different_embedding.resize(384, 0.0);
 

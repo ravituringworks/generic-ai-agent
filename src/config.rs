@@ -18,6 +18,9 @@ pub struct AgentConfig {
     
     /// Agent behavior settings
     pub agent: AgentBehaviorConfig,
+    
+    /// Workflow configuration
+    pub workflow: WorkflowConfig,
 }
 
 /// Language model configuration
@@ -108,6 +111,31 @@ pub struct McpServerConfig {
     pub enabled: bool,
 }
 
+/// Workflow configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkflowConfig {
+    /// Enable workflow suspend/resume functionality
+    pub enable_suspend_resume: bool,
+    
+    /// Snapshot storage directory
+    pub snapshot_storage_dir: Option<String>,
+    
+    /// Enable automatic checkpointing
+    pub auto_checkpoint: bool,
+    
+    /// Checkpoint interval (in steps)
+    pub checkpoint_interval: usize,
+    
+    /// Maximum number of snapshots to keep
+    pub max_snapshots: usize,
+    
+    /// Snapshot retention period in days
+    pub snapshot_retention_days: i64,
+    
+    /// Enable workflow step debugging
+    pub debug_steps: bool,
+}
+
 /// Agent behavior configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentBehaviorConfig {
@@ -133,6 +161,20 @@ pub struct AgentBehaviorConfig {
     pub verbose: bool,
 }
 
+impl Default for WorkflowConfig {
+    fn default() -> Self {
+        Self {
+            enable_suspend_resume: false,
+            snapshot_storage_dir: None,
+            auto_checkpoint: false,
+            checkpoint_interval: 5,
+            max_snapshots: 10,
+            snapshot_retention_days: 7,
+            debug_steps: false,
+        }
+    }
+}
+
 impl Default for AgentConfig {
     fn default() -> Self {
         Self {
@@ -140,6 +182,7 @@ impl Default for AgentConfig {
             memory: MemoryConfig::default(),
             mcp: McpConfig::default(),
             agent: AgentBehaviorConfig::default(),
+            workflow: WorkflowConfig::default(),
         }
     }
 }

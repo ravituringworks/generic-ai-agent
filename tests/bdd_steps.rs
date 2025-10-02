@@ -5,7 +5,7 @@ use generic_ai_agent::*;
 use std::collections::HashMap;
 use tempfile::tempdir;
 
-#[derive(Debug, World)]
+#[derive(World)]
 #[world(init = Self::new)]
 pub struct AgentWorld {
     agent: Option<Agent>,
@@ -13,6 +13,19 @@ pub struct AgentWorld {
     config: Option<AgentConfig>,
     temp_dir: Option<tempfile::TempDir>,
     error: Option<String>,
+}
+
+// Custom Debug implementation that doesn't require Agent to implement Debug
+impl std::fmt::Debug for AgentWorld {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AgentWorld")
+            .field("agent", &self.agent.as_ref().map(|_| "<Agent>"))
+            .field("last_response", &self.last_response)
+            .field("config", &self.config)
+            .field("temp_dir", &self.temp_dir.as_ref().map(|_| "<TempDir>"))
+            .field("error", &self.error)
+            .finish()
+    }
 }
 
 impl AgentWorld {

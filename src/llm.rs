@@ -317,7 +317,7 @@ pub fn assistant_message(content: impl Into<String>) -> Message {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockall::{automock, predicate::*};
+    use mockall::{automock, predicate::{self, *}};
 
     #[automock]
     #[async_trait]

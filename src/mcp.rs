@@ -425,7 +425,7 @@ impl McpClient {
 }
 
 /// MCP client statistics
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct McpStats {
     pub connected_servers: usize,
     pub total_tools: usize,

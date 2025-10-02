@@ -352,7 +352,7 @@ impl Agent {
 }
 
 /// Agent statistics
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct AgentStats {
     pub conversation_length: usize,
     pub memory_stats: crate::memory::MemoryStats,

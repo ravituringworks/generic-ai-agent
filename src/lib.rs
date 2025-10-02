@@ -31,6 +31,7 @@ pub mod llm;
 pub mod memory;
 pub mod mcp;
 pub mod tools;
+pub mod unified_storage;
 pub mod workflow;
 
 // Re-export main types
@@ -39,6 +40,12 @@ pub use config::{AgentConfig, LlmConfig, MemoryConfig, McpConfig};
 pub use error::{AgentError, Result};
 pub use memory::{MemoryStore, VectorStore};
 pub use mcp::{McpClient, McpTool, ToolCall, ToolResult};
+pub use unified_storage::{
+    UnifiedStorage, InMemoryUnifiedStorage, StorageManager, ResourceId,
+    SuspendedWorkflow, MemoryThread, MemoryMessage, TraceData, EvalDataset, EvalScore,
+    StorageStats, RetentionPolicy, CleanupStats, TraceFilters,
+    SuspendReason, ResumeCondition, MessageRole, TraceStatus, TraceEvent
+};
 pub use workflow::{WorkflowContext, WorkflowStep, WorkflowEngine};
 
 /// Version information
