@@ -718,43 +718,26 @@ impl LlmClient for CustomLlmClient {
 }
 ```
 
+
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+**We welcome contributions!** Before contributing, please:
 
-### Development Setup
+1. **Contact us first**: Email [rboddipalli@turingworks.com](mailto:rboddipalli@turingworks.com) to discuss your ideas
+2. **Read the guide**: See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines
+3. **Follow the process**: We'll help you through the development and review process
 
-```bash
-# Clone repository
-git clone https://github.com/ravituringworks/generic-ai-agent.git
-cd generic-ai-agent
-
-# Install development dependencies
-cargo install cargo-watch cargo-tarpaulin
-
-# Run tests in watch mode
-cargo watch -x test
-
-# Check code coverage
-cargo tarpaulin --out Html
-```
-
-### Code Quality
-
-```bash
-# Format code
-cargo fmt
-
-# Check for issues
-cargo clippy -- -D warnings
-
-# Run all quality checks
-make check  # If using provided Makefile
-```
+Areas we're especially looking for help:
+- Document RAG enhancements
+- Performance optimizations  
+- Real-world integration examples
+- Documentation and tutorials
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+
+Copyright © 2024 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 
 ## 🙏 Acknowledgments
 
@@ -764,17 +747,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tokio](https://tokio.rs/) - Async runtime
 - [Serde](https://serde.rs/) - Serialization framework
 
-## 📞 Support
+## 📞 Support & Contact
 
-- 📜 [Documentation](https://docs.rs/generic-ai-agent)
+### 📬 Primary Contact
+- **Maintainer**: Ravindra Boddipalli
+- **Email**: [rboddipalli@turingworks.com](mailto:rboddipalli@turingworks.com)
+- **Company**: [Turing Works](https://turingworks.com)
+
+### 📚 Documentation & Resources
+- 📜 [API Documentation](https://docs.rs/generic-ai-agent)
 - 🌐 [A2A Communication Guide](A2A_COMMUNICATION.md)
 - 🔄 [State Management Guide](PAUSE_EXECUTION.md)
 - 🗄️ [Unified Storage Guide](UNIFIED_STORAGE_README.md)
 - 📋 [API Reference](API.md)
 - ⏯️ [Suspend/Resume Guide](SUSPEND_RESUME.md)
-- 🐛 [Issue Tracker](https://github.com/ravituringworks/generic-ai-agent/issues)
-- 💬 [Discussions](https://github.com/ravituringworks/generic-ai-agent/discussions)
+- 📄 [Document RAG Examples](../examples/pdf_rag_with_tables.rs)
+
+### 🐛 Issues & Discussions
+- 🐛 [Report Issues](https://github.com/ravituringworks/generic-ai-agent/issues)
+- 💬 [Community Discussions](https://github.com/ravituringworks/generic-ai-agent/discussions)
+- 🚀 [Feature Requests](https://github.com/ravituringworks/generic-ai-agent/issues/new?template=feature_request.md)
 
 ---
 
-Built with ❤️ in Rust
+**Built with ❤️ in Rust by [Turing Works](https://turingworks.com)**

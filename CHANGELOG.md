@@ -84,12 +84,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Concurrent operations with proper resource management
 - Comprehensive logging and monitoring support
 
+### 📝 Legal & Contribution
+- **MIT License**: Added proper MIT license file
+- **Contribution Guide**: Comprehensive CONTRIBUTING.md with process guidelines
+- **Contact Information**: Updated maintainer contact to rboddipalli@turingworks.com
+- **Repository Metadata**: Enhanced Cargo.toml with keywords, categories, and links
+
 ### 📦 Dependencies
 - Tokio for async runtime
 - SQLx for database operations
 - Ollama-rs for LLM integration
 - Serde for serialization
 - Anyhow/Thiserror for error handling
+- PDF processing: pdf-extract, lopdf, table-extract
 - Various protocol-specific dependencies
 
 ---

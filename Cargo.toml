@@ -2,9 +2,24 @@
 name = "generic-ai-agent"
 version = "0.2.0"
 edition = "2021"
-authors = ["Ravindra B <ravbod@gmail.com>"]
+authors = ["Ravindra Boddipalli <rboddipalli@turingworks.com>"]
 description = "A comprehensive AI agent framework with Ollama LLM, vector memory, Document RAG, MCP tools, and multi-agent communication"
 license = "MIT"
+repository = "https://github.com/ravituringworks/generic-ai-agent"
+homepage = "https://github.com/ravituringworks/generic-ai-agent"
+documentation = "https://docs.rs/generic-ai-agent"
+readme = "README.md"
+keywords = ["ai", "agent", "llm", "ollama", "rag", "pdf", "multiagent"]
+categories = ["science", "text-processing", "web-programming", "asynchronous"]
+include = [
+    "src/**/*",
+    "examples/**/*", 
+    "docs/**/*",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md"
+]
 
 [dependencies]
 # Async runtime
