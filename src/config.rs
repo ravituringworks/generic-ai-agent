@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use crate::a2a::A2AConfig;
 
 /// Main configuration for the AI agent
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,6 +16,9 @@ pub struct AgentConfig {
     
     /// MCP server configurations
     pub mcp: McpConfig,
+    
+    /// Agent-to-Agent communication configuration
+    pub a2a: A2AConfig,
     
     /// Agent behavior settings
     pub agent: AgentBehaviorConfig,
@@ -181,6 +185,7 @@ impl Default for AgentConfig {
             llm: LlmConfig::default(),
             memory: MemoryConfig::default(),
             mcp: McpConfig::default(),
+            a2a: A2AConfig::default(),
             agent: AgentBehaviorConfig::default(),
             workflow: WorkflowConfig::default(),
         }

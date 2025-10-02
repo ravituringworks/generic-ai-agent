@@ -4,6 +4,7 @@
 //! - Ollama for language model interactions
 //! - Vector store for semantic search and memory
 //! - MCP (Model Context Protocol) client for tool calling
+//! - A2A (Agent-to-Agent) communication for external agent integration
 //! 
 //! # Example
 //! 
@@ -24,6 +25,7 @@
 //! }
 //! ```
 
+pub mod a2a;
 pub mod agent;
 pub mod config;
 pub mod error;
@@ -35,6 +37,12 @@ pub mod unified_storage;
 pub mod workflow;
 
 // Re-export main types
+pub use a2a::{
+    A2AClient, A2AManager, A2AConfig, A2AMessage, A2AResponse, A2AStats,
+    AgentId, AgentCapabilities, AgentRegistration, AgentStatus,
+    MessageType, MessagePayload, MessagePriority, MessageHandler,
+    HttpA2AClient, ProtocolType, ResponseStatus
+};
 pub use agent::{Agent, AgentBuilder};
 pub use config::{AgentConfig, LlmConfig, MemoryConfig, McpConfig};
 pub use error::{AgentError, Result};

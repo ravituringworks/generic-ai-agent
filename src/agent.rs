@@ -1,5 +1,6 @@
 //! Main AI Agent implementation
 
+use crate::a2a::{A2AManager, A2AClient, HttpA2AClient, AgentId, AgentCapabilities};
 use crate::config::AgentConfig;
 use crate::error::Result;
 use crate::llm::{LlmClient, OllamaClient, Message, Role, system_message, user_message, assistant_message};
@@ -26,6 +27,9 @@ pub struct Agent {
     
     /// MCP client for tool calling
     mcp: Arc<RwLock<McpClient>>,
+    
+    /// A2A manager for agent-to-agent communication
+    a2a: Option<A2AManager>,
     
     /// Built-in tools
     builtin_tools: BuiltinTools,
@@ -68,6 +72,25 @@ impl Agent {
         // Initialize built-in tools
         let builtin_tools = BuiltinTools::new();
 
+        // Initialize A2A manager if enabled
+        let a2a = if config.a2a.discovery.enabled {
+            let agent_id = AgentId::new(&config.agent.name, &config.agent.name);
+            let a2a_config = config.a2a.clone();
+            
+            match HttpA2AClient::new(a2a_config) {
+                Ok(client) => {
+                    let a2a_manager = A2AManager::new(Arc::new(client), agent_id);
+                    Some(a2a_manager)
+                }
+                Err(e) => {
+                    warn!("Failed to initialize A2A client: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         // Initialize workflow engine
         let workflow = WorkflowEngine::default();
 
@@ -82,6 +105,7 @@ impl Agent {
             llm,
             memory,
             mcp,
+            a2a,
             builtin_tools,
             workflow,
             conversation,
@@ -348,6 +372,88 @@ impl Agent {
     /// Get current conversation
     pub fn get_conversation(&self) -> &[Message] {
         &self.conversation
+    }
+    
+    /// Start A2A communication (register agent and begin listening)
+    pub async fn start_a2a(&self) -> Result<()> {
+        if let Some(a2a) = &self.a2a {
+            let capabilities = AgentCapabilities {
+                services: vec![
+                    "chat".to_string(),
+                    "llm".to_string(),
+                    "memory".to_string(),
+                    "tools".to_string(),
+                ],
+                protocols: vec!["http".to_string()],
+                message_types: vec![
+                    "text".to_string(),
+                    "task".to_string(),
+                    "query".to_string(),
+                ],
+                metadata: HashMap::from([
+                    ("model".to_string(), self.config.llm.text_model.clone()),
+                    ("version".to_string(), crate::VERSION.to_string()),
+                ]),
+            };
+            
+            a2a.start().await?;
+            info!("A2A communication started for agent: {}", self.config.agent.name);
+        }
+        Ok(())
+    }
+    
+    /// Stop A2A communication
+    pub async fn stop_a2a(&self) -> Result<()> {
+        if let Some(a2a) = &self.a2a {
+            a2a.stop().await?;
+            info!("A2A communication stopped for agent: {}", self.config.agent.name);
+        }
+        Ok(())
+    }
+    
+    /// Send a message to another agent via A2A
+    pub async fn send_to_agent(&self, target_agent: AgentId, message: &str) -> Result<String> {
+        if let Some(a2a) = &self.a2a {
+            use crate::a2a::{MessagePayload, A2AResponse};
+            
+            let payload = MessagePayload::Text { 
+                content: message.to_string() 
+            };
+            
+            let response = a2a.send_request(target_agent, "chat", payload).await?;
+            
+            match response.payload {
+                Some(MessagePayload::Text { content }) => Ok(content),
+                Some(MessagePayload::Json { data }) => Ok(data.to_string()),
+                _ => Ok("No response content".to_string()),
+            }
+        } else {
+            Err(crate::error::AgentError::Config("A2A not enabled".to_string()))
+        }
+    }
+    
+    /// Discover other agents with specific capabilities
+    pub async fn discover_agents(&self, capability: &str) -> Result<Vec<crate::a2a::AgentRegistration>> {
+        if let Some(a2a) = &self.a2a {
+            a2a.discover_service(capability).await
+        } else {
+            Err(crate::error::AgentError::Config("A2A not enabled".to_string()))
+        }
+    }
+    
+    /// Process a task requested by another agent
+    pub async fn process_agent_task(&mut self, task_description: &str) -> Result<String> {
+        info!("Processing task from another agent: {}", task_description);
+        
+        // Use the existing process method to handle the task
+        let response = self.process(task_description).await?;
+        
+        Ok(response)
+    }
+    
+    /// Check if A2A communication is enabled
+    pub fn has_a2a(&self) -> bool {
+        self.a2a.is_some()
     }
 }
 
