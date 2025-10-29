@@ -66,22 +66,37 @@ Task 1.2: Generate URDF model for humanoid robot with gripper
   Agent: ConfigSpecialist_Dana
   Priority: Critical
   Dependencies: None
+
+Task 1.3: Create performance profiling and benchmarking framework
+  Agent: ScalingEngineer_Bob
+  Priority: High
+  Dependencies: None
 ```
 
-#### Phase 2: Control (Depends on Phase 1)
+#### Phase 2: Control & Optimization (Depends on Phase 1)
 ```
 Task 2.1: Implement inverse kinematics controller
   Agent: SimulationEngineer_Alice
   Priority: High
   Dependencies: Task 1.1, Task 1.2
+
+Task 2.2: Optimize simulation performance with vectorization
+  Agent: ScalingEngineer_Bob
+  Priority: High
+  Dependencies: Task 1.1, Task 1.3
 ```
 
-#### Phase 3: Training (Depends on Phase 2)
+#### Phase 3: Training & Benchmarking (Depends on Phase 2)
 ```
 Task 3.1: Build distributed training pipeline for RL
   Agent: ScalingEngineer_Bob
   Priority: High
-  Dependencies: Task 2.1
+  Dependencies: Task 2.1, Task 2.2
+
+Task 3.2: Create comprehensive benchmark suite
+  Agent: ScalingEngineer_Bob
+  Priority: Medium
+  Dependencies: Task 2.1, Task 2.2
 ```
 
 #### Phase 4: Documentation (Depends on All)
@@ -213,11 +228,17 @@ let task6 = WorkspaceTask {
 ## Performance Characteristics
 
 **With Cloud LLM (deepseek-v3.1:671b-cloud)**:
-- Phase 1 (2 tasks): ~40-50 seconds (parallel)
-- Phase 2 (1 task): ~25-30 seconds
-- Phase 3 (1 task): ~25-30 seconds
+- Phase 1 (3 tasks): ~50-60 seconds (parallel execution)
+- Phase 2 (2 tasks): ~50-60 seconds (parallel execution)
+- Phase 3 (2 tasks): ~50-60 seconds (parallel execution)
 - Phase 4 (1 task): ~25-30 seconds
-- **Total**: ~2-3 minutes for 5 tasks
+- **Total**: ~3-4 minutes for 8 tasks
+
+**Agent Task Distribution**:
+- SimulationEngineer_Alice: 2 tasks (Phases 1, 2)
+- ScalingEngineer_Bob: 4 tasks (Phases 1, 2, 3, 3)
+- ConfigSpecialist_Dana: 1 task (Phase 1)
+- Coordinator_Charlie: 1 task (Phase 4)
 
 **Scaling**:
 - Add more agents: Linear scaling
@@ -230,7 +251,7 @@ let task6 = WorkspaceTask {
 |---------|------------------|-------------------|
 | Agents | 3 | 4 |
 | Phases | 1 | 4 |
-| Tasks | 1 | 5 |
+| Tasks | 1 | 8 |
 | Dependencies | None | Multi-level |
 | Artifact Types | 2 | 7 |
 | Execution | Sequential | Parallel + Sequential |

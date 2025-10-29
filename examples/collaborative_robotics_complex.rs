@@ -512,6 +512,20 @@ async fn main() -> Result<()> {
     };
     workspace.add_task(task2.clone());
 
+    // Phase 1: Foundation - Performance Profiling Setup
+    let task2b_id = Uuid::new_v4().to_string();
+    let task2b = WorkspaceTask {
+        id: task2b_id.clone(),
+        description: "Create performance profiling and benchmarking framework".to_string(),
+        assigned_to: scaling_engineer.name.clone(),
+        status: TaskStatus::Pending,
+        phase: 1,
+        dependencies: vec![],
+        artifacts_produced: vec![],
+        priority: TaskPriority::High,
+    };
+    workspace.add_task(task2b.clone());
+
     // Phase 2: Control - Depends on Phase 1
     let task3_id = Uuid::new_v4().to_string();
     let task3 = WorkspaceTask {
@@ -526,6 +540,21 @@ async fn main() -> Result<()> {
     };
     workspace.add_task(task3.clone());
 
+    // Phase 2: Performance Optimization
+    let task3b_id = Uuid::new_v4().to_string();
+    let task3b = WorkspaceTask {
+        id: task3b_id.clone(),
+        description: "Optimize simulation performance with vectorization and parallel processing"
+            .to_string(),
+        assigned_to: scaling_engineer.name.clone(),
+        status: TaskStatus::Pending,
+        phase: 2,
+        dependencies: vec![task1_id.clone(), task2b_id.clone()],
+        artifacts_produced: vec![],
+        priority: TaskPriority::High,
+    };
+    workspace.add_task(task3b.clone());
+
     // Phase 3: Training Infrastructure
     let task4_id = Uuid::new_v4().to_string();
     let task4 = WorkspaceTask {
@@ -534,11 +563,26 @@ async fn main() -> Result<()> {
         assigned_to: scaling_engineer.name.clone(),
         status: TaskStatus::Pending,
         phase: 3,
-        dependencies: vec![task3_id.clone()],
+        dependencies: vec![task3_id.clone(), task3b_id.clone()],
         artifacts_produced: vec![],
         priority: TaskPriority::High,
     };
     workspace.add_task(task4.clone());
+
+    // Phase 3: Performance Benchmarking
+    let task4b_id = Uuid::new_v4().to_string();
+    let task4b = WorkspaceTask {
+        id: task4b_id.clone(),
+        description: "Create comprehensive benchmark suite for training and inference performance"
+            .to_string(),
+        assigned_to: scaling_engineer.name.clone(),
+        status: TaskStatus::Pending,
+        phase: 3,
+        dependencies: vec![task3_id.clone(), task3b_id.clone()],
+        artifacts_produced: vec![],
+        priority: TaskPriority::Medium,
+    };
+    workspace.add_task(task4b.clone());
 
     // Phase 4: Documentation & Reporting
     let task5_id = Uuid::new_v4().to_string();
@@ -548,7 +592,9 @@ async fn main() -> Result<()> {
         assigned_to: coordinator.name.clone(),
         status: TaskStatus::Pending,
         phase: 4,
-        dependencies: vec![task1_id, task2_id, task3_id, task4_id],
+        dependencies: vec![
+            task1_id, task2_id, task2b_id, task3_id, task3b_id, task4_id, task4b_id,
+        ],
         artifacts_produced: vec![],
         priority: TaskPriority::Medium,
     };
@@ -557,6 +603,14 @@ async fn main() -> Result<()> {
     println!(
         "  ✓ Created {} tasks across 4 phases",
         workspace.tasks.len()
+    );
+    println!(
+        "  ✓ ScalingEngineer has {} tasks assigned",
+        workspace
+            .tasks
+            .iter()
+            .filter(|t| t.assigned_to == scaling_engineer.name)
+            .count()
     );
 
     // Execute tasks based on dependencies
