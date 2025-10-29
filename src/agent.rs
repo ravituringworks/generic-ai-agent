@@ -90,8 +90,27 @@ impl Agent {
             None
         };
 
-        // Initialize workflow engine
-        let workflow = WorkflowEngine::default();
+        // Initialize workflow engine with configuration
+        let mut workflow = WorkflowEngine::default();
+        
+        // Configure snapshot storage if directory is provided
+        if let Some(ref snapshot_dir) = config.workflow.snapshot_storage_dir {
+            use crate::workflow::FileSnapshotStorage;
+            let storage = Box::new(FileSnapshotStorage::new(snapshot_dir));
+            workflow = workflow.with_snapshot_storage(storage);
+        }
+        
+        // Apply workflow suspend configuration
+        if config.workflow.enable_suspend_resume {
+            use crate::workflow::WorkflowSuspendConfig;
+            let suspend_config = WorkflowSuspendConfig {
+                auto_checkpoint: config.workflow.auto_checkpoint,
+                checkpoint_interval: config.workflow.checkpoint_interval,
+                max_snapshots: config.workflow.max_snapshots,
+                snapshot_retention: chrono::Duration::days(config.workflow.snapshot_retention_days),
+            };
+            workflow = workflow.with_suspend_config(suspend_config);
+        }
 
         // Initialize conversation with system message
         let mut conversation = Vec::new();

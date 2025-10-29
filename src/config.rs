@@ -195,7 +195,7 @@ impl Default for WorkflowConfig {
     fn default() -> Self {
         Self {
             enable_suspend_resume: false,
-            snapshot_storage_dir: None,
+            snapshot_storage_dir: Some("./.agency/snapshots".to_string()),
             auto_checkpoint: false,
             checkpoint_interval: 5,
             max_snapshots: 10,

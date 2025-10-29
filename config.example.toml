@@ -18,7 +18,7 @@ max_tokens = 4096
 temperature = 0.7
 
 # Request timeout in seconds
-timeout = 30
+timeout = 300
 
 # Enable streaming responses
 stream = false
@@ -131,24 +131,32 @@ verbose = false
 
 [workflow]
 # Enable workflow suspend/resume functionality
+# Set to true to enable pausing and resuming workflows
 enable_suspend_resume = false
 
-# Snapshot storage directory
-snapshot_storage_dir = "./snapshots"
+# Snapshot storage directory (where workflow states are saved)
+# This is always configured but only used if enable_suspend_resume = true
+# or when workflows explicitly request suspension
+snapshot_storage_dir = "./.agency/snapshots"
 
 # Enable automatic checkpointing
+# If true, workflow state is automatically saved at regular intervals
 auto_checkpoint = false
 
 # Checkpoint interval (in steps)
+# How many steps between automatic checkpoints
 checkpoint_interval = 5
 
 # Maximum number of snapshots to keep
+# Older snapshots are automatically cleaned up
 max_snapshots = 10
 
 # Snapshot retention period in days
+# Snapshots older than this are deleted
 snapshot_retention_days = 7
 
 # Enable workflow step debugging
+# Logs detailed information about each workflow step
 debug_steps = false
 
 [a2a]
