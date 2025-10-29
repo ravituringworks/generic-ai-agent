@@ -1,10 +1,10 @@
 //! Tool management and execution
 
 use crate::mcp::{ToolCall, ToolContent, ToolResult};
-use std::collections::HashMap;
-use uuid::Uuid;
 use chrono::{Local, Utc};
+use std::collections::HashMap;
 use tokio::process::Command;
+use uuid::Uuid;
 
 /// Built-in tool for system information
 pub fn create_system_info_tool() -> ToolCall {
@@ -45,7 +45,7 @@ pub fn create_datetime_tool() -> ToolCall {
 pub async fn execute_datetime_info() -> ToolResult {
     let now_local = Local::now();
     let now_utc = Utc::now();
-    
+
     let info = serde_json::json!({
         "local_time": now_local.format("%Y-%m-%d %H:%M:%S %Z").to_string(),
         "utc_time": now_utc.format("%Y-%m-%d %H:%M:%S UTC").to_string(),
@@ -61,7 +61,10 @@ pub async fn execute_datetime_info() -> ToolResult {
     ToolResult {
         id: Uuid::new_v4().to_string(),
         content: vec![ToolContent::Text {
-            text: format!("Date/Time Info: {}", serde_json::to_string_pretty(&info).unwrap_or_else(|_| info.to_string())),
+            text: format!(
+                "Date/Time Info: {}",
+                serde_json::to_string_pretty(&info).unwrap_or_else(|_| info.to_string())
+            ),
         }],
         is_error: false,
     }
@@ -100,14 +103,17 @@ pub async fn execute_location_info() -> ToolResult {
 
     // Get current local time with timezone
     let now_local = Local::now();
-    location_info["current_local_time"] = serde_json::Value::String(
-        now_local.format("%Y-%m-%d %H:%M:%S %Z (%z)").to_string()
-    );
+    location_info["current_local_time"] =
+        serde_json::Value::String(now_local.format("%Y-%m-%d %H:%M:%S %Z (%z)").to_string());
 
     ToolResult {
         id: Uuid::new_v4().to_string(),
         content: vec![ToolContent::Text {
-            text: format!("Location Info: {}", serde_json::to_string_pretty(&location_info).unwrap_or_else(|_| location_info.to_string())),
+            text: format!(
+                "Location Info: {}",
+                serde_json::to_string_pretty(&location_info)
+                    .unwrap_or_else(|_| location_info.to_string())
+            ),
         }],
         is_error: false,
     }
@@ -130,7 +136,7 @@ async fn get_system_timezone() -> Result<String, Box<dyn std::error::Error>> {
                 }
             }
         }
-        
+
         // Fallback: try reading timezone link
         if let Ok(output) = Command::new("readlink")
             .args(["/etc/localtime"])
@@ -145,14 +151,14 @@ async fn get_system_timezone() -> Result<String, Box<dyn std::error::Error>> {
             }
         }
     }
-    
+
     #[cfg(target_os = "linux")]
     {
         // Try reading /etc/timezone first
         if let Ok(content) = tokio::fs::read_to_string("/etc/timezone").await {
             return Ok(content.trim().to_string());
         }
-        
+
         // Fallback: check /etc/localtime link
         if let Ok(output) = Command::new("readlink")
             .args(["/etc/localtime"])
@@ -167,7 +173,7 @@ async fn get_system_timezone() -> Result<String, Box<dyn std::error::Error>> {
             }
         }
     }
-    
+
     #[cfg(target_os = "windows")]
     {
         if let Ok(output) = Command::new("powershell")
@@ -180,29 +186,33 @@ async fn get_system_timezone() -> Result<String, Box<dyn std::error::Error>> {
             }
         }
     }
-    
+
     // Final fallback: use chrono's local timezone
     let local_now = Local::now();
-    Ok(format!("{} ({})", local_now.format("%Z"), local_now.format("%z")))
+    Ok(format!(
+        "{} ({})",
+        local_now.format("%Z"),
+        local_now.format("%z")
+    ))
 }
 
 /// Get system locale information
 async fn get_system_locale() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     let mut locale_info = serde_json::json!({});
-    
+
     // Try to get locale information from environment variables
     if let Ok(lang) = std::env::var("LANG") {
         locale_info["LANG"] = serde_json::Value::String(lang);
     }
-    
+
     if let Ok(lc_all) = std::env::var("LC_ALL") {
         locale_info["LC_ALL"] = serde_json::Value::String(lc_all);
     }
-    
+
     if let Ok(lc_time) = std::env::var("LC_TIME") {
         locale_info["LC_TIME"] = serde_json::Value::String(lc_time);
     }
-    
+
     // Try platform-specific locale detection
     #[cfg(target_os = "macos")]
     {
@@ -213,25 +223,23 @@ async fn get_system_locale() -> Result<serde_json::Value, Box<dyn std::error::Er
         {
             if output.status.success() {
                 locale_info["macos_locale"] = serde_json::Value::String(
-                    String::from_utf8_lossy(&output.stdout).trim().to_string()
+                    String::from_utf8_lossy(&output.stdout).trim().to_string(),
                 );
             }
         }
     }
-    
+
     #[cfg(target_os = "linux")]
     {
-        if let Ok(output) = Command::new("locale")
-            .output()
-            .await
-        {
+        if let Ok(output) = Command::new("locale").output().await {
             if output.status.success() {
                 let locale_output = String::from_utf8_lossy(&output.stdout);
-                locale_info["system_locale"] = serde_json::Value::String(locale_output.trim().to_string());
+                locale_info["system_locale"] =
+                    serde_json::Value::String(locale_output.trim().to_string());
             }
         }
     }
-    
+
     Ok(locale_info)
 }
 
@@ -239,12 +247,12 @@ async fn get_system_locale() -> Result<serde_json::Value, Box<dyn std::error::Er
 async fn get_network_location() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     // Note: This is a basic implementation that just provides network interface information
     // In a production environment, you might want to integrate with a geolocation API
-    
+
     let mut network_info = serde_json::json!({
         "note": "Basic network information available. For precise geolocation, consider integrating with a geolocation service.",
         "privacy_note": "Network-based location detection requires external API calls which may have privacy implications."
     });
-    
+
     // Get network interface information (available without external APIs)
     #[cfg(target_os = "macos")]
     {
@@ -258,7 +266,7 @@ async fn get_network_location() -> Result<serde_json::Value, Box<dyn std::error:
             }
         }
     }
-    
+
     // Get public IP (basic network detection)
     if let Ok(output) = Command::new("dig")
         .args(["+short", "myip.opendns.com", "@resolver1.opendns.com"])
@@ -275,49 +283,70 @@ async fn get_network_location() -> Result<serde_json::Value, Box<dyn std::error:
             }
         }
     }
-    
+
     Ok(network_info)
 }
 
 /// Built-in tool registry
 pub struct BuiltinTools {
-    tools: HashMap<String, Box<dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin> + Send + Sync>>,
+    tools: HashMap<
+        String,
+        Box<
+            dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
+                + Send
+                + Sync,
+        >,
+    >,
 }
 
 impl BuiltinTools {
     pub fn new() -> Self {
         let mut tools = HashMap::new();
-        
+
         // Add system info tool
         tools.insert(
             "system_info".to_string(),
             Box::new(|| {
                 Box::new(Box::pin(execute_system_info()))
                     as Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
-            }) as Box<dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin> + Send + Sync>
+            })
+                as Box<
+                    dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
+                        + Send
+                        + Sync,
+                >,
         );
-        
+
         // Add datetime info tool
         tools.insert(
             "datetime_info".to_string(),
             Box::new(|| {
                 Box::new(Box::pin(execute_datetime_info()))
                     as Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
-            }) as Box<dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin> + Send + Sync>
+            })
+                as Box<
+                    dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
+                        + Send
+                        + Sync,
+                >,
         );
-        
+
         // Add location info tool
         tools.insert(
             "location_info".to_string(),
             Box::new(|| {
                 Box::new(Box::pin(execute_location_info()))
                     as Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
-            }) as Box<dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin> + Send + Sync>
+            })
+                as Box<
+                    dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
+                        + Send
+                        + Sync,
+                >,
         );
 
         Self { tools }
     }
-
 
     pub fn list_tools(&self) -> Vec<String> {
         self.tools.keys().cloned().collect()

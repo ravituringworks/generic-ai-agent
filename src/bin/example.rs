@@ -1,11 +1,11 @@
 //! Example application demonstrating the Generic AI Agent
 
-use the_agency::{
-    Agent, AgentBuilder, AgentConfig,
-    config::{McpServerConfig, MemoryConfig},
-};
 use std::io::{self, Write};
-use tracing::{info, error};
+use the_agency::{
+    config::{McpServerConfig, MemoryConfig},
+    Agent, AgentBuilder, AgentConfig,
+};
+use tracing::{error, info};
 use tracing_subscriber;
 
 #[tokio::main]
@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Create agent configuration
     let mut config = AgentConfig::default();
-    
+
     // Configure memory to use an in-memory database for this example
     // For persistent storage, use: Some("sqlite:/path/to/database.db".to_string())
     config.memory = MemoryConfig {
@@ -54,7 +54,8 @@ You are a helpful AI assistant with access to tools and memory. You can:
 
 You are friendly, helpful, and always try to provide accurate information.
 When you don't know something, you admit it rather than making things up.
-"#.to_string();
+"#
+    .to_string();
 
     println!("Initializing agent...");
 
@@ -78,9 +79,18 @@ When you don't know something, you admit it rather than making things up.
     println!("\n📊 Agent Statistics:");
     println!("  • Conversation length: {}", stats.conversation_length);
     println!("  • Memory entries: {}", stats.memory_stats.total_memories);
-    println!("  • Embedding dimension: {}", stats.memory_stats.embedding_dimension);
-    println!("  • Connected MCP servers: {}", stats.mcp_stats.connected_servers);
-    println!("  • Total tools available: {}", stats.mcp_stats.total_tools + stats.builtin_tools_count);
+    println!(
+        "  • Embedding dimension: {}",
+        stats.memory_stats.embedding_dimension
+    );
+    println!(
+        "  • Connected MCP servers: {}",
+        stats.mcp_stats.connected_servers
+    );
+    println!(
+        "  • Total tools available: {}",
+        stats.mcp_stats.total_tools + stats.builtin_tools_count
+    );
     println!("  • Built-in tools: {}", stats.builtin_tools_count);
 
     println!("\n🚀 Agent is ready! Type 'help' for commands or 'quit' to exit.\n");
@@ -162,17 +172,29 @@ fn print_stats(stats: &the_agency::agent::AgentStats) {
     println!("┌─────────────────────────────────────────┐");
     println!("│ Conversation & Memory                   │");
     println!("├─────────────────────────────────────────┤");
-    println!("│ Messages in conversation: {:>13} │", stats.conversation_length);
-    println!("│ Total memories stored: {:>16} │", stats.memory_stats.total_memories);
-    println!("│ Embedding dimension: {:>18} │", stats.memory_stats.embedding_dimension);
+    println!(
+        "│ Messages in conversation: {:>13} │",
+        stats.conversation_length
+    );
+    println!(
+        "│ Total memories stored: {:>16} │",
+        stats.memory_stats.total_memories
+    );
+    println!(
+        "│ Embedding dimension: {:>18} │",
+        stats.memory_stats.embedding_dimension
+    );
     println!("├─────────────────────────────────────────┤");
     println!("│ Tools & Capabilities                    │");
     println!("├─────────────────────────────────────────┤");
-    println!("│ MCP servers connected: {:>16} │", stats.mcp_stats.connected_servers);
+    println!(
+        "│ MCP servers connected: {:>16} │",
+        stats.mcp_stats.connected_servers
+    );
     println!("│ Total MCP tools: {:>22} │", stats.mcp_stats.total_tools);
     println!("│ Built-in tools: {:>23} │", stats.builtin_tools_count);
     println!("└─────────────────────────────────────────┘");
-    
+
     if !stats.mcp_stats.servers.is_empty() {
         println!("\n🔧 MCP Servers:");
         for (name, tool_count) in &stats.mcp_stats.servers {
@@ -187,57 +209,67 @@ async fn run_demo(agent: &mut Agent, demo_type: &str) -> anyhow::Result<()> {
         "memory" => {
             println!("\n🧠 Memory Demo");
             println!("==============");
-            
+
             info!("Running memory demo");
-            
+
             // Store some information
             let responses = vec![
-                agent.process("Remember that my favorite programming language is Rust").await?,
-                agent.process("I also enjoy working with Python for data science").await?,
-                agent.process("My name is Alice and I work as a software engineer").await?,
+                agent
+                    .process("Remember that my favorite programming language is Rust")
+                    .await?,
+                agent
+                    .process("I also enjoy working with Python for data science")
+                    .await?,
+                agent
+                    .process("My name is Alice and I work as a software engineer")
+                    .await?,
             ];
-            
+
             for response in responses {
                 println!("🤖 {}", response);
             }
-            
+
             println!("\nNow let's see if the agent can recall this information:");
-            
-            let recall_response = agent.process("What do you know about my preferences and background?").await?;
+
+            let recall_response = agent
+                .process("What do you know about my preferences and background?")
+                .await?;
             println!("🤖 {}", recall_response);
-        },
-        
+        }
+
         "tools" => {
             println!("\n🔧 Tools Demo");
             println!("=============");
-            
+
             info!("Running tools demo");
-            
-            let response = agent.process("Can you show me my system information?").await?;
+
+            let response = agent
+                .process("Can you show me my system information?")
+                .await?;
             println!("🤖 {}", response);
-        },
-        
+        }
+
         "workflow" => {
             println!("\n⚡ Workflow Demo");
             println!("===============");
-            
+
             info!("Running workflow demo");
-            
+
             println!("This demo shows the agent's reasoning process:");
-            
+
             let response = agent.process("I need to know about my system and also want you to remember that I'm interested in AI and machine learning").await?;
             println!("🤖 {}", response);
-            
+
             println!("\nNow let's see if it can combine memory and tools:");
             let response2 = agent.process("Based on what you know about me and my system, what programming setup would you recommend?").await?;
             println!("🤖 {}", response2);
-        },
-        
+        }
+
         _ => {
             println!("❌ Unknown demo type. Available: memory, tools, workflow");
         }
     }
-    
+
     println!();
     Ok(())
 }
@@ -250,13 +282,17 @@ async fn programmatic_example() -> anyhow::Result<()> {
     // Create agent with custom configuration
     let agent = AgentBuilder::new()
         .with_name("Programmatic Assistant".to_string())
-        .with_system_prompt("You are a helpful programming assistant specialized in Rust.".to_string())
+        .with_system_prompt(
+            "You are a helpful programming assistant specialized in Rust.".to_string(),
+        )
         .build()
         .await?;
 
     // Example interaction
     let mut agent = agent;
-    let response = agent.process("Explain the ownership system in Rust").await?;
+    let response = agent
+        .process("Explain the ownership system in Rust")
+        .await?;
     println!("Response: {}", response);
 
     // Get conversation history

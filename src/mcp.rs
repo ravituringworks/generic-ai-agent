@@ -51,9 +51,18 @@ pub enum ToolContent {
 /// MCP server connection types
 #[derive(Debug, Clone)]
 pub enum McpTransport {
-    Http { url: String, auth_token: Option<String> },
-    WebSocket { url: String, auth_token: Option<String> },
-    Stdio { command: Vec<String>, env: HashMap<String, String> },
+    Http {
+        url: String,
+        auth_token: Option<String>,
+    },
+    WebSocket {
+        url: String,
+        auth_token: Option<String>,
+    },
+    Stdio {
+        command: Vec<String>,
+        env: HashMap<String, String>,
+    },
 }
 
 /// MCP server connection
@@ -61,10 +70,10 @@ pub enum McpTransport {
 pub trait McpConnection: Send + Sync {
     /// Send a JSON-RPC request and get response
     async fn call(&self, method: &str, params: Value) -> Result<Value>;
-    
+
     /// Check if the connection is healthy
     async fn health_check(&self) -> Result<bool>;
-    
+
     /// Close the connection
     async fn close(&mut self) -> Result<()>;
 }
@@ -95,19 +104,15 @@ impl HttpMcpConnection {
 impl McpConnection for HttpMcpConnection {
     async fn call(&self, method: &str, params: Value) -> Result<Value> {
         let id = Id::Str(Uuid::new_v4().to_string());
-        
+
         let request = MethodCall {
             jsonrpc: Some(Version::V2),
             method: method.to_string(),
-            params: Params::Map(
-                params.as_object().unwrap_or(&Map::new()).clone()
-            ),
+            params: Params::Map(params.as_object().unwrap_or(&Map::new()).clone()),
             id: id.clone(),
         };
 
-        let mut http_request = self.client
-            .post(&self.url)
-            .json(&request);
+        let mut http_request = self.client.post(&self.url).json(&request);
 
         if let Some(token) = &self.auth_token {
             http_request = http_request.bearer_auth(token);
@@ -119,9 +124,9 @@ impl McpConnection for HttpMcpConnection {
             .map_err(|e| McpError::ConnectionFailed(e.to_string()))?;
 
         if !response.status().is_success() {
-            return Err(McpError::ProtocolError(
-                format!("HTTP error: {}", response.status())
-            ).into());
+            return Err(
+                McpError::ProtocolError(format!("HTTP error: {}", response.status())).into(),
+            );
         }
 
         let json_response: Response = response
@@ -134,13 +139,15 @@ impl McpConnection for HttpMcpConnection {
                 if output.id() != &id {
                     return Err(McpError::ProtocolError("ID mismatch".to_string()).into());
                 }
-                
+
                 match output {
                     jsonrpc_core::Output::Success(success) => Ok(success.result),
                     jsonrpc_core::Output::Failure(failure) => {
-                        Err(McpError::ProtocolError(
-                            format!("JSON-RPC error: {:?} - {}", failure.error.code, failure.error.message)
-                        ).into())
+                        Err(McpError::ProtocolError(format!(
+                            "JSON-RPC error: {:?} - {}",
+                            failure.error.code, failure.error.message
+                        ))
+                        .into())
                     }
                 }
             }
@@ -191,25 +198,37 @@ impl McpClient {
 
         let connection: Box<dyn McpConnection> = match server_config.transport.as_str() {
             "http" => {
-                let url = server_config.url
+                let url = server_config
+                    .url
                     .ok_or_else(|| McpError::ConnectionFailed("HTTP URL required".to_string()))?;
-                
+
                 let timeout = Duration::from_secs(
-                    server_config.timeout.unwrap_or(self.config.default_timeout)
+                    server_config.timeout.unwrap_or(self.config.default_timeout),
                 );
 
-                Box::new(HttpMcpConnection::new(url, server_config.auth_token, timeout))
+                Box::new(HttpMcpConnection::new(
+                    url,
+                    server_config.auth_token,
+                    timeout,
+                ))
             }
             "websocket" => {
-                return Err(McpError::ConnectionFailed("WebSocket not implemented yet".to_string()).into());
+                return Err(McpError::ConnectionFailed(
+                    "WebSocket not implemented yet".to_string(),
+                )
+                .into());
             }
             "stdio" => {
-                return Err(McpError::ConnectionFailed("Stdio not implemented yet".to_string()).into());
+                return Err(
+                    McpError::ConnectionFailed("Stdio not implemented yet".to_string()).into(),
+                );
             }
             _ => {
-                return Err(McpError::ConnectionFailed(
-                    format!("Unsupported transport: {}", server_config.transport)
-                ).into());
+                return Err(McpError::ConnectionFailed(format!(
+                    "Unsupported transport: {}",
+                    server_config.transport
+                ))
+                .into());
             }
         };
 
@@ -228,7 +247,11 @@ impl McpClient {
     }
 
     /// Initialize a server connection and cache its tools
-    async fn initialize_server(&mut self, name: &str, connection: &dyn McpConnection) -> Result<()> {
+    async fn initialize_server(
+        &mut self,
+        name: &str,
+        connection: &dyn McpConnection,
+    ) -> Result<()> {
         debug!("Initializing server: {}", name);
 
         // Initialize the MCP session
@@ -249,11 +272,13 @@ impl McpClient {
         connection.call("initialize", init_params).await?;
 
         // Get available tools
-        let tools_response = connection.call("tools/list", Value::Object(Map::new())).await?;
-        
+        let tools_response = connection
+            .call("tools/list", Value::Object(Map::new()))
+            .await?;
+
         if let Some(tools_array) = tools_response.get("tools").and_then(|t| t.as_array()) {
             let mut tools = Vec::new();
-            
+
             for tool_value in tools_array {
                 if let Ok(tool) = serde_json::from_value::<McpTool>(tool_value.clone()) {
                     tools.push(tool);
@@ -275,13 +300,13 @@ impl McpClient {
     /// Get all available tools across all servers
     pub fn list_tools(&self) -> Vec<(String, &McpTool)> {
         let mut all_tools = Vec::new();
-        
+
         for (server_name, tools) in &self.tools_cache {
             for tool in tools {
                 all_tools.push((server_name.clone(), tool));
             }
         }
-        
+
         all_tools
     }
 
@@ -301,13 +326,13 @@ impl McpClient {
     pub async fn call_tool(&self, tool_call: ToolCall) -> Result<ToolResult> {
         debug!("Calling tool: {}", tool_call.name);
 
-        let (server_name, _tool) = self.find_tool_server(&tool_call.name)
+        let (server_name, _tool) = self
+            .find_tool_server(&tool_call.name)
             .ok_or_else(|| McpError::ToolNotFound(tool_call.name.clone()))?;
 
-        let connection = self.servers.get(server_name)
-            .ok_or_else(|| McpError::ConnectionFailed(
-                format!("Server {} not found", server_name)
-            ))?;
+        let connection = self.servers.get(server_name).ok_or_else(|| {
+            McpError::ConnectionFailed(format!("Server {} not found", server_name))
+        })?;
 
         let call_params = serde_json::json!({
             "name": tool_call.name,
@@ -315,37 +340,43 @@ impl McpClient {
         });
 
         let timeout_duration = Duration::from_secs(self.config.default_timeout);
-        
-        let result = timeout(
-            timeout_duration,
-            connection.call("tools/call", call_params)
-        )
-        .await
-        .map_err(|_| McpError::Timeout(format!("Tool call timed out: {}", tool_call.name)))?;
+
+        let result = timeout(timeout_duration, connection.call("tools/call", call_params))
+            .await
+            .map_err(|_| McpError::Timeout(format!("Tool call timed out: {}", tool_call.name)))?;
 
         match result {
             Ok(response) => {
                 // Parse the MCP tool response
-                let content = if let Some(content_array) = response.get("content").and_then(|c| c.as_array()) {
+                let content = if let Some(content_array) =
+                    response.get("content").and_then(|c| c.as_array())
+                {
                     let mut parsed_content = Vec::new();
-                    
+
                     for content_value in content_array {
-                        if let Ok(content_item) = serde_json::from_value::<ToolContent>(content_value.clone()) {
+                        if let Ok(content_item) =
+                            serde_json::from_value::<ToolContent>(content_value.clone())
+                        {
                             parsed_content.push(content_item);
                         } else {
                             // Fallback to text content
                             if let Some(text) = content_value.get("text").and_then(|t| t.as_str()) {
-                                parsed_content.push(ToolContent::Text { text: text.to_string() });
+                                parsed_content.push(ToolContent::Text {
+                                    text: text.to_string(),
+                                });
                             }
                         }
                     }
                     parsed_content
                 } else {
                     // Fallback: treat entire response as text
-                    vec![ToolContent::Text { text: response.to_string() }]
+                    vec![ToolContent::Text {
+                        text: response.to_string(),
+                    }]
                 };
 
-                let is_error = response.get("isError")
+                let is_error = response
+                    .get("isError")
                     .and_then(|e| e.as_bool())
                     .unwrap_or(false);
 
@@ -359,8 +390,8 @@ impl McpClient {
                 error!("Tool call failed: {}", e);
                 Ok(ToolResult {
                     id: tool_call.id,
-                    content: vec![ToolContent::Text { 
-                        text: format!("Tool call failed: {}", e) 
+                    content: vec![ToolContent::Text {
+                        text: format!("Tool call failed: {}", e),
                     }],
                     is_error: true,
                 })
@@ -372,12 +403,15 @@ impl McpClient {
     pub async fn call_tools(&self, tool_calls: Vec<ToolCall>) -> Vec<ToolResult> {
         let max_concurrent = self.config.max_concurrent_calls;
         let mut results = Vec::new();
-        
+
         // Process in chunks to respect concurrency limits
         for chunk in tool_calls.chunks(max_concurrent) {
-            let futures: Vec<_> = chunk.iter().map(|call| self.call_tool(call.clone())).collect();
+            let futures: Vec<_> = chunk
+                .iter()
+                .map(|call| self.call_tool(call.clone()))
+                .collect();
             let chunk_results = futures::future::join_all(futures).await;
-            
+
             for result in chunk_results {
                 match result {
                     Ok(tool_result) => results.push(tool_result),
@@ -385,8 +419,8 @@ impl McpClient {
                         error!("Tool call error: {}", e);
                         results.push(ToolResult {
                             id: Uuid::new_v4().to_string(),
-                            content: vec![ToolContent::Text { 
-                                text: format!("Error: {}", e) 
+                            content: vec![ToolContent::Text {
+                                text: format!("Error: {}", e),
                             }],
                             is_error: true,
                         });
@@ -394,7 +428,7 @@ impl McpClient {
                 }
             }
         }
-        
+
         results
     }
 
@@ -410,14 +444,14 @@ impl McpClient {
 
     /// Get server statistics
     pub fn stats(&self) -> McpStats {
-        let total_tools = self.tools_cache.values()
-            .map(|tools| tools.len())
-            .sum();
+        let total_tools = self.tools_cache.values().map(|tools| tools.len()).sum();
 
         McpStats {
             connected_servers: self.servers.len(),
             total_tools,
-            servers: self.tools_cache.iter()
+            servers: self
+                .tools_cache
+                .iter()
                 .map(|(name, tools)| (name.clone(), tools.len()))
                 .collect(),
         }
@@ -471,7 +505,7 @@ mod tests {
     fn test_mcp_client_creation() {
         let config = McpConfig::default();
         let client = McpClient::new(config);
-        
+
         assert_eq!(client.servers.len(), 0);
         assert_eq!(client.tools_cache.len(), 0);
     }

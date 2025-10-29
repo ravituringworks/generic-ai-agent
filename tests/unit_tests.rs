@@ -1,28 +1,28 @@
 //! Unit tests for the Generic AI Agent
 
-use the_agency::*;
 use mockall::predicate::*;
 use std::collections::HashMap;
 use tempfile::tempdir;
+use the_agency::*;
 use tokio_test;
 
 /// Test configuration validation
 #[tokio::test]
 async fn test_config_validation() {
     let mut config = AgentConfig::default();
-    
+
     // Valid config should pass
     assert!(config.validate().is_ok());
-    
+
     // Invalid Ollama URL should fail
     config.llm.ollama_url = "invalid-url".to_string();
     assert!(config.validate().is_err());
-    
+
     // Reset and test empty model
     config = AgentConfig::default();
     config.llm.text_model = "".to_string();
     assert!(config.validate().is_err());
-    
+
     // Reset and test invalid similarity threshold
     config = AgentConfig::default();
     config.memory.similarity_threshold = 2.0; // Invalid: should be between 0.0 and 1.0
@@ -47,7 +47,7 @@ async fn test_agent_builder() {
 async fn test_memory_store() {
     let temp_dir = tempdir().unwrap();
     let db_path = temp_dir.path().join("test.db");
-    
+
     let config = MemoryConfig {
         database_url: Some(format!("sqlite://{}", db_path.to_str().unwrap())),
         embedding_dimension: 384,
@@ -65,11 +65,14 @@ async fn test_memory_store() {
     let mut metadata = HashMap::new();
     metadata.insert("source".to_string(), "test".to_string());
 
-    let id = store.store(
-        "This is a test memory".to_string(),
-        embedding.clone(),
-        metadata.clone(),
-    ).await.unwrap();
+    let id = store
+        .store(
+            "This is a test memory".to_string(),
+            embedding.clone(),
+            metadata.clone(),
+        )
+        .await
+        .unwrap();
 
     // Test retrieving the memory
     let retrieved = store.get(id).await.unwrap().unwrap();
@@ -85,13 +88,16 @@ async fn test_memory_store() {
     // Test updating the memory
     let mut new_metadata = HashMap::new();
     new_metadata.insert("updated".to_string(), "true".to_string());
-    
-    store.update(
-        id,
-        Some("Updated content".to_string()),
-        None,
-        Some(new_metadata),
-    ).await.unwrap();
+
+    store
+        .update(
+            id,
+            Some("Updated content".to_string()),
+            None,
+            Some(new_metadata),
+        )
+        .await
+        .unwrap();
 
     let updated = store.get(id).await.unwrap().unwrap();
     assert_eq!(updated.content, "Updated content");
@@ -134,7 +140,7 @@ fn test_embedding_serialization() {
     let embedding = vec![1.5, -2.3, 0.0, 42.1];
     let serialized = memory::SqliteMemoryStore::serialize_embedding(&embedding);
     let deserialized = memory::SqliteMemoryStore::deserialize_embedding(&serialized);
-    
+
     assert_eq!(embedding.len(), deserialized.len());
     for (orig, deser) in embedding.iter().zip(deserialized.iter()) {
         assert!((orig - deser).abs() < f32::EPSILON);
@@ -190,23 +196,25 @@ fn test_mcp_tool_serialization() {
 #[tokio::test]
 async fn test_workflow_context() {
     let mut context = workflow::WorkflowContext::new(5);
-    
+
     assert_eq!(context.step_count, 0);
     assert!(context.should_continue());
-    
+
     context.increment_step();
     assert_eq!(context.step_count, 1);
-    
+
     context.add_message(llm::user_message("Hello"));
     assert_eq!(context.messages.len(), 1);
-    
+
     // Test tool result addition
     let tool_result = mcp::ToolResult {
         id: "test-id".to_string(),
-        content: vec![mcp::ToolContent::Text { text: "Result".to_string() }],
+        content: vec![mcp::ToolContent::Text {
+            text: "Result".to_string(),
+        }],
         is_error: false,
     };
-    
+
     context.add_tool_result("call-1".to_string(), tool_result);
     assert!(context.tool_results.contains_key("call-1"));
 }
@@ -217,30 +225,36 @@ async fn test_workflow_steps() {
     // Test memory retrieval step
     let step = workflow::MemoryRetrievalStep;
     let mut context = workflow::WorkflowContext::new(5);
-    
+
     // No user message
     let decision = step.execute(&mut context).await.unwrap();
     assert!(matches!(decision, workflow::WorkflowDecision::Continue));
-    
+
     // With user message
     context.add_message(llm::user_message("What is Rust?"));
     let decision = step.execute(&mut context).await.unwrap();
-    assert!(matches!(decision, workflow::WorkflowDecision::RetrieveMemories(_)));
+    assert!(matches!(
+        decision,
+        workflow::WorkflowDecision::RetrieveMemories(_)
+    ));
 
     // Test tool analysis step
     let step = workflow::ToolAnalysisStep;
     let mut context = workflow::WorkflowContext::new(5);
     context.available_tools.push("system_info".to_string());
-    
+
     // No relevant message
     context.add_message(llm::user_message("Hello"));
     let decision = step.execute(&mut context).await.unwrap();
     assert!(matches!(decision, workflow::WorkflowDecision::Continue));
-    
+
     // System info request
     context.add_message(llm::user_message("Show me system info"));
     let decision = step.execute(&mut context).await.unwrap();
-    assert!(matches!(decision, workflow::WorkflowDecision::ExecuteTools(_)));
+    assert!(matches!(
+        decision,
+        workflow::WorkflowDecision::ExecuteTools(_)
+    ));
 }
 
 /// Test workflow engine execution
@@ -249,7 +263,7 @@ async fn test_workflow_engine() {
     let engine = workflow::WorkflowEngine::default();
     let mut context = workflow::WorkflowContext::new(10);
     context.add_message(llm::user_message("Hello, how are you?"));
-    
+
     let result = engine.execute(context).await.unwrap();
     assert!(result.completed);
     assert!(!result.response.is_empty());
@@ -259,14 +273,14 @@ async fn test_workflow_engine() {
 #[tokio::test]
 async fn test_builtin_tools() {
     let tools = tools::BuiltinTools::new();
-    
+
     let tool_list = tools.list_tools();
     assert!(!tool_list.is_empty());
     assert!(tool_list.contains(&"system_info".to_string()));
-    
+
     let result = tools.execute("system_info").await;
     assert!(result.is_some());
-    
+
     let result = result.unwrap();
     assert!(!result.is_error);
     assert!(!result.content.is_empty());
@@ -292,12 +306,12 @@ fn test_error_types() {
 #[test]
 fn test_config_file_operations() {
     let config = AgentConfig::default();
-    
+
     // Test JSON serialization/deserialization
     let json_str = serde_json::to_string_pretty(&config).unwrap();
     let parsed_config: AgentConfig = serde_json::from_str(&json_str).unwrap();
     assert_eq!(config.agent.name, parsed_config.agent.name);
-    
+
     // Test MCP server management
     let mut config = AgentConfig::default();
     let server_config = config::McpServerConfig {
@@ -309,10 +323,10 @@ fn test_config_file_operations() {
         auth_token: None,
         enabled: true,
     };
-    
+
     config.add_mcp_server("test-server".to_string(), server_config.clone());
     assert!(config.mcp.servers.contains_key("test-server"));
-    
+
     let removed = config.remove_mcp_server("test-server");
     assert!(removed.is_some());
     assert!(!config.mcp.servers.contains_key("test-server"));
@@ -323,10 +337,10 @@ fn test_config_file_operations() {
 async fn test_concurrent_operations() {
     use std::sync::Arc;
     use tokio::sync::RwLock;
-    
+
     let temp_dir = tempdir().unwrap();
     let db_path = temp_dir.path().join("concurrent_test.db");
-    
+
     let config = MemoryConfig {
         database_url: Some(format!("sqlite://{}", db_path.to_str().unwrap())),
         embedding_dimension: 384,
@@ -342,40 +356,45 @@ async fn test_concurrent_operations() {
 
     // Test concurrent reads and writes
     let mut handles = vec![];
-    
+
     for i in 0..5 {
         let store_clone = Arc::clone(&store);
         let handle = tokio::spawn(async move {
             let embedding = vec![0.1 * i as f32; 384];
             let mut metadata = HashMap::new();
             metadata.insert("thread".to_string(), i.to_string());
-            
+
             // Write operation
             let mut store_lock = store_clone.write().await;
-            let id = store_lock.store(
-                format!("Memory from thread {}", i),
-                embedding.clone(),
-                metadata,
-            ).await.unwrap();
-            
+            let id = store_lock
+                .store(
+                    format!("Memory from thread {}", i),
+                    embedding.clone(),
+                    metadata,
+                )
+                .await
+                .unwrap();
+
             drop(store_lock); // Release write lock
-            
+
             // Read operation
             let store_lock = store_clone.read().await;
             let retrieved = store_lock.get(id).await.unwrap();
             assert!(retrieved.is_some());
-            
+
             id
         });
         handles.push(handle);
     }
-    
-    let ids: Vec<_> = futures::future::join_all(handles).await.into_iter()
+
+    let ids: Vec<_> = futures::future::join_all(handles)
+        .await
+        .into_iter()
         .map(|r| r.unwrap())
         .collect();
-    
+
     assert_eq!(ids.len(), 5);
-    
+
     // Verify all memories were stored
     let store_lock = store.read().await;
     let stats = store_lock.stats().await.unwrap();
@@ -387,13 +406,13 @@ async fn test_concurrent_operations() {
 async fn test_integration_with_mocks() {
     // This test would require more sophisticated mocking setup
     // For now, we test component integration at a basic level
-    
+
     let config = AgentConfig::default();
     assert!(config.validate().is_ok());
-    
+
     let workflow_engine = workflow::WorkflowEngine::default();
     let context = workflow::WorkflowContext::new(5);
-    
+
     // This should not panic and should complete successfully
     let result = workflow_engine.execute(context).await;
     assert!(result.is_ok());

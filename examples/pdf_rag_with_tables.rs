@@ -11,23 +11,19 @@
 //! - RAG-based question answering
 //! - Table-aware content parsing
 
+use std::{collections::HashMap, fs, path::Path};
 use the_agency::{
-    memory::{MemoryStore, SqliteMemoryStore},
-    llm::{OllamaClient, LlmClient, Message, user_message},
     config::MemoryConfig,
-};
-use std::{
-    collections::HashMap,
-    path::Path,
-    fs,
+    llm::{user_message, LlmClient, Message, OllamaClient},
+    memory::{MemoryStore, SqliteMemoryStore},
 };
 
 // PDF parsing
+use anyhow::{Context, Result};
 #[cfg(feature = "pdf")]
 use pdf_extract::extract_text;
-use anyhow::{Result, Context};
-use serde::{Deserialize, Serialize};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Represents extracted content from a PDF document
@@ -68,10 +64,10 @@ pub struct ExtractedTable {
 /// Types of tables that can be detected
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TableType {
-    DataTable,        // Numerical data tables
-    ComparisonTable,  // Comparison matrices
-    ResultsTable,     // Experimental results
-    ParameterTable,   // Configuration/parameter tables
+    DataTable,       // Numerical data tables
+    ComparisonTable, // Comparison matrices
+    ResultsTable,    // Experimental results
+    ParameterTable,  // Configuration/parameter tables
     Unknown,
 }
 
@@ -124,12 +120,16 @@ impl AdvancedPDFProcessor {
         // For this example, we'll use a simplified text-based extraction
         // In a production system, you'd use libraries like pdf-extract or lopdf
         let raw_text = self.extract_raw_text(pdf_path).await?;
-        
+
         // Parse the document structure
         let content = self.parse_document_structure(&raw_text).await?;
-        
-        println!("✅ Extracted {} sections and {} tables", content.sections.len(), content.tables.len());
-        
+
+        println!(
+            "✅ Extracted {} sections and {} tables",
+            content.sections.len(),
+            content.tables.len()
+        );
+
         Ok(content)
     }
 
@@ -140,21 +140,23 @@ impl AdvancedPDFProcessor {
         {
             match self.extract_real_pdf_text(pdf_path).await {
                 Ok(text) => {
-                    println!("📄 Successfully extracted real PDF text: {} chars", text.len());
+                    println!(
+                        "📄 Successfully extracted real PDF text: {} chars",
+                        text.len()
+                    );
                     return Ok(text);
-                },
+                }
                 Err(e) => {
                     println!("⚠️  PDF extraction failed: {}", e);
                 }
             }
         }
-        
+
         // Check if there's a text version of the file for testing
         let text_path = pdf_path.with_extension("txt");
         if text_path.exists() {
             println!("📄 Using text version of PDF");
-            return fs::read_to_string(text_path)
-                .context("Failed to read text version of PDF");
+            return fs::read_to_string(text_path).context("Failed to read text version of PDF");
         }
 
         // Fallback to simulated content
@@ -167,7 +169,7 @@ impl AdvancedPDFProcessor {
     async fn extract_real_pdf_text(&self, pdf_path: &Path) -> Result<String> {
         let text = extract_text(pdf_path)
             .with_context(|| format!("Failed to extract text from PDF: {}", pdf_path.display()))?;
-        
+
         Ok(text)
     }
 
@@ -227,7 +229,7 @@ References
 [2] Johnson, A. "Communication protocols for distributed AI." NeurIPS 2023.
 [3] Brown et al. "Scalable reinforcement learning." ICLR 2023.
 "#;
-        
+
         println!("📄 Using simulated PDF content for: {}", pdf_path.display());
         Ok(sample_content.to_string())
     }
@@ -235,9 +237,10 @@ References
     /// Parse document structure from raw text
     async fn parse_document_structure(&self, raw_text: &str) -> Result<DocumentContent> {
         let lines: Vec<&str> = raw_text.lines().collect();
-        
+
         // Extract title (usually the first non-empty line)
-        let title = lines.iter()
+        let title = lines
+            .iter()
             .find(|line| !line.trim().is_empty())
             .unwrap_or(&"Untitled Document")
             .trim()
@@ -245,13 +248,13 @@ References
 
         // Extract abstract
         let abstract_text = self.extract_abstract(&lines);
-        
+
         // Extract sections
         let sections = self.extract_sections(&lines).await?;
-        
+
         // Extract tables
         let tables = self.extract_tables(&lines).await?;
-        
+
         // Extract references
         let references = self.extract_references(&lines);
 
@@ -271,7 +274,7 @@ References
     fn extract_abstract(&self, lines: &[&str]) -> String {
         let mut in_abstract = false;
         let mut abstract_lines = Vec::new();
-        
+
         for line in lines {
             let trimmed = line.trim();
             if trimmed.to_lowercase() == "abstract" {
@@ -282,7 +285,9 @@ References
                 if trimmed.is_empty() && !abstract_lines.is_empty() {
                     break;
                 }
-                if self.section_patterns.iter().any(|p| p.is_match(trimmed)) && !abstract_lines.is_empty() {
+                if self.section_patterns.iter().any(|p| p.is_match(trimmed))
+                    && !abstract_lines.is_empty()
+                {
                     break;
                 }
                 if !trimmed.is_empty() {
@@ -290,7 +295,7 @@ References
                 }
             }
         }
-        
+
         abstract_lines.join(" ")
     }
 
@@ -302,7 +307,7 @@ References
 
         for line in lines {
             let trimmed = line.trim();
-            
+
             // Check if this line is a section header
             if self.is_section_header(trimmed) {
                 // Save previous section if exists
@@ -310,7 +315,7 @@ References
                     section.content = content_lines.join("\n");
                     sections.push(section);
                 }
-                
+
                 // Start new section
                 current_section = Some(DocumentSection {
                     title: trimmed.to_string(),
@@ -325,7 +330,7 @@ References
                 content_lines.push(trimmed);
             }
         }
-        
+
         // Save last section
         if let Some(mut section) = current_section {
             section.content = content_lines.join("\n");
@@ -337,13 +342,18 @@ References
 
     /// Check if a line is a section header
     fn is_section_header(&self, line: &str) -> bool {
-        self.section_patterns.iter().any(|pattern| pattern.is_match(line))
+        self.section_patterns
+            .iter()
+            .any(|pattern| pattern.is_match(line))
     }
 
     /// Determine section level (1, 2, 3, etc.)
     fn get_section_level(&self, line: &str) -> u8 {
         if line.starts_with(char::is_numeric) {
-            let dots = line.chars().take_while(|c| c.is_numeric() || *c == '.').count();
+            let dots = line
+                .chars()
+                .take_while(|c| c.is_numeric() || *c == '.')
+                .count();
             ((dots + 1) / 2).min(6) as u8
         } else {
             1
@@ -357,7 +367,7 @@ References
 
         while i < lines.len() {
             let line = lines[i].trim();
-            
+
             // Look for table indicators
             if self.table_patterns.iter().any(|p| p.is_match(line)) {
                 if let Some(table) = self.parse_table(&lines[i..]).await? {
@@ -385,9 +395,10 @@ References
         }
 
         // Find table content (lines with | characters or specific patterns)
-        for (_idx, line) in lines.iter().enumerate().take(20) { // Look ahead max 20 lines
+        for (_idx, line) in lines.iter().enumerate().take(20) {
+            // Look ahead max 20 lines
             let trimmed = line.trim();
-            
+
             if trimmed.contains("|") && trimmed.len() > 5 {
                 table_lines.push(trimmed);
                 found_table_content = true;
@@ -401,7 +412,7 @@ References
             for (_idx, line) in lines.iter().enumerate().take(15) {
                 let trimmed = line.trim();
                 let parts: Vec<&str> = trimmed.split_whitespace().collect();
-                
+
                 // Heuristic: if line has 3+ parts and contains numbers, might be table data
                 if parts.len() >= 3 && parts.iter().any(|p| p.chars().any(char::is_numeric)) {
                     table_lines.push(trimmed);
@@ -418,7 +429,7 @@ References
 
         // Parse headers and rows
         let (headers, rows) = self.parse_table_content(&table_lines)?;
-        
+
         let table = ExtractedTable {
             table_id: Uuid::new_v4().to_string(),
             caption,
@@ -468,10 +479,7 @@ References
                     rows.push(row);
                 }
             } else {
-                let row: Vec<String> = line
-                    .split_whitespace()
-                    .map(|s| s.to_string())
-                    .collect();
+                let row: Vec<String> = line.split_whitespace().map(|s| s.to_string()).collect();
                 if row.len() >= headers.len() && !row.is_empty() {
                     rows.push(row);
                 }
@@ -492,7 +500,7 @@ References
                 in_references = true;
                 continue;
             }
-            
+
             if in_references && !trimmed.is_empty() {
                 references.push(trimmed.to_string());
             }
@@ -514,7 +522,7 @@ impl DocumentRAGSystem {
     pub async fn new(database_path: &str) -> Result<Self> {
         let memory_config = MemoryConfig {
             store_type: "sqlite".to_string(),
-        database_url: Some("sqlite::memory:".to_string()),
+            database_url: Some("sqlite::memory:".to_string()),
             embedding_dimension: 768,
             max_search_results: 10,
             similarity_threshold: 0.7,
@@ -533,7 +541,7 @@ impl DocumentRAGSystem {
             timeout: 120,
             stream: false,
         };
-        
+
         let llm_client = OllamaClient::new(llm_config);
 
         Ok(Self {
@@ -559,10 +567,14 @@ impl DocumentRAGSystem {
                 document.title, section.title, section.content
             );
 
-            println!("📄 Indexing section '{}': {} chars", section.title, content.len());
+            println!(
+                "📄 Indexing section '{}': {} chars",
+                section.title,
+                content.len()
+            );
 
             let embedding = self.llm_client.embed(&content).await?.embedding;
-            
+
             let metadata = HashMap::from([
                 ("document_id".to_string(), document_id.clone()),
                 ("document_title".to_string(), document.title.clone()),
@@ -571,7 +583,9 @@ impl DocumentRAGSystem {
                 ("content_type".to_string(), "section".to_string()),
             ]);
 
-            self.memory_store.store(content, embedding, metadata).await?;
+            self.memory_store
+                .store(content, embedding, metadata)
+                .await?;
         }
 
         // Index tables separately with structured content
@@ -585,10 +599,15 @@ impl DocumentRAGSystem {
                 ("table_id".to_string(), table.table_id.clone()),
                 ("table_index".to_string(), table_idx.to_string()),
                 ("content_type".to_string(), "table".to_string()),
-                ("table_caption".to_string(), table.caption.clone().unwrap_or_default()),
+                (
+                    "table_caption".to_string(),
+                    table.caption.clone().unwrap_or_default(),
+                ),
             ]);
 
-            self.memory_store.store(table_content, embedding, metadata).await?;
+            self.memory_store
+                .store(table_content, embedding, metadata)
+                .await?;
         }
 
         // Index abstract separately
@@ -601,22 +620,26 @@ impl DocumentRAGSystem {
             println!("🎯 Indexing abstract: {} chars", abstract_content.len());
 
             let embedding = self.llm_client.embed(&abstract_content).await?.embedding;
-            
+
             let metadata = HashMap::from([
                 ("document_id".to_string(), document_id.clone()),
                 ("document_title".to_string(), document.title.clone()),
                 ("content_type".to_string(), "abstract".to_string()),
             ]);
 
-            self.memory_store.store(abstract_content, embedding, metadata).await?;
+            self.memory_store
+                .store(abstract_content, embedding, metadata)
+                .await?;
         }
 
         // Store document for reference
         self.indexed_documents.insert(document_id.clone(), document);
 
-        println!("✅ Successfully indexed document with {} sections and {} tables", 
-                 self.indexed_documents[&document_id].sections.len(),
-                 self.indexed_documents[&document_id].tables.len());
+        println!(
+            "✅ Successfully indexed document with {} sections and {} tables",
+            self.indexed_documents[&document_id].sections.len(),
+            self.indexed_documents[&document_id].tables.len()
+        );
 
         Ok(document_id)
     }
@@ -624,7 +647,7 @@ impl DocumentRAGSystem {
     /// Format table for indexing with structured representation
     fn format_table_for_indexing(&self, table: &ExtractedTable) -> String {
         let mut formatted = String::new();
-        
+
         if let Some(caption) = &table.caption {
             formatted.push_str(&format!("Table Caption: {}\n", caption));
         }
@@ -638,7 +661,9 @@ impl DocumentRAGSystem {
         for (row_idx, row) in table.rows.iter().enumerate() {
             if !table.headers.is_empty() && table.headers.len() == row.len() {
                 // Create key-value pairs
-                let row_data: Vec<String> = table.headers.iter()
+                let row_data: Vec<String> = table
+                    .headers
+                    .iter()
                     .zip(row.iter())
                     .map(|(header, value)| format!("{}: {}", header, value))
                     .collect();
@@ -664,16 +689,20 @@ impl DocumentRAGSystem {
         let question_embedding = self.llm_client.embed(question).await?.embedding;
 
         // Retrieve relevant content (limit to 3 results for faster processing)
-        let search_results = self.memory_store
-            .search(question_embedding, 3, 0.3)
-            .await?;
+        let search_results = self.memory_store.search(question_embedding, 3, 0.3).await?;
 
         println!("🔍 Found {} search results", search_results.len());
         for (i, result) in search_results.iter().enumerate() {
-            println!("  Result {}: similarity={:.3}, type={}", 
-                     i + 1, 
-                     result.similarity, 
-                     result.entry.metadata.get("content_type").unwrap_or(&"unknown".to_string()));
+            println!(
+                "  Result {}: similarity={:.3}, type={}",
+                i + 1,
+                result.similarity,
+                result
+                    .entry
+                    .metadata
+                    .get("content_type")
+                    .unwrap_or(&"unknown".to_string())
+            );
         }
 
         if search_results.is_empty() {
@@ -696,7 +725,11 @@ impl DocumentRAGSystem {
                         };
                         table_contexts.push(format!(
                             "TABLE from {}:\n{}\n(Similarity: {:.3})",
-                            result.entry.metadata.get("document_title").unwrap_or(&"Unknown".to_string()),
+                            result
+                                .entry
+                                .metadata
+                                .get("document_title")
+                                .unwrap_or(&"Unknown".to_string()),
                             content,
                             result.similarity
                         ));
@@ -710,8 +743,16 @@ impl DocumentRAGSystem {
                         };
                         context_parts.push(format!(
                             "From {} - {}:\n{}\n(Similarity: {:.3})",
-                            result.entry.metadata.get("document_title").unwrap_or(&"Unknown".to_string()),
-                            result.entry.metadata.get("section_title").unwrap_or(&"Unknown Section".to_string()),
+                            result
+                                .entry
+                                .metadata
+                                .get("document_title")
+                                .unwrap_or(&"Unknown".to_string()),
+                            result
+                                .entry
+                                .metadata
+                                .get("section_title")
+                                .unwrap_or(&"Unknown Section".to_string()),
                             content,
                             result.similarity
                         ));
@@ -748,14 +789,19 @@ Answer the user's question based on the provided context.";
 
         let messages = vec![
             the_agency::llm::system_message(system_prompt),
-            user_message(&format!("Context:\n{}\n\nQuestion: {}", full_context, question)),
+            user_message(&format!(
+                "Context:\n{}\n\nQuestion: {}",
+                full_context, question
+            )),
         ];
 
         let response = self.llm_client.generate(&messages).await?;
 
-        println!("✅ Generated response based on {} search results ({} table results)", 
-                 search_results.len(),
-                 table_contexts.len());
+        println!(
+            "✅ Generated response based on {} search results ({} table results)",
+            search_results.len(),
+            table_contexts.len()
+        );
 
         Ok(response.text)
     }
@@ -763,21 +809,31 @@ Answer the user's question based on the provided context.";
     /// Get statistics about indexed documents
     pub fn get_statistics(&self) -> HashMap<String, serde_json::Value> {
         let mut stats = HashMap::new();
-        
-        stats.insert("total_documents".to_string(), 
-                    serde_json::Value::Number(self.indexed_documents.len().into()));
 
-        let total_sections: usize = self.indexed_documents.values()
+        stats.insert(
+            "total_documents".to_string(),
+            serde_json::Value::Number(self.indexed_documents.len().into()),
+        );
+
+        let total_sections: usize = self
+            .indexed_documents
+            .values()
             .map(|doc| doc.sections.len())
             .sum();
-        stats.insert("total_sections".to_string(), 
-                    serde_json::Value::Number(total_sections.into()));
+        stats.insert(
+            "total_sections".to_string(),
+            serde_json::Value::Number(total_sections.into()),
+        );
 
-        let total_tables: usize = self.indexed_documents.values()
+        let total_tables: usize = self
+            .indexed_documents
+            .values()
             .map(|doc| doc.tables.len())
             .sum();
-        stats.insert("total_tables".to_string(), 
-                    serde_json::Value::Number(total_tables.into()));
+        stats.insert(
+            "total_tables".to_string(),
+            serde_json::Value::Number(total_tables.into()),
+        );
 
         stats
     }
@@ -819,24 +875,24 @@ async fn main() -> Result<()> {
 
         // Interactive question-answering loop
         use std::io::{self, Write};
-        
+
         loop {
             print!("\n❓ Your question: ");
             io::stdout().flush()?;
-            
+
             let mut input = String::new();
             io::stdin().read_line(&mut input)?;
             let question = input.trim();
-            
+
             if question.is_empty() {
                 continue;
             }
-            
+
             if question.eq_ignore_ascii_case("quit") || question.eq_ignore_ascii_case("exit") {
                 println!("👋 Goodbye!");
                 break;
             }
-            
+
             println!("\n🔍 Searching for relevant information...");
             match rag_system.answer_question(question).await {
                 Ok(answer) => {
@@ -851,7 +907,7 @@ async fn main() -> Result<()> {
     } else {
         println!("❌ PDF file not found at: {}", pdf_path.display());
         println!("Please ensure the PDF file exists at the specified location.");
-        
+
         // Demo with sample questions and synthetic content
         println!("\n🎭 Running demo mode with synthetic content...");
         demo_with_synthetic_content().await?;
@@ -864,7 +920,7 @@ async fn main() -> Result<()> {
 async fn demo_with_synthetic_content() -> Result<()> {
     println!("This would demonstrate RAG with synthetic academic content including tables.");
     println!("The full functionality requires the PDF file to be present.");
-    
+
     // You could add synthetic document creation here for testing
     println!("\n📚 Demo Features:");
     println!("  ✅ PDF text extraction");
@@ -873,7 +929,7 @@ async fn demo_with_synthetic_content() -> Result<()> {
     println!("  ✅ Vector embeddings for semantic search");
     println!("  ✅ Table-aware question answering");
     println!("  ✅ Multi-modal content retrieval");
-    
+
     Ok(())
 }
 
@@ -897,7 +953,7 @@ mod tests {
             "Baseline | 0.85 | 0.82",
             "Our Method | 0.92 | 0.89",
         ];
-        
+
         let (headers, rows) = processor.parse_table_content(&table_lines).unwrap();
         assert_eq!(headers.len(), 3);
         assert_eq!(rows.len(), 2);
@@ -909,7 +965,7 @@ mod tests {
     async fn test_rag_system_initialization() {
         let temp_dir = tempdir().unwrap();
         let db_path = temp_dir.path().join("test.db");
-        
+
         let rag_system = DocumentRAGSystem::new(db_path.to_str().unwrap()).await;
         assert!(rag_system.is_ok());
     }

@@ -9,16 +9,16 @@
 //! - Query optimization and caching
 //! - Integration with workflow system for enhanced responses
 
-use the_agency::{
-    workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep},
-    error::Result,
-};
 use async_trait::async_trait;
-use std::sync::Arc;
-use std::collections::HashMap;
 use serde_json::{json, Value};
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use the_agency::{
+    error::Result,
+    workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep},
+};
 use tokio;
-use std::time::{SystemTime, UNIX_EPOCH, Instant};
 use uuid::Uuid;
 
 /// Supported document types for RAG processing
@@ -50,10 +50,7 @@ pub enum ChunkingStrategy {
         similarity_threshold: f32,
     },
     /// Fixed-size chunks
-    FixedSize {
-        size: usize,
-        overlap: usize,
-    },
+    FixedSize { size: usize, overlap: usize },
 }
 
 /// Vector store implementations
@@ -88,12 +85,12 @@ impl DocumentChunk {
             source_document,
         }
     }
-    
+
     pub fn with_metadata(mut self, key: &str, value: &str) -> Self {
         self.metadata.insert(key.to_string(), value.to_string());
         self
     }
-    
+
     pub fn with_embedding(mut self, embedding: Vec<f32>) -> Self {
         self.embedding = Some(embedding);
         self
@@ -109,11 +106,19 @@ impl DocumentProcessor {
     pub fn new(chunking_strategy: ChunkingStrategy) -> Self {
         Self { chunking_strategy }
     }
-    
+
     /// Process document and extract chunks
-    pub async fn process_document(&self, content: &str, document_name: &str, doc_type: DocumentType) -> Result<Vec<DocumentChunk>> {
-        println!("  📄 Processing document: {} ({:?})", document_name, doc_type);
-        
+    pub async fn process_document(
+        &self,
+        content: &str,
+        document_name: &str,
+        doc_type: DocumentType,
+    ) -> Result<Vec<DocumentChunk>> {
+        println!(
+            "  📄 Processing document: {} ({:?})",
+            document_name, doc_type
+        );
+
         // Simulate document type-specific processing
         let processed_content = match doc_type {
             DocumentType::Pdf => self.process_pdf_content(content).await?,
@@ -121,63 +126,100 @@ impl DocumentProcessor {
             DocumentType::Text => content.to_string(),
             DocumentType::Markdown => self.process_markdown_content(content).await?,
         };
-        
+
         // Apply chunking strategy
-        let chunks = self.chunk_content(&processed_content, document_name).await?;
-        
-        println!("  ✅ Created {} chunks from document: {}", chunks.len(), document_name);
+        let chunks = self
+            .chunk_content(&processed_content, document_name)
+            .await?;
+
+        println!(
+            "  ✅ Created {} chunks from document: {}",
+            chunks.len(),
+            document_name
+        );
         Ok(chunks)
     }
-    
+
     async fn process_pdf_content(&self, content: &str) -> Result<String> {
         // Simulate PDF processing (OCR, text extraction, etc.)
         tokio::time::sleep(tokio::time::Duration::from_millis(200)).await;
-        
+
         // Mock PDF processing - add structure and metadata
-        let processed = format!("PDF_PROCESSED: {}\n\nExtracted Text:\n{}", 
-                              SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
-                              content);
+        let processed = format!(
+            "PDF_PROCESSED: {}\n\nExtracted Text:\n{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            content
+        );
         Ok(processed)
     }
-    
+
     async fn process_docx_content(&self, content: &str) -> Result<String> {
         // Simulate DOCX processing (style preservation, structure extraction)
         tokio::time::sleep(tokio::time::Duration::from_millis(150)).await;
-        
-        let processed = format!("DOCX_PROCESSED: {}\n\nFormatted Content:\n{}", 
-                              SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
-                              content);
+
+        let processed = format!(
+            "DOCX_PROCESSED: {}\n\nFormatted Content:\n{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            content
+        );
         Ok(processed)
     }
-    
+
     async fn process_markdown_content(&self, content: &str) -> Result<String> {
         // Simulate markdown processing (heading extraction, link processing)
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
         Ok(format!("MARKDOWN_PROCESSED:\n{}", content))
     }
-    
+
     async fn chunk_content(&self, content: &str, source: &str) -> Result<Vec<DocumentChunk>> {
         match &self.chunking_strategy {
-            ChunkingStrategy::Recursive { chunk_size, chunk_overlap, separators } => {
-                self.chunk_recursive(content, source, *chunk_size, *chunk_overlap, separators).await
+            ChunkingStrategy::Recursive {
+                chunk_size,
+                chunk_overlap,
+                separators,
+            } => {
+                self.chunk_recursive(content, source, *chunk_size, *chunk_overlap, separators)
+                    .await
             }
-            ChunkingStrategy::SlidingWindow { window_size, step_size } => {
-                self.chunk_sliding_window(content, source, *window_size, *step_size).await
+            ChunkingStrategy::SlidingWindow {
+                window_size,
+                step_size,
+            } => {
+                self.chunk_sliding_window(content, source, *window_size, *step_size)
+                    .await
             }
-            ChunkingStrategy::Semantic { max_chunk_size, similarity_threshold } => {
-                self.chunk_semantic(content, source, *max_chunk_size, *similarity_threshold).await
+            ChunkingStrategy::Semantic {
+                max_chunk_size,
+                similarity_threshold,
+            } => {
+                self.chunk_semantic(content, source, *max_chunk_size, *similarity_threshold)
+                    .await
             }
             ChunkingStrategy::FixedSize { size, overlap } => {
-                self.chunk_fixed_size(content, source, *size, *overlap).await
+                self.chunk_fixed_size(content, source, *size, *overlap)
+                    .await
             }
         }
     }
-    
-    async fn chunk_recursive(&self, content: &str, source: &str, chunk_size: usize, chunk_overlap: usize, separators: &[String]) -> Result<Vec<DocumentChunk>> {
+
+    async fn chunk_recursive(
+        &self,
+        content: &str,
+        source: &str,
+        chunk_size: usize,
+        chunk_overlap: usize,
+        separators: &[String],
+    ) -> Result<Vec<DocumentChunk>> {
         let mut chunks = Vec::new();
         let mut current_chunk = String::new();
         let mut chunk_index = 0;
-        
+
         // Split by separators in order of preference
         for separator in separators {
             if content.contains(separator) {
@@ -185,15 +227,22 @@ impl DocumentProcessor {
                 for part in parts {
                     if current_chunk.len() + part.len() > chunk_size && !current_chunk.is_empty() {
                         // Create chunk with overlap handling
-                        let mut chunk = DocumentChunk::new(current_chunk.clone(), source.to_string(), chunk_index)
-                            .with_metadata("chunking_strategy", "recursive")
-                            .with_metadata("separator", separator)
-                            .with_metadata("chunk_size", &chunk_size.to_string());
+                        let mut chunk = DocumentChunk::new(
+                            current_chunk.clone(),
+                            source.to_string(),
+                            chunk_index,
+                        )
+                        .with_metadata("chunking_strategy", "recursive")
+                        .with_metadata("separator", separator)
+                        .with_metadata("chunk_size", &chunk_size.to_string());
                         chunks.push(chunk);
-                        
+
                         // Handle overlap
                         if chunk_overlap > 0 && current_chunk.len() > chunk_overlap {
-                            current_chunk = current_chunk.chars().skip(current_chunk.len() - chunk_overlap).collect();
+                            current_chunk = current_chunk
+                                .chars()
+                                .skip(current_chunk.len() - chunk_overlap)
+                                .collect();
                         } else {
                             current_chunk.clear();
                         }
@@ -207,53 +256,71 @@ impl DocumentProcessor {
                 break;
             }
         }
-        
+
         // Add remaining content as final chunk
         if !current_chunk.is_empty() {
-            chunks.push(DocumentChunk::new(current_chunk, source.to_string(), chunk_index)
-                .with_metadata("chunking_strategy", "recursive")
-                .with_metadata("chunk_size", &chunk_size.to_string()));
+            chunks.push(
+                DocumentChunk::new(current_chunk, source.to_string(), chunk_index)
+                    .with_metadata("chunking_strategy", "recursive")
+                    .with_metadata("chunk_size", &chunk_size.to_string()),
+            );
         }
-        
+
         Ok(chunks)
     }
-    
-    async fn chunk_sliding_window(&self, content: &str, source: &str, window_size: usize, step_size: usize) -> Result<Vec<DocumentChunk>> {
+
+    async fn chunk_sliding_window(
+        &self,
+        content: &str,
+        source: &str,
+        window_size: usize,
+        step_size: usize,
+    ) -> Result<Vec<DocumentChunk>> {
         let mut chunks = Vec::new();
         let chars: Vec<char> = content.chars().collect();
         let mut chunk_index = 0;
-        
+
         let mut start = 0;
         while start < chars.len() {
             let end = std::cmp::min(start + window_size, chars.len());
             let chunk_content: String = chars[start..end].iter().collect();
-            
+
             let chunk = DocumentChunk::new(chunk_content, source.to_string(), chunk_index)
                 .with_metadata("chunking_strategy", "sliding_window")
                 .with_metadata("window_size", &window_size.to_string())
                 .with_metadata("step_size", &step_size.to_string())
                 .with_metadata("start_position", &start.to_string());
-            
+
             chunks.push(chunk);
             chunk_index += 1;
             start += step_size;
         }
-        
+
         Ok(chunks)
     }
-    
-    async fn chunk_semantic(&self, content: &str, source: &str, max_chunk_size: usize, _similarity_threshold: f32) -> Result<Vec<DocumentChunk>> {
+
+    async fn chunk_semantic(
+        &self,
+        content: &str,
+        source: &str,
+        max_chunk_size: usize,
+        _similarity_threshold: f32,
+    ) -> Result<Vec<DocumentChunk>> {
         // Simulate semantic chunking (would use sentence embeddings in real implementation)
-        let sentences: Vec<&str> = content.split('.').filter(|s| !s.trim().is_empty()).collect();
+        let sentences: Vec<&str> = content
+            .split('.')
+            .filter(|s| !s.trim().is_empty())
+            .collect();
         let mut chunks = Vec::new();
         let mut current_chunk = String::new();
         let mut chunk_index = 0;
-        
+
         for sentence in sentences {
             if current_chunk.len() + sentence.len() > max_chunk_size && !current_chunk.is_empty() {
-                let chunk = DocumentChunk::new(current_chunk.clone(), source.to_string(), chunk_index)
-                    .with_metadata("chunking_strategy", "semantic")
-                    .with_metadata("max_chunk_size", &max_chunk_size.to_string());
+                let chunk =
+                    DocumentChunk::new(current_chunk.clone(), source.to_string(), chunk_index)
+                        .with_metadata("chunking_strategy", "semantic")
+                        .with_metadata("max_chunk_size", &max_chunk_size.to_string());
                 chunks.push(chunk);
                 current_chunk.clear();
                 chunk_index += 1;
@@ -261,39 +328,49 @@ impl DocumentProcessor {
             current_chunk.push_str(sentence);
             current_chunk.push('.');
         }
-        
+
         if !current_chunk.is_empty() {
-            chunks.push(DocumentChunk::new(current_chunk, source.to_string(), chunk_index)
-                .with_metadata("chunking_strategy", "semantic")
-                .with_metadata("max_chunk_size", &max_chunk_size.to_string()));
+            chunks.push(
+                DocumentChunk::new(current_chunk, source.to_string(), chunk_index)
+                    .with_metadata("chunking_strategy", "semantic")
+                    .with_metadata("max_chunk_size", &max_chunk_size.to_string()),
+            );
         }
-        
+
         Ok(chunks)
     }
-    
-    async fn chunk_fixed_size(&self, content: &str, source: &str, size: usize, overlap: usize) -> Result<Vec<DocumentChunk>> {
+
+    async fn chunk_fixed_size(
+        &self,
+        content: &str,
+        source: &str,
+        size: usize,
+        overlap: usize,
+    ) -> Result<Vec<DocumentChunk>> {
         let mut chunks = Vec::new();
         let chars: Vec<char> = content.chars().collect();
         let mut chunk_index = 0;
         let mut start = 0;
-        
+
         while start < chars.len() {
             let end = std::cmp::min(start + size, chars.len());
             let chunk_content: String = chars[start..end].iter().collect();
-            
+
             let chunk = DocumentChunk::new(chunk_content, source.to_string(), chunk_index)
                 .with_metadata("chunking_strategy", "fixed_size")
                 .with_metadata("size", &size.to_string())
                 .with_metadata("overlap", &overlap.to_string());
-            
+
             chunks.push(chunk);
             chunk_index += 1;
-            
+
             // Move start position considering overlap
             start += size - overlap;
-            if start <= 0 { break; }
+            if start <= 0 {
+                break;
+            }
         }
-        
+
         Ok(chunks)
     }
 }
@@ -311,26 +388,33 @@ impl EmbeddingGenerator {
             embedding_dimensions: dimensions,
         }
     }
-    
+
     /// Generate embeddings for text chunks
-    pub async fn generate_embeddings(&self, chunks: &mut [DocumentChunk]) -> Result<EmbeddingMetrics> {
+    pub async fn generate_embeddings(
+        &self,
+        chunks: &mut [DocumentChunk],
+    ) -> Result<EmbeddingMetrics> {
         let start_time = Instant::now();
         let mut total_tokens = 0;
         let mut embedding_cost = 0.0;
-        
-        println!("  🔢 Generating embeddings for {} chunks using {}", chunks.len(), self.model_name);
-        
+
+        println!(
+            "  🔢 Generating embeddings for {} chunks using {}",
+            chunks.len(),
+            self.model_name
+        );
+
         for chunk in chunks.iter_mut() {
             let embedding = self.generate_single_embedding(&chunk.content).await?;
             let token_count = chunk.content.split_whitespace().count();
-            
+
             chunk.embedding = Some(embedding);
             total_tokens += token_count;
             embedding_cost += self.calculate_embedding_cost(token_count);
         }
-        
+
         let duration = start_time.elapsed();
-        
+
         let metrics = EmbeddingMetrics {
             total_chunks: chunks.len(),
             total_tokens,
@@ -339,13 +423,17 @@ impl EmbeddingGenerator {
             model_name: self.model_name.clone(),
             dimensions: self.embedding_dimensions,
         };
-        
-        println!("  ✅ Generated {} embeddings in {:?} (${:.4} estimated cost)", 
-                chunks.len(), duration, embedding_cost);
-        
+
+        println!(
+            "  ✅ Generated {} embeddings in {:?} (${:.4} estimated cost)",
+            chunks.len(),
+            duration,
+            embedding_cost
+        );
+
         Ok(metrics)
     }
-    
+
     async fn generate_single_embedding(&self, text: &str) -> Result<Vec<f32>> {
         // Simulate embedding generation with different model characteristics
         let processing_time = match self.model_name.as_str() {
@@ -354,26 +442,26 @@ impl EmbeddingGenerator {
             "text-embedding-3-large" => 80,
             _ => 40,
         };
-        
+
         tokio::time::sleep(tokio::time::Duration::from_millis(processing_time)).await;
-        
+
         // Generate mock embedding based on text content
         let mut embedding = vec![0.0; self.embedding_dimensions];
         let text_hash = self.simple_text_hash(text);
-        
+
         for (i, value) in embedding.iter_mut().enumerate() {
             *value = ((text_hash + i as u64) as f64 / u64::MAX as f64) as f32 * 2.0 - 1.0;
         }
-        
+
         Ok(embedding)
     }
-    
+
     fn simple_text_hash(&self, text: &str) -> u64 {
         text.chars().enumerate().fold(0u64, |acc, (i, c)| {
             acc.wrapping_add((c as u64).wrapping_mul(i as u64 + 1))
         })
     }
-    
+
     fn calculate_embedding_cost(&self, token_count: usize) -> f64 {
         // Mock pricing based on OpenAI's embedding models
         let cost_per_1k_tokens = match self.model_name.as_str() {
@@ -382,7 +470,7 @@ impl EmbeddingGenerator {
             "text-embedding-3-large" => 0.00013,
             _ => 0.0001,
         };
-        
+
         (token_count as f64 / 1000.0) * cost_per_1k_tokens
     }
 }
@@ -401,7 +489,11 @@ pub struct EmbeddingMetrics {
 /// Vector store interface for similarity search
 pub trait VectorStore: Send + Sync {
     async fn store_chunks(&self, chunks: &[DocumentChunk]) -> Result<usize>;
-    async fn similarity_search(&self, query_embedding: &[f32], k: usize) -> Result<Vec<SimilarityMatch>>;
+    async fn similarity_search(
+        &self,
+        query_embedding: &[f32],
+        k: usize,
+    ) -> Result<Vec<SimilarityMatch>>;
     async fn get_stats(&self) -> Result<VectorStoreStats>;
 }
 
@@ -445,22 +537,26 @@ impl VectorStore for SQLiteVectorStore {
         println!("  💾 Stored {} chunks in SQLite vector store", chunks.len());
         Ok(chunks.len())
     }
-    
-    async fn similarity_search(&self, query_embedding: &[f32], k: usize) -> Result<Vec<SimilarityMatch>> {
+
+    async fn similarity_search(
+        &self,
+        query_embedding: &[f32],
+        k: usize,
+    ) -> Result<Vec<SimilarityMatch>> {
         let store = self.chunks.read().await;
         let mut similarities = Vec::new();
-        
+
         for chunk in store.iter() {
             if let Some(ref embedding) = chunk.embedding {
                 let similarity = self.cosine_similarity(query_embedding, embedding);
                 similarities.push((chunk.clone(), similarity));
             }
         }
-        
+
         // Sort by similarity (descending) and take top k
         similarities.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
         similarities.truncate(k);
-        
+
         let matches = similarities
             .into_iter()
             .enumerate()
@@ -470,18 +566,21 @@ impl VectorStore for SQLiteVectorStore {
                 rank,
             })
             .collect();
-        
+
         Ok(matches)
     }
-    
+
     async fn get_stats(&self) -> Result<VectorStoreStats> {
         let store = self.chunks.read().await;
         let total_chunks = store.len();
-        let unique_docs: std::collections::HashSet<String> = store.iter().map(|c| c.source_document.clone()).collect();
+        let unique_docs: std::collections::HashSet<String> =
+            store.iter().map(|c| c.source_document.clone()).collect();
         let avg_chunk_size = if total_chunks > 0 {
             store.iter().map(|c| c.content.len()).sum::<usize>() / total_chunks
-        } else { 0 };
-        
+        } else {
+            0
+        };
+
         Ok(VectorStoreStats {
             total_chunks,
             total_documents: unique_docs.len(),
@@ -493,13 +592,19 @@ impl VectorStore for SQLiteVectorStore {
 
 impl SQLiteVectorStore {
     fn cosine_similarity(&self, a: &[f32], b: &[f32]) -> f32 {
-        if a.len() != b.len() { return 0.0; }
-        
+        if a.len() != b.len() {
+            return 0.0;
+        }
+
         let dot_product: f32 = a.iter().zip(b.iter()).map(|(x, y)| x * y).sum();
         let norm_a: f32 = a.iter().map(|x| x * x).sum::<f32>().sqrt();
         let norm_b: f32 = b.iter().map(|x| x * x).sum::<f32>().sqrt();
-        
-        if norm_a == 0.0 || norm_b == 0.0 { 0.0 } else { dot_product / (norm_a * norm_b) }
+
+        if norm_a == 0.0 || norm_b == 0.0 {
+            0.0
+        } else {
+            dot_product / (norm_a * norm_b)
+        }
     }
 }
 
@@ -527,7 +632,7 @@ impl QueryCache {
             miss_count: Arc::new(tokio::sync::RwLock::new(0)),
         }
     }
-    
+
     pub async fn get(&self, query_key: &str) -> Option<Vec<SimilarityMatch>> {
         let cache = self.cache.read().await;
         if let Some(cached) = cache.get(query_key) {
@@ -537,14 +642,19 @@ impl QueryCache {
                 return Some(cached.matches.clone());
             }
         }
-        
+
         *self.miss_count.write().await += 1;
         None
     }
-    
-    pub async fn put(&self, query_key: String, matches: Vec<SimilarityMatch>, ttl: std::time::Duration) {
+
+    pub async fn put(
+        &self,
+        query_key: String,
+        matches: Vec<SimilarityMatch>,
+        ttl: std::time::Duration,
+    ) {
         let mut cache = self.cache.write().await;
-        
+
         // Simple LRU eviction if cache is full
         if cache.len() >= self.max_size {
             let oldest_key = cache.keys().next().cloned();
@@ -552,18 +662,25 @@ impl QueryCache {
                 cache.remove(&key);
             }
         }
-        
-        cache.insert(query_key, CachedResult {
-            matches,
-            timestamp: SystemTime::now(),
-            ttl,
-        });
+
+        cache.insert(
+            query_key,
+            CachedResult {
+                matches,
+                timestamp: SystemTime::now(),
+                ttl,
+            },
+        );
     }
-    
+
     pub async fn get_stats(&self) -> (usize, usize, f64) {
         let hits = *self.hit_count.read().await;
         let misses = *self.miss_count.read().await;
-        let hit_rate = if hits + misses > 0 { hits as f64 / (hits + misses) as f64 } else { 0.0 };
+        let hit_rate = if hits + misses > 0 {
+            hits as f64 / (hits + misses) as f64
+        } else {
+            0.0
+        };
         (hits, misses, hit_rate)
     }
 }
@@ -591,58 +708,70 @@ impl RAGObservability {
             metrics: Arc::new(tokio::sync::RwLock::new(RAGMetrics::default())),
         }
     }
-    
+
     pub async fn record_query(&self, latency: std::time::Duration, relevance_scores: Vec<f32>) {
         let mut metrics = self.metrics.write().await;
         metrics.total_queries += 1;
         metrics.query_latencies.push(latency);
         metrics.retrieval_relevance_scores.extend(relevance_scores);
     }
-    
+
     pub async fn record_embedding_generation(&self, embedding_metrics: &EmbeddingMetrics) {
         let mut metrics = self.metrics.write().await;
         metrics.total_embeddings_generated += embedding_metrics.total_chunks;
         metrics.embedding_costs += embedding_metrics.total_cost;
     }
-    
+
     pub async fn record_document_processing(&self, chunks_created: usize) {
         let mut metrics = self.metrics.write().await;
         metrics.total_documents_processed += 1;
         metrics.total_chunks_created += chunks_created;
     }
-    
+
     pub async fn update_cache_stats(&self, cache_stats: (usize, usize, f64)) {
         let mut metrics = self.metrics.write().await;
         metrics.cache_stats = cache_stats;
     }
-    
+
     pub async fn export_metrics(&self) -> RAGMetrics {
         self.metrics.read().await.clone()
     }
-    
+
     pub async fn print_summary(&self) {
         let metrics = self.metrics.read().await;
-        
+
         println!("\n📊 RAG System Performance Summary");
         println!("=================================");
-        println!("📄 Documents Processed: {}", metrics.total_documents_processed);
+        println!(
+            "📄 Documents Processed: {}",
+            metrics.total_documents_processed
+        );
         println!("🧩 Chunks Created: {}", metrics.total_chunks_created);
-        println!("🔢 Embeddings Generated: {}", metrics.total_embeddings_generated);
+        println!(
+            "🔢 Embeddings Generated: {}",
+            metrics.total_embeddings_generated
+        );
         println!("💰 Embedding Costs: ${:.6}", metrics.embedding_costs);
         println!("🔍 Total Queries: {}", metrics.total_queries);
-        
+
         if !metrics.query_latencies.is_empty() {
-            let avg_latency = metrics.query_latencies.iter().sum::<std::time::Duration>() / metrics.query_latencies.len() as u32;
+            let avg_latency = metrics.query_latencies.iter().sum::<std::time::Duration>()
+                / metrics.query_latencies.len() as u32;
             println!("⏱️  Average Query Latency: {:?}", avg_latency);
         }
-        
+
         if !metrics.retrieval_relevance_scores.is_empty() {
-            let avg_relevance = metrics.retrieval_relevance_scores.iter().sum::<f32>() / metrics.retrieval_relevance_scores.len() as f32;
+            let avg_relevance = metrics.retrieval_relevance_scores.iter().sum::<f32>()
+                / metrics.retrieval_relevance_scores.len() as f32;
             println!("🎯 Average Relevance Score: {:.3}", avg_relevance);
         }
-        
-        println!("💾 Cache Hit Rate: {:.1}% ({} hits, {} misses)", 
-                metrics.cache_stats.2 * 100.0, metrics.cache_stats.0, metrics.cache_stats.1);
+
+        println!(
+            "💾 Cache Hit Rate: {:.1}% ({} hits, {} misses)",
+            metrics.cache_stats.2 * 100.0,
+            metrics.cache_stats.0,
+            metrics.cache_stats.1
+        );
     }
 }
 
@@ -670,58 +799,97 @@ impl RAGSystem {
             observability: RAGObservability::new(),
         }
     }
-    
+
     /// Ingest document into RAG system
-    pub async fn ingest_document(&self, content: &str, document_name: &str, doc_type: DocumentType) -> Result<()> {
+    pub async fn ingest_document(
+        &self,
+        content: &str,
+        document_name: &str,
+        doc_type: DocumentType,
+    ) -> Result<()> {
         // Process and chunk document
-        let mut chunks = self.document_processor.process_document(content, document_name, doc_type).await?;
-        
+        let mut chunks = self
+            .document_processor
+            .process_document(content, document_name, doc_type)
+            .await?;
+
         // Generate embeddings
-        let embedding_metrics = self.embedding_generator.generate_embeddings(&mut chunks).await?;
-        
+        let embedding_metrics = self
+            .embedding_generator
+            .generate_embeddings(&mut chunks)
+            .await?;
+
         // Store in vector database
         self.vector_store.store_chunks(&chunks).await?;
-        
+
         // Record metrics
-        self.observability.record_document_processing(chunks.len()).await;
-        self.observability.record_embedding_generation(&embedding_metrics).await;
-        
+        self.observability
+            .record_document_processing(chunks.len())
+            .await;
+        self.observability
+            .record_embedding_generation(&embedding_metrics)
+            .await;
+
         println!("  ✅ Successfully ingested document: {}", document_name);
         Ok(())
     }
-    
+
     /// Query RAG system for relevant context
     pub async fn query(&self, query_text: &str, k: usize) -> Result<Vec<SimilarityMatch>> {
         let start_time = Instant::now();
         let cache_key = format!("{}:{}", query_text, k);
-        
+
         // Check cache first
         if let Some(cached_results) = self.query_cache.get(&cache_key).await {
             println!("  💾 Cache hit for query: {}", query_text);
             return Ok(cached_results);
         }
-        
+
         // Generate query embedding
-        let query_embedding = self.embedding_generator.generate_single_embedding(query_text).await?;
-        
+        let query_embedding = self
+            .embedding_generator
+            .generate_single_embedding(query_text)
+            .await?;
+
         // Perform similarity search
-        let matches = self.vector_store.similarity_search(&query_embedding, k).await?;
-        
+        let matches = self
+            .vector_store
+            .similarity_search(&query_embedding, k)
+            .await?;
+
         // Cache results
-        self.query_cache.put(cache_key, matches.clone(), std::time::Duration::from_secs(300)).await;
-        
+        self.query_cache
+            .put(
+                cache_key,
+                matches.clone(),
+                std::time::Duration::from_secs(300),
+            )
+            .await;
+
         let query_duration = start_time.elapsed();
         let relevance_scores: Vec<f32> = matches.iter().map(|m| m.similarity_score).collect();
-        
+
         // Record metrics
-        self.observability.record_query(query_duration, relevance_scores.clone()).await;
-        self.observability.update_cache_stats(self.query_cache.get_stats().await).await;
-        
-        println!("  🔍 Found {} relevant chunks for query (similarity: {:.3}-{:.3})", 
-                matches.len(), 
-                relevance_scores.iter().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.0),
-                relevance_scores.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(&0.0));
-        
+        self.observability
+            .record_query(query_duration, relevance_scores.clone())
+            .await;
+        self.observability
+            .update_cache_stats(self.query_cache.get_stats().await)
+            .await;
+
+        println!(
+            "  🔍 Found {} relevant chunks for query (similarity: {:.3}-{:.3})",
+            matches.len(),
+            relevance_scores
+                .iter()
+                .min_by(|a, b| a.partial_cmp(b).unwrap())
+                .unwrap_or(&0.0),
+            relevance_scores
+                .iter()
+                .max_by(|a, b| a.partial_cmp(b).unwrap())
+                .unwrap_or(&0.0)
+        );
+
         Ok(matches)
     }
 }
@@ -745,38 +913,48 @@ impl RAGEnhancedStep {
 impl WorkflowStep for RAGEnhancedStep {
     async fn execute(&self, context: &mut WorkflowContext) -> Result<WorkflowDecision> {
         println!("  🧠 RAG-Enhanced step '{}' processing", self.name);
-        
+
         // Get query from context
-        let query = context.metadata.get("query")
+        let query = context
+            .metadata
+            .get("query")
             .cloned()
             .unwrap_or_else(|| "default query".to_string());
-        
+
         // Query RAG system for relevant context
         let matches = self.rag_system.query(&query, 3).await?;
-        
+
         // Build enhanced context from retrieved chunks
         let context_text = matches
             .iter()
-            .map(|m| format!("Context (score: {:.3}): {}", m.similarity_score, m.chunk.content))
+            .map(|m| {
+                format!(
+                    "Context (score: {:.3}): {}",
+                    m.similarity_score, m.chunk.content
+                )
+            })
             .collect::<Vec<_>>()
             .join("\n\n");
-        
+
         // Simulate LLM generation with RAG context
         let enhanced_response = format!(
             "Enhanced Response based on retrieved context:\n\nQuery: {}\n\nRetrieved Context:\n{}\n\nGenerated Answer: Based on the retrieved context, I can provide a comprehensive response that is grounded in the available information. The similarity scores indicate high relevance to your query.",
             query, context_text
         );
-        
+
         // Store enhanced response in context
-        context.metadata.insert(
-            format!("{}_response", self.name),
-            enhanced_response
+        context
+            .metadata
+            .insert(format!("{}_response", self.name), enhanced_response);
+
+        println!(
+            "  ✅ RAG-Enhanced step '{}' completed with {} context chunks",
+            self.name,
+            matches.len()
         );
-        
-        println!("  ✅ RAG-Enhanced step '{}' completed with {} context chunks", self.name, matches.len());
         Ok(WorkflowDecision::Continue)
     }
-    
+
     fn name(&self) -> &str {
         &self.name
     }
@@ -796,44 +974,64 @@ async fn main() -> anyhow::Result<()> {
 
     let sample_documents = vec![
         ("company_handbook.pdf", DocumentType::Pdf, "COMPANY HANDBOOK\n\nChapter 1: Introduction\nWelcome to our company. We are committed to excellence and innovation in everything we do. Our mission is to provide exceptional value to our customers while maintaining the highest standards of quality and service.\n\nChapter 2: Policies\nAll employees must adhere to our code of conduct. We expect professionalism, integrity, and respect in all interactions. Our workplace is inclusive and diverse, welcoming people from all backgrounds.\n\nChapter 3: Benefits\nWe offer comprehensive benefits including health insurance, retirement plans, and professional development opportunities. Employee wellness is a priority, and we provide various programs to support work-life balance."),
-        
+
         ("technical_manual.docx", DocumentType::Docx, "TECHNICAL MANUAL\n\nSystem Architecture Overview\nOur system is built on a microservices architecture that provides scalability and maintainability. Each service is independently deployable and operates with its own database.\n\nAPI Documentation\nRESTful APIs are used for inter-service communication. All endpoints are documented with OpenAPI specifications. Rate limiting and authentication are implemented for security.\n\nDeployment Guide\nDeployment uses containerization with Docker and orchestration with Kubernetes. CI/CD pipelines automatically test and deploy code changes to production environments."),
-        
         ("research_paper.txt", DocumentType::Text, "RESEARCH PAPER: Advanced AI Applications\n\nAbstract\nThis paper explores the latest developments in artificial intelligence and their applications in various industries. We examine machine learning algorithms, natural language processing, and computer vision technologies.\n\nIntroduction\nArtificial intelligence has transformed numerous sectors, from healthcare to finance. The rapid advancement of deep learning techniques has enabled new possibilities for automation and decision-making.\n\nMethodology\nWe conducted experiments using transformer models and evaluated their performance on benchmark datasets. Our approach combines supervised and unsupervised learning techniques."),
     ];
 
     // Test different chunking strategies
     let chunking_strategies = vec![
-        ("Recursive", ChunkingStrategy::Recursive {
-            chunk_size: 200,
-            chunk_overlap: 50,
-            separators: vec!["\n\n".to_string(), "\n".to_string(), ". ".to_string()],
-        }),
-        ("Sliding Window", ChunkingStrategy::SlidingWindow {
-            window_size: 150,
-            step_size: 100,
-        }),
-        ("Semantic", ChunkingStrategy::Semantic {
-            max_chunk_size: 300,
-            similarity_threshold: 0.8,
-        }),
-        ("Fixed Size", ChunkingStrategy::FixedSize {
-            size: 180,
-            overlap: 30,
-        }),
+        (
+            "Recursive",
+            ChunkingStrategy::Recursive {
+                chunk_size: 200,
+                chunk_overlap: 50,
+                separators: vec!["\n\n".to_string(), "\n".to_string(), ". ".to_string()],
+            },
+        ),
+        (
+            "Sliding Window",
+            ChunkingStrategy::SlidingWindow {
+                window_size: 150,
+                step_size: 100,
+            },
+        ),
+        (
+            "Semantic",
+            ChunkingStrategy::Semantic {
+                max_chunk_size: 300,
+                similarity_threshold: 0.8,
+            },
+        ),
+        (
+            "Fixed Size",
+            ChunkingStrategy::FixedSize {
+                size: 180,
+                overlap: 30,
+            },
+        ),
     ];
 
     for (strategy_name, strategy) in chunking_strategies {
         println!("\nTesting {} Chunking Strategy:", strategy_name);
         println!("{}", "=".repeat(40));
-        
+
         let processor = DocumentProcessor::new(strategy);
-        
+
         for (doc_name, doc_type, content) in &sample_documents {
-            let chunks = processor.process_document(content, doc_name, doc_type.clone()).await?;
-            println!("  📄 {} -> {} chunks (avg size: {} chars)", 
-                    doc_name, chunks.len(), 
-                    if chunks.len() > 0 { chunks.iter().map(|c| c.content.len()).sum::<usize>() / chunks.len() } else { 0 });
+            let chunks = processor
+                .process_document(content, doc_name, doc_type.clone())
+                .await?;
+            println!(
+                "  📄 {} -> {} chunks (avg size: {} chars)",
+                doc_name,
+                chunks.len(),
+                if chunks.len() > 0 {
+                    chunks.iter().map(|c| c.content.len()).sum::<usize>() / chunks.len()
+                } else {
+                    0
+                }
+            );
         }
     }
 
@@ -842,7 +1040,10 @@ async fn main() -> anyhow::Result<()> {
     println!("--------------------------------------");
 
     let vector_stores: Vec<(String, Arc<dyn VectorStore>)> = vec![
-        ("SQLite".to_string(), Arc::new(SQLiteVectorStore::new("demo_sqlite"))),
+        (
+            "SQLite".to_string(),
+            Arc::new(SQLiteVectorStore::new("demo_sqlite")),
+        ),
         // In real implementation, you would add other stores:
         // ("PgVector".to_string(), Arc::new(PgVectorStore::new(connection_string))),
         // ("Pinecone".to_string(), Arc::new(PineconeStore::new(api_key, index_name))),
@@ -864,9 +1065,12 @@ async fn main() -> anyhow::Result<()> {
     ];
 
     for (model_name, dimensions) in embedding_models {
-        println!("\nTesting with {} model ({} dimensions):", model_name, dimensions);
+        println!(
+            "\nTesting with {} model ({} dimensions):",
+            model_name, dimensions
+        );
         println!("{}", "=".repeat(50));
-        
+
         let rag_system = Arc::new(RAGSystem::new(
             ChunkingStrategy::Recursive {
                 chunk_size: 250,
@@ -880,7 +1084,9 @@ async fn main() -> anyhow::Result<()> {
 
         // Ingest documents
         for (doc_name, doc_type, content) in &sample_documents {
-            rag_system.ingest_document(content, doc_name, doc_type.clone()).await?;
+            rag_system
+                .ingest_document(content, doc_name, doc_type.clone())
+                .await?;
         }
 
         // Test queries
@@ -919,17 +1125,27 @@ async fn main() -> anyhow::Result<()> {
     // Ingest knowledge base
     let knowledge_base = "KNOWLEDGE BASE\n\nProduct Information:\nOur flagship product is an AI-powered analytics platform that helps businesses make data-driven decisions. It features real-time dashboards, predictive analytics, and automated reporting capabilities.\n\nCustomer Support Guidelines:\nWhen assisting customers, always be polite and professional. Listen carefully to their concerns and provide clear, actionable solutions. Escalate complex issues to senior support staff when necessary.\n\nTroubleshooting Common Issues:\n1. Login Problems: Check credentials and reset password if needed\n2. Data Loading Issues: Verify data format and connection settings\n3. Performance Problems: Clear cache and check system resources";
 
-    rag_system.ingest_document(knowledge_base, "knowledge_base.txt", DocumentType::Text).await?;
+    rag_system
+        .ingest_document(knowledge_base, "knowledge_base.txt", DocumentType::Text)
+        .await?;
 
     // Create RAG-enhanced workflow
     let rag_workflow = WorkflowBuilder::new("rag_enhanced_workflow")
-        .then(Box::new(RAGEnhancedStep::new("customer_support", rag_system.clone())))
-        .with_initial_data(json!({"query": "How do I troubleshoot login problems with the analytics platform?"}))
+        .then(Box::new(RAGEnhancedStep::new(
+            "customer_support",
+            rag_system.clone(),
+        )))
+        .with_initial_data(
+            json!({"query": "How do I troubleshoot login problems with the analytics platform?"}),
+        )
         .build();
 
     let context = WorkflowContext::new(10);
     let result = rag_workflow.execute(context).await?;
-    println!("RAG-enhanced workflow completed: Steps executed = {}", result.steps_executed);
+    println!(
+        "RAG-enhanced workflow completed: Steps executed = {}",
+        result.steps_executed
+    );
 
     // Demo 5: Performance and Cost Analysis
     println!("\n📋 Demo 5: Performance & Cost Analysis");
@@ -937,34 +1153,65 @@ async fn main() -> anyhow::Result<()> {
 
     // Test different configurations for performance comparison
     let configs = vec![
-        ("Small Chunks", ChunkingStrategy::FixedSize { size: 100, overlap: 20 }, "text-embedding-3-small", 1536),
-        ("Medium Chunks", ChunkingStrategy::FixedSize { size: 300, overlap: 50 }, "text-embedding-ada-002", 1536),
-        ("Large Chunks", ChunkingStrategy::FixedSize { size: 500, overlap: 100 }, "text-embedding-3-large", 3072),
+        (
+            "Small Chunks",
+            ChunkingStrategy::FixedSize {
+                size: 100,
+                overlap: 20,
+            },
+            "text-embedding-3-small",
+            1536,
+        ),
+        (
+            "Medium Chunks",
+            ChunkingStrategy::FixedSize {
+                size: 300,
+                overlap: 50,
+            },
+            "text-embedding-ada-002",
+            1536,
+        ),
+        (
+            "Large Chunks",
+            ChunkingStrategy::FixedSize {
+                size: 500,
+                overlap: 100,
+            },
+            "text-embedding-3-large",
+            3072,
+        ),
     ];
 
     for (config_name, chunk_strategy, model, dimensions) in configs {
         println!("\nConfiguration: {}", config_name);
         println!("Chunking: {:?}", chunk_strategy);
         println!("Model: {} ({}D)", model, dimensions);
-        
+
         let test_system = RAGSystem::new(
             chunk_strategy,
             model,
             dimensions,
-            Arc::new(SQLiteVectorStore::new(&format!("perf_test_{}", config_name.replace(" ", "_")))),
+            Arc::new(SQLiteVectorStore::new(&format!(
+                "perf_test_{}",
+                config_name.replace(" ", "_")
+            ))),
         );
 
         let start_time = Instant::now();
-        test_system.ingest_document(sample_documents[0].2, "test_doc", DocumentType::Text).await?;
+        test_system
+            .ingest_document(sample_documents[0].2, "test_doc", DocumentType::Text)
+            .await?;
         let ingestion_time = start_time.elapsed();
-        
+
         let start_time = Instant::now();
-        let _results = test_system.query("test query for performance measurement", 5).await?;
+        let _results = test_system
+            .query("test query for performance measurement", 5)
+            .await?;
         let query_time = start_time.elapsed();
-        
+
         println!("  Ingestion Time: {:?}", ingestion_time);
         println!("  Query Time: {:?}", query_time);
-        
+
         test_system.observability.print_summary().await;
     }
 

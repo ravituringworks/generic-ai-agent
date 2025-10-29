@@ -11,13 +11,13 @@
 
 use crate::error::{AgentError, Result};
 use async_trait::async_trait;
+use reqwest;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{SystemTime, Duration};
-use tokio::sync::{RwLock, Mutex, broadcast};
+use std::time::{Duration, SystemTime};
+use tokio::sync::{broadcast, Mutex, RwLock};
 use uuid::Uuid;
-use reqwest;
 
 /// Unique identifier for an agent
 #[derive(Debug, Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
@@ -104,10 +104,16 @@ pub enum MessageType {
 /// Message payload variants
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MessagePayload {
-    Text { content: String },
-    Json { data: serde_json::Value },
-    Binary { data: Vec<u8> },
-    Task { 
+    Text {
+        content: String,
+    },
+    Json {
+        data: serde_json::Value,
+    },
+    Binary {
+        data: Vec<u8>,
+    },
+    Task {
         task_id: String,
         operation: String,
         parameters: HashMap<String, String>,
@@ -252,37 +258,44 @@ pub struct CircuitBreakerConfig {
 pub trait A2AClient: Send + Sync {
     /// Send a message to another agent
     async fn send_message(&self, message: A2AMessage) -> Result<A2AResponse>;
-    
+
     /// Send a request and wait for response
     async fn request(&self, to: AgentId, payload: MessagePayload) -> Result<A2AResponse>;
-    
+
     /// Send a one-way message (no response expected)
     async fn notify(&self, to: AgentId, payload: MessagePayload) -> Result<()>;
-    
+
     /// Broadcast message to multiple agents
-    async fn broadcast(&self, to_agents: Vec<AgentId>, payload: MessagePayload) -> Result<Vec<A2AResponse>>;
-    
+    async fn broadcast(
+        &self,
+        to_agents: Vec<AgentId>,
+        payload: MessagePayload,
+    ) -> Result<Vec<A2AResponse>>;
+
     /// Subscribe to messages from other agents
-    async fn subscribe(&self, message_types: Vec<MessageType>) -> Result<tokio::sync::broadcast::Receiver<A2AMessage>>;
-    
+    async fn subscribe(
+        &self,
+        message_types: Vec<MessageType>,
+    ) -> Result<tokio::sync::broadcast::Receiver<A2AMessage>>;
+
     /// Register this agent with the discovery service
     async fn register(&self, capabilities: AgentCapabilities) -> Result<()>;
-    
+
     /// Unregister this agent from the discovery service
     async fn unregister(&self) -> Result<()>;
-    
+
     /// Discover other agents by capability
     async fn discover_agents(&self, capability: &str) -> Result<Vec<AgentRegistration>>;
-    
+
     /// Get agent information by ID
     async fn get_agent_info(&self, agent_id: &AgentId) -> Result<Option<AgentRegistration>>;
-    
+
     /// Start the client (begin listening for messages)
     async fn start(&self) -> Result<()>;
-    
+
     /// Stop the client
     async fn stop(&self) -> Result<()>;
-    
+
     /// Get client statistics
     async fn get_stats(&self) -> Result<A2AStats>;
 }
@@ -325,9 +338,9 @@ impl HttpA2AClient {
             .timeout(std::time::Duration::from_secs(30))
             .build()
             .map_err(|e| AgentError::Config(format!("Failed to create HTTP client: {}", e)))?;
-            
+
         let (sender, receiver) = broadcast::channel(1000);
-        
+
         Ok(Self {
             config,
             client,
@@ -338,16 +351,19 @@ impl HttpA2AClient {
             _message_receiver: receiver,
         })
     }
-    
+
     pub async fn add_message_handler(&self, handler: Arc<dyn MessageHandler>) {
         let mut handlers = self.message_handlers.write().await;
         handlers.push(handler);
     }
-    
+
     #[allow(dead_code)]
-    async fn process_incoming_message(&self, message: A2AMessage) -> Result<Option<MessagePayload>> {
+    async fn process_incoming_message(
+        &self,
+        message: A2AMessage,
+    ) -> Result<Option<MessagePayload>> {
         let handlers = self.message_handlers.read().await;
-        
+
         for handler in handlers.iter() {
             match message.message_type {
                 MessageType::Request => {
@@ -370,7 +386,7 @@ impl HttpA2AClient {
                 }
             }
         }
-        
+
         Ok(None)
     }
 }
@@ -379,44 +395,53 @@ impl HttpA2AClient {
 impl A2AClient for HttpA2AClient {
     async fn send_message(&self, message: A2AMessage) -> Result<A2AResponse> {
         let start_time = SystemTime::now();
-        
+
         // Look up target agent endpoint
         let registry = self.agent_registry.read().await;
-        let target_agent = registry.get(&message.to)
-            .ok_or_else(|| AgentError::NotFound(format!("Agent {} not found", message.to.to_string())))?;
-            
-        let endpoint = target_agent.endpoints.get("http")
-            .ok_or_else(|| AgentError::Config("No HTTP endpoint found for target agent".to_string()))?;
-            
+        let target_agent = registry.get(&message.to).ok_or_else(|| {
+            AgentError::NotFound(format!("Agent {} not found", message.to.to_string()))
+        })?;
+
+        let endpoint = target_agent.endpoints.get("http").ok_or_else(|| {
+            AgentError::Config("No HTTP endpoint found for target agent".to_string())
+        })?;
+
         // Send HTTP request
-        let response = self.client
+        let response = self
+            .client
             .post(&format!("{}/a2a/message", endpoint))
             .json(&message)
             .send()
             .await
             .map_err(|e| AgentError::Network(format!("HTTP request failed: {}", e)))?;
-            
-        let _processing_time = start_time.elapsed()
+
+        let _processing_time = start_time
+            .elapsed()
             .unwrap_or(Duration::from_secs(0))
             .as_millis() as u64;
-            
+
         if response.status().is_success() {
-            let a2a_response: A2AResponse = response.json().await
+            let a2a_response: A2AResponse = response
+                .json()
+                .await
                 .map_err(|e| AgentError::Network(format!("Failed to parse response: {}", e)))?;
-                
+
             // Update stats
             let mut stats = self.stats.lock().await;
             stats.messages_sent += 1;
-            
+
             Ok(a2a_response)
         } else {
             let mut stats = self.stats.lock().await;
             stats.messages_failed += 1;
-            
-            Err(AgentError::Network(format!("HTTP request failed with status: {}", response.status())))
+
+            Err(AgentError::Network(format!(
+                "HTTP request failed with status: {}",
+                response.status()
+            )))
         }
     }
-    
+
     async fn request(&self, to: AgentId, payload: MessagePayload) -> Result<A2AResponse> {
         let message = A2AMessage {
             id: Uuid::new_v4().to_string(),
@@ -431,10 +456,10 @@ impl A2AClient for HttpA2AClient {
             reply_to: None,
             metadata: HashMap::new(),
         };
-        
+
         self.send_message(message).await
     }
-    
+
     async fn notify(&self, to: AgentId, payload: MessagePayload) -> Result<()> {
         let message = A2AMessage {
             id: Uuid::new_v4().to_string(),
@@ -449,14 +474,18 @@ impl A2AClient for HttpA2AClient {
             reply_to: None,
             metadata: HashMap::new(),
         };
-        
+
         self.send_message(message).await?;
         Ok(())
     }
-    
-    async fn broadcast(&self, to_agents: Vec<AgentId>, payload: MessagePayload) -> Result<Vec<A2AResponse>> {
+
+    async fn broadcast(
+        &self,
+        to_agents: Vec<AgentId>,
+        payload: MessagePayload,
+    ) -> Result<Vec<A2AResponse>> {
         let mut responses = Vec::new();
-        
+
         for agent_id in to_agents {
             let message = A2AMessage {
                 id: Uuid::new_v4().to_string(),
@@ -471,7 +500,7 @@ impl A2AClient for HttpA2AClient {
                 reply_to: None,
                 metadata: HashMap::new(),
             };
-            
+
             match self.send_message(message).await {
                 Ok(response) => responses.push(response),
                 Err(e) => {
@@ -480,66 +509,81 @@ impl A2AClient for HttpA2AClient {
                 }
             }
         }
-        
+
         Ok(responses)
     }
-    
-    async fn subscribe(&self, _message_types: Vec<MessageType>) -> Result<tokio::sync::broadcast::Receiver<A2AMessage>> {
+
+    async fn subscribe(
+        &self,
+        _message_types: Vec<MessageType>,
+    ) -> Result<tokio::sync::broadcast::Receiver<A2AMessage>> {
         Ok(self.message_sender.subscribe())
     }
-    
+
     async fn register(&self, capabilities: AgentCapabilities) -> Result<()> {
         let registration = AgentRegistration {
             agent_id: self.config.agent_id.clone(),
             capabilities,
             endpoints: HashMap::from([
-                ("http".to_string(), "http://localhost:8080".to_string()) // Default endpoint
+                ("http".to_string(), "http://localhost:8080".to_string()), // Default endpoint
             ]),
             heartbeat_interval: Duration::from_secs(30),
             registered_at: SystemTime::now(),
             last_seen: SystemTime::now(),
             status: AgentStatus::Online,
         };
-        
+
         // Store registration locally
         let mut registry = self.agent_registry.write().await;
         registry.insert(self.config.agent_id.clone(), registration);
-        
+
         Ok(())
     }
-    
+
     async fn unregister(&self) -> Result<()> {
         let mut registry = self.agent_registry.write().await;
         registry.remove(&self.config.agent_id);
         Ok(())
     }
-    
+
     async fn discover_agents(&self, capability: &str) -> Result<Vec<AgentRegistration>> {
         let registry = self.agent_registry.read().await;
-        let agents: Vec<AgentRegistration> = registry.values()
-            .filter(|agent| agent.capabilities.services.contains(&capability.to_string()))
+        let agents: Vec<AgentRegistration> = registry
+            .values()
+            .filter(|agent| {
+                agent
+                    .capabilities
+                    .services
+                    .contains(&capability.to_string())
+            })
             .cloned()
             .collect();
-            
+
         Ok(agents)
     }
-    
+
     async fn get_agent_info(&self, agent_id: &AgentId) -> Result<Option<AgentRegistration>> {
         let registry = self.agent_registry.read().await;
         Ok(registry.get(agent_id).cloned())
     }
-    
+
     async fn start(&self) -> Result<()> {
         // In a full implementation, this would start HTTP server, WebSocket listeners, etc.
-        tracing::info!("A2A HTTP client started for agent: {}", self.config.agent_id.to_string());
+        tracing::info!(
+            "A2A HTTP client started for agent: {}",
+            self.config.agent_id.to_string()
+        );
         Ok(())
     }
-    
+
     async fn stop(&self) -> Result<()> {
-        tracing::info!("A2A HTTP client stopped for agent: {}", self.config.agent_id.to_string());
+        tracing::info!(
+            "A2A HTTP client stopped for agent: {}",
+            self.config.agent_id.to_string()
+        );
         Ok(())
     }
-    
+
     async fn get_stats(&self) -> Result<A2AStats> {
         let stats = self.stats.lock().await;
         Ok(stats.clone())
@@ -564,16 +608,17 @@ impl Default for A2AConfig {
     fn default() -> Self {
         Self {
             agent_id: AgentId::new("default", "agent"),
-            protocols: HashMap::from([
-                (ProtocolType::Http, ProtocolConfig {
+            protocols: HashMap::from([(
+                ProtocolType::Http,
+                ProtocolConfig {
                     enabled: true,
                     endpoint: "http://localhost:8080".to_string(),
                     timeout: Duration::from_secs(30),
                     retry_attempts: 3,
                     connection_pool_size: 10,
                     settings: HashMap::new(),
-                })
-            ]),
+                },
+            )]),
             discovery: ServiceDiscoveryConfig {
                 enabled: true,
                 registry_type: "http".to_string(),
@@ -620,24 +665,29 @@ impl A2AManager {
             agent_id,
         }
     }
-    
+
     pub async fn add_handler(&self, service_name: String, handler: Arc<dyn MessageHandler>) {
         let mut handlers = self.handlers.write().await;
         handlers.insert(service_name, handler);
     }
-    
+
     pub async fn start(&self) -> Result<()> {
         self.client.start().await
     }
-    
+
     pub async fn stop(&self) -> Result<()> {
         self.client.stop().await
     }
-    
-    pub async fn send_request(&self, to: AgentId, service: &str, payload: MessagePayload) -> Result<A2AResponse> {
+
+    pub async fn send_request(
+        &self,
+        to: AgentId,
+        service: &str,
+        payload: MessagePayload,
+    ) -> Result<A2AResponse> {
         let mut metadata = HashMap::new();
         metadata.insert("service".to_string(), service.to_string());
-        
+
         let message = A2AMessage {
             id: Uuid::new_v4().to_string(),
             from: self.agent_id.clone(),
@@ -651,10 +701,10 @@ impl A2AManager {
             reply_to: None,
             metadata,
         };
-        
+
         self.client.send_message(message).await
     }
-    
+
     pub async fn discover_service(&self, service_name: &str) -> Result<Vec<AgentRegistration>> {
         self.client.discover_agents(service_name).await
     }
@@ -663,7 +713,7 @@ impl A2AManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_agent_id_creation() {
         let agent_id = AgentId::new("test_namespace", "test_agent");
@@ -671,18 +721,20 @@ mod tests {
         assert_eq!(agent_id.name, "test_agent");
         assert!(!agent_id.instance.is_empty());
     }
-    
+
     #[test]
     fn test_message_creation() {
         let from = AgentId::new("ns1", "agent1");
         let to = AgentId::new("ns2", "agent2");
-        
+
         let message = A2AMessage {
             id: Uuid::new_v4().to_string(),
             from,
             to,
             message_type: MessageType::Request,
-            payload: MessagePayload::Text { content: "Hello".to_string() },
+            payload: MessagePayload::Text {
+                content: "Hello".to_string(),
+            },
             priority: MessagePriority::Normal,
             timestamp: SystemTime::now(),
             expires_at: None,
@@ -690,11 +742,11 @@ mod tests {
             reply_to: None,
             metadata: HashMap::new(),
         };
-        
+
         assert_eq!(message.message_type, MessageType::Request);
         assert_eq!(message.priority, MessagePriority::Normal);
     }
-    
+
     #[tokio::test]
     async fn test_http_a2a_client_creation() {
         let config = A2AConfig::default();

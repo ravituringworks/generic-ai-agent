@@ -1,9 +1,11 @@
 //! Language model integration using Ollama
 
+use crate::cache::LlmCache;
 use crate::config::LlmConfig;
 use crate::error::{LlmError, Result};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::time::timeout;
 use tracing::{debug, error, info};
@@ -45,13 +47,13 @@ pub struct EmbeddingResponse {
 pub trait LlmClient: Send + Sync {
     /// Generate text from a conversation
     async fn generate(&self, messages: &[Message]) -> Result<GenerationResponse>;
-    
+
     /// Generate embeddings for text
     async fn embed(&self, text: &str) -> Result<EmbeddingResponse>;
-    
+
     /// List available models
     async fn list_models(&self) -> Result<Vec<String>>;
-    
+
     /// Check if model is available
     async fn is_model_available(&self, model: &str) -> Result<bool>;
 }
@@ -60,6 +62,7 @@ pub trait LlmClient: Send + Sync {
 pub struct OllamaClient {
     client: reqwest::Client,
     config: LlmConfig,
+    cache: Option<Arc<LlmCache>>,
 }
 
 /// Ollama API request for generation
@@ -146,12 +149,40 @@ impl OllamaClient {
             .build()
             .expect("Failed to create HTTP client");
 
-        Self { client, config }
+        Self {
+            client,
+            config,
+            cache: None,
+        }
+    }
+
+    /// Create a new Ollama client with cache
+    pub async fn new_with_cache(config: LlmConfig) -> Result<Self> {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(config.timeout))
+            .build()
+            .expect("Failed to create HTTP client");
+
+        let cache = if config.cache.enabled {
+            Some(Arc::new(LlmCache::new(config.cache.clone()).await?))
+        } else {
+            None
+        };
+
+        Ok(Self {
+            client,
+            config,
+            cache,
+        })
     }
 
     /// Get the base URL for API calls
     fn api_url(&self, endpoint: &str) -> String {
-        format!("{}/api/{}", self.config.ollama_url.trim_end_matches('/'), endpoint)
+        format!(
+            "{}/api/{}",
+            self.config.ollama_url.trim_end_matches('/'),
+            endpoint
+        )
     }
 }
 
@@ -159,6 +190,35 @@ impl OllamaClient {
 impl LlmClient for OllamaClient {
     async fn generate(&self, messages: &[Message]) -> Result<GenerationResponse> {
         debug!("Generating text with {} messages", messages.len());
+
+        // Try cache first if available
+        if let Some(cache) = &self.cache {
+            let messages_json =
+                serde_json::to_string(&messages).unwrap_or_else(|_| format!("{:?}", messages));
+
+            let system_prompt = messages
+                .iter()
+                .find(|m| m.role == Role::System)
+                .map(|m| m.content.as_str());
+
+            let cache_key = LlmCache::compute_cache_key(
+                &messages_json,
+                &self.config.text_model,
+                self.config.temperature,
+                self.config.max_tokens,
+                system_prompt,
+            );
+
+            if let Ok(Some(cached_response)) = cache.get(&cache_key).await {
+                debug!("Using cached response");
+                return Ok(GenerationResponse {
+                    text: cached_response,
+                    tokens_used: None,
+                    model: self.config.text_model.clone(),
+                    finish_reason: Some("cached".to_string()),
+                });
+            }
+        }
 
         let request = OllamaGenerateRequest {
             model: self.config.text_model.clone(),
@@ -175,10 +235,7 @@ impl LlmClient for OllamaClient {
 
         let response = timeout(
             Duration::from_secs(self.config.timeout),
-            self.client
-                .post(&url)
-                .json(&request)
-                .send()
+            self.client.post(&url).json(&request).send(),
         )
         .await
         .map_err(|_| LlmError::Timeout)?
@@ -202,10 +259,46 @@ impl LlmClient for OllamaClient {
             return Err(LlmError::InvalidResponse("Incomplete response".to_string()).into());
         }
 
-        info!("Generated {} tokens", ollama_response.eval_count.unwrap_or(0));
+        info!(
+            "Generated {} tokens",
+            ollama_response.eval_count.unwrap_or(0)
+        );
+
+        let response_text = ollama_response.message.content.clone();
+
+        // Cache the response if cache is available
+        if let Some(cache) = &self.cache {
+            let messages_json =
+                serde_json::to_string(&messages).unwrap_or_else(|_| format!("{:?}", messages));
+
+            let system_prompt = messages
+                .iter()
+                .find(|m| m.role == Role::System)
+                .map(|m| m.content.as_str());
+
+            let cache_key = LlmCache::compute_cache_key(
+                &messages_json,
+                &self.config.text_model,
+                self.config.temperature,
+                self.config.max_tokens,
+                system_prompt,
+            );
+
+            if let Err(e) = cache
+                .set(
+                    cache_key,
+                    response_text.clone(),
+                    ollama_response.model.clone(),
+                    self.config.temperature,
+                )
+                .await
+            {
+                error!("Failed to cache response: {}", e);
+            }
+        }
 
         Ok(GenerationResponse {
-            text: ollama_response.message.content,
+            text: response_text,
             tokens_used: ollama_response.eval_count,
             model: ollama_response.model,
             finish_reason: ollama_response.done_reason,
@@ -225,10 +318,7 @@ impl LlmClient for OllamaClient {
 
         let response = timeout(
             Duration::from_secs(self.config.timeout),
-            self.client
-                .post(&url)
-                .json(&request)
-                .send()
+            self.client.post(&url).json(&request).send(),
         )
         .await
         .map_err(|_| LlmError::Timeout)?
@@ -248,7 +338,10 @@ impl LlmClient for OllamaClient {
             .await
             .map_err(|e| LlmError::InvalidResponse(e.to_string()))?;
 
-        info!("Generated embedding with dimension {}", ollama_response.embedding.len());
+        info!(
+            "Generated embedding with dimension {}",
+            ollama_response.embedding.len()
+        );
 
         Ok(EmbeddingResponse {
             embedding: ollama_response.embedding,
@@ -260,10 +353,10 @@ impl LlmClient for OllamaClient {
         debug!("Listing available models");
 
         let url = self.api_url("tags");
-        
+
         let response = timeout(
             Duration::from_secs(self.config.timeout),
-            self.client.get(&url).send()
+            self.client.get(&url).send(),
         )
         .await
         .map_err(|_| LlmError::Timeout)?
@@ -282,11 +375,7 @@ impl LlmClient for OllamaClient {
             .await
             .map_err(|e| LlmError::InvalidResponse(e.to_string()))?;
 
-        let models: Vec<String> = models_response
-            .models
-            .into_iter()
-            .map(|m| m.name)
-            .collect();
+        let models: Vec<String> = models_response.models.into_iter().map(|m| m.name).collect();
 
         info!("Found {} models", models.len());
         Ok(models)
@@ -325,7 +414,10 @@ pub fn assistant_message(content: impl Into<String>) -> Message {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use mockall::{automock, predicate::{self, *}};
+    use mockall::{
+        automock,
+        predicate::{self, *},
+    };
 
     #[automock]
     #[async_trait]
@@ -362,15 +454,18 @@ mod tests {
     fn test_api_url_generation() {
         let config = LlmConfig::default();
         let client = OllamaClient::new(config);
-        
+
         assert_eq!(client.api_url("chat"), "http://localhost:11434/api/chat");
-        assert_eq!(client.api_url("embeddings"), "http://localhost:11434/api/embeddings");
+        assert_eq!(
+            client.api_url("embeddings"),
+            "http://localhost:11434/api/embeddings"
+        );
     }
 
     #[tokio::test]
     async fn test_mock_llm_client() {
         let mut mock_client = MockMockLlmClient::new();
-        
+
         mock_client
             .expect_generate()
             .with(predicate::always())
@@ -386,7 +481,7 @@ mod tests {
 
         let messages = vec![user_message("Hello")];
         let response = mock_client.generate(&messages).await.unwrap();
-        
+
         assert_eq!(response.text, "Hello! How can I help you?");
         assert_eq!(response.tokens_used, Some(10));
     }

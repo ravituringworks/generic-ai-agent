@@ -1,13 +1,15 @@
 //! Main AI Agent implementation
 
-use crate::a2a::{A2AManager, HttpA2AClient, AgentId, AgentCapabilities};
+use crate::a2a::{A2AManager, AgentCapabilities, AgentId, HttpA2AClient};
 use crate::config::AgentConfig;
 use crate::error::Result;
-use crate::llm::{LlmClient, OllamaClient, Message, Role, system_message, user_message, assistant_message};
-use crate::memory::{MemoryStore, SqliteMemoryStore};
+use crate::llm::{
+    assistant_message, system_message, user_message, LlmClient, Message, OllamaClient, Role,
+};
 use crate::mcp::{McpClient, ToolCall};
+use crate::memory::{MemoryStore, SqliteMemoryStore};
 use crate::tools::BuiltinTools;
-use crate::workflow::{WorkflowEngine, WorkflowContext, WorkflowResult};
+use crate::workflow::{WorkflowContext, WorkflowEngine, WorkflowResult};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -17,25 +19,25 @@ use tracing::{debug, info, warn};
 pub struct Agent {
     /// Configuration
     config: AgentConfig,
-    
+
     /// LLM client for text generation and embeddings
     llm: Box<dyn LlmClient>,
-    
+
     /// Memory store for persistent knowledge
     memory: Arc<RwLock<Box<dyn MemoryStore>>>,
-    
+
     /// MCP client for tool calling
     mcp: Arc<RwLock<McpClient>>,
-    
+
     /// A2A manager for agent-to-agent communication
     a2a: Option<A2AManager>,
-    
+
     /// Built-in tools
     builtin_tools: BuiltinTools,
-    
+
     /// Workflow engine
     workflow: WorkflowEngine,
-    
+
     /// Conversation history
     conversation: Vec<Message>,
 }
@@ -52,20 +54,24 @@ impl Agent {
         let llm: Box<dyn LlmClient> = Box::new(OllamaClient::new(config.llm.clone()));
 
         // Initialize memory store
-        let mut memory_store: Box<dyn MemoryStore> = Box::new(SqliteMemoryStore::new(config.memory.clone()));
+        let mut memory_store: Box<dyn MemoryStore> =
+            Box::new(SqliteMemoryStore::new(config.memory.clone()));
         memory_store.initialize().await?;
         let memory = Arc::new(RwLock::new(memory_store));
 
         // Initialize MCP client
         let mut mcp_client = McpClient::new(config.mcp.clone());
-        
+
         // Add configured MCP servers
         for (name, server_config) in &config.mcp.servers {
-            if let Err(e) = mcp_client.add_server(name.clone(), server_config.clone()).await {
+            if let Err(e) = mcp_client
+                .add_server(name.clone(), server_config.clone())
+                .await
+            {
                 warn!("Failed to add MCP server {}: {}", name, e);
             }
         }
-        
+
         let mcp = Arc::new(RwLock::new(mcp_client));
 
         // Initialize built-in tools
@@ -75,7 +81,7 @@ impl Agent {
         let a2a = if config.a2a.discovery.enabled {
             let agent_id = AgentId::new(&config.agent.name, &config.agent.name);
             let a2a_config = config.a2a.clone();
-            
+
             match HttpA2AClient::new(a2a_config) {
                 Ok(client) => {
                     let a2a_manager = A2AManager::new(Arc::new(client), agent_id);
@@ -92,11 +98,14 @@ impl Agent {
 
         // Initialize workflow engine with configuration
         let mut workflow = WorkflowEngine::default();
-        
+
         // Configure SQLite snapshot storage using the same database as memory
-        let database_url = config.memory.database_url.clone()
+        let database_url = config
+            .memory
+            .database_url
+            .clone()
             .unwrap_or_else(|| "sqlite:.agency/agent.db".to_string());
-        
+
         use crate::workflow::SqliteSnapshotStorage;
         let mut storage = SqliteSnapshotStorage::new(database_url);
         if let Err(e) = storage.initialize().await {
@@ -104,7 +113,7 @@ impl Agent {
         } else {
             workflow = workflow.with_snapshot_storage(Box::new(storage));
         }
-        
+
         // Apply workflow suspend configuration
         if config.workflow.enable_suspend_resume {
             use crate::workflow::WorkflowSuspendConfig;
@@ -137,7 +146,10 @@ impl Agent {
 
     /// Process a user message and return a response
     pub async fn process(&mut self, user_input: &str) -> Result<String> {
-        info!("Processing user input: {}", user_input.chars().take(100).collect::<String>());
+        info!(
+            "Processing user input: {}",
+            user_input.chars().take(100).collect::<String>()
+        );
 
         // Add user message to conversation
         let user_msg = user_message(user_input);
@@ -145,7 +157,7 @@ impl Agent {
 
         // Create workflow context
         let mut context = WorkflowContext::new(self.config.agent.max_thinking_steps);
-        
+
         // Add conversation history to context
         for message in &self.conversation {
             context.add_message(message.clone());
@@ -182,21 +194,31 @@ impl Agent {
 
         // Store conversation in memory if enabled
         if self.config.agent.use_memory {
-            self.store_conversation_memory(user_input, &result.response).await?;
+            self.store_conversation_memory(user_input, &result.response)
+                .await?;
         }
 
-        debug!("Generated response with {} characters", result.response.len());
+        debug!(
+            "Generated response with {} characters",
+            result.response.len()
+        );
         Ok(result.response)
     }
 
     /// Handle tool calls during workflow execution
-    async fn handle_tool_calls(&self, mut result: WorkflowResult, tool_calls: Vec<ToolCall>) -> Result<WorkflowResult> {
+    async fn handle_tool_calls(
+        &self,
+        mut result: WorkflowResult,
+        tool_calls: Vec<ToolCall>,
+    ) -> Result<WorkflowResult> {
         debug!("Handling {} tool calls", tool_calls.len());
 
         for tool_call in tool_calls {
             // Try built-in tools first
             if let Some(tool_result) = self.builtin_tools.execute(&tool_call.name).await {
-                result.context.add_tool_result(tool_call.id.clone(), tool_result);
+                result
+                    .context
+                    .add_tool_result(tool_call.id.clone(), tool_result);
                 continue;
             }
 
@@ -219,29 +241,41 @@ impl Agent {
     }
 
     /// Handle memory retrieval during workflow execution
-    async fn handle_memory_retrieval(&self, mut result: WorkflowResult, query: String) -> Result<WorkflowResult> {
+    async fn handle_memory_retrieval(
+        &self,
+        mut result: WorkflowResult,
+        query: String,
+    ) -> Result<WorkflowResult> {
         debug!("Handling memory retrieval for query: {}", query);
 
         if self.config.agent.use_memory {
             // Generate embedding for the query
             let embedding_response = self.llm.embed(&query).await?;
-            
+
             // Search memory
             let memory = self.memory.read().await;
-            let search_results = memory.search(
-                embedding_response.embedding,
-                self.config.memory.max_search_results,
-                self.config.memory.similarity_threshold,
-            ).await?;
+            let search_results = memory
+                .search(
+                    embedding_response.embedding,
+                    self.config.memory.max_search_results,
+                    self.config.memory.similarity_threshold,
+                )
+                .await?;
 
-        result.context.memories = search_results;
-        result.context.metadata.insert("memories_retrieved".to_string(), "true".to_string());
-        debug!("Retrieved {} relevant memories", result.context.memories.len());
-    }
+            result.context.memories = search_results;
+            result
+                .context
+                .metadata
+                .insert("memories_retrieved".to_string(), "true".to_string());
+            debug!(
+                "Retrieved {} relevant memories",
+                result.context.memories.len()
+            );
+        }
 
-    // Continue workflow with memory results  
-    // Don't reset step count to avoid infinite loops
-    self.workflow.execute(result.context).await
+        // Continue workflow with memory results
+        // Don't reset step count to avoid infinite loops
+        self.workflow.execute(result.context).await
     }
 
     /// Generate final response using LLM
@@ -255,7 +289,7 @@ impl Agent {
         if !result.context.tool_results.is_empty() {
             let mut tool_summary = String::new();
             tool_summary.push_str("Tool results:\n");
-            
+
             for (_, tool_result) in &result.context.tool_results {
                 for content in &tool_result.content {
                     match content {
@@ -266,7 +300,7 @@ impl Agent {
                     }
                 }
             }
-            
+
             messages.push(assistant_message(tool_summary));
         }
 
@@ -274,11 +308,11 @@ impl Agent {
         if !result.context.memories.is_empty() && self.config.agent.use_memory {
             let mut memory_summary = String::new();
             memory_summary.push_str("Relevant memories:\n");
-            
+
             for memory in &result.context.memories {
                 memory_summary.push_str(&format!("- {}\n", memory.entry.content));
             }
-            
+
             messages.push(assistant_message(memory_summary));
         }
 
@@ -313,7 +347,7 @@ impl Agent {
         debug!("Storing conversation in memory");
 
         let conversation_text = format!("User: {}\nAssistant: {}", user_input, response);
-        
+
         // Generate embedding
         let embedding_response = self.llm.embed(&conversation_text).await?;
 
@@ -323,8 +357,10 @@ impl Agent {
         metadata.insert("type".to_string(), "conversation".to_string());
         metadata.insert("timestamp".to_string(), chrono::Utc::now().to_rfc3339());
 
-        memory.store(conversation_text, embedding_response.embedding, metadata).await?;
-        
+        memory
+            .store(conversation_text, embedding_response.embedding, metadata)
+            .await?;
+
         debug!("Conversation stored in memory");
         Ok(())
     }
@@ -333,7 +369,7 @@ impl Agent {
     fn limit_conversation_history(&mut self) {
         if self.conversation.len() > self.config.agent.max_history_length {
             let keep_from = self.conversation.len() - self.config.agent.max_history_length;
-            
+
             // Always keep the system message if it exists
             let mut new_conversation = Vec::new();
             if let Some(first) = self.conversation.first() {
@@ -344,20 +380,26 @@ impl Agent {
                     new_conversation.extend_from_slice(&self.conversation[keep_from..]);
                 }
             }
-            
+
             self.conversation = new_conversation;
-            debug!("Limited conversation history to {} messages", self.conversation.len());
+            debug!(
+                "Limited conversation history to {} messages",
+                self.conversation.len()
+            );
         }
     }
 
     /// Get agent statistics
     pub async fn stats(&self) -> AgentStats {
         let memory = self.memory.read().await;
-        let memory_stats = memory.stats().await.unwrap_or_else(|_| crate::memory::MemoryStats {
-            total_memories: 0,
-            embedding_dimension: self.config.memory.embedding_dimension,
-            store_size_bytes: None,
-        });
+        let memory_stats = memory
+            .stats()
+            .await
+            .unwrap_or_else(|_| crate::memory::MemoryStats {
+                total_memories: 0,
+                embedding_dimension: self.config.memory.embedding_dimension,
+                store_size_bytes: None,
+            });
 
         let mcp = self.mcp.read().await;
         let mcp_stats = mcp.stats();
@@ -382,7 +424,7 @@ impl Agent {
         } else {
             self.conversation.clear();
         }
-        
+
         info!("Cleared conversation history");
     }
 
@@ -396,7 +438,7 @@ impl Agent {
     pub fn get_conversation(&self) -> &[Message] {
         &self.conversation
     }
-    
+
     /// Start A2A communication (register agent and begin listening)
     pub async fn start_a2a(&self) -> Result<()> {
         if let Some(a2a) = &self.a2a {
@@ -408,72 +450,81 @@ impl Agent {
                     "tools".to_string(),
                 ],
                 protocols: vec!["http".to_string()],
-                message_types: vec![
-                    "text".to_string(),
-                    "task".to_string(),
-                    "query".to_string(),
-                ],
+                message_types: vec!["text".to_string(), "task".to_string(), "query".to_string()],
                 metadata: HashMap::from([
                     ("model".to_string(), self.config.llm.text_model.clone()),
                     ("version".to_string(), crate::VERSION.to_string()),
                 ]),
             };
-            
+
             a2a.start().await?;
-            info!("A2A communication started for agent: {}", self.config.agent.name);
+            info!(
+                "A2A communication started for agent: {}",
+                self.config.agent.name
+            );
         }
         Ok(())
     }
-    
+
     /// Stop A2A communication
     pub async fn stop_a2a(&self) -> Result<()> {
         if let Some(a2a) = &self.a2a {
             a2a.stop().await?;
-            info!("A2A communication stopped for agent: {}", self.config.agent.name);
+            info!(
+                "A2A communication stopped for agent: {}",
+                self.config.agent.name
+            );
         }
         Ok(())
     }
-    
+
     /// Send a message to another agent via A2A
     pub async fn send_to_agent(&self, target_agent: AgentId, message: &str) -> Result<String> {
         if let Some(a2a) = &self.a2a {
             use crate::a2a::MessagePayload;
-            
-            let payload = MessagePayload::Text { 
-                content: message.to_string() 
+
+            let payload = MessagePayload::Text {
+                content: message.to_string(),
             };
-            
+
             let response = a2a.send_request(target_agent, "chat", payload).await?;
-            
+
             match response.payload {
                 Some(MessagePayload::Text { content }) => Ok(content),
                 Some(MessagePayload::Json { data }) => Ok(data.to_string()),
                 _ => Ok("No response content".to_string()),
             }
         } else {
-            Err(crate::error::AgentError::Config("A2A not enabled".to_string()))
+            Err(crate::error::AgentError::Config(
+                "A2A not enabled".to_string(),
+            ))
         }
     }
-    
+
     /// Discover other agents with specific capabilities
-    pub async fn discover_agents(&self, capability: &str) -> Result<Vec<crate::a2a::AgentRegistration>> {
+    pub async fn discover_agents(
+        &self,
+        capability: &str,
+    ) -> Result<Vec<crate::a2a::AgentRegistration>> {
         if let Some(a2a) = &self.a2a {
             a2a.discover_service(capability).await
         } else {
-            Err(crate::error::AgentError::Config("A2A not enabled".to_string()))
+            Err(crate::error::AgentError::Config(
+                "A2A not enabled".to_string(),
+            ))
         }
     }
-    
+
     /// Process a task requested by another agent
     pub async fn process_agent_task(&mut self, task_description: &str) -> Result<String> {
         info!("Processing task from another agent: {}", task_description);
-        
+
         // Use the existing process method to handle the task
         let response = self.process(task_description).await?;
-        
+
         Ok(response)
     }
-    
+
     /// Check if A2A communication is enabled
     pub fn has_a2a(&self) -> bool {
         self.a2a.is_some()
@@ -540,10 +591,10 @@ mod tests {
     async fn create_test_agent() -> Agent {
         let temp_dir = tempdir().unwrap();
         let db_path = temp_dir.path().join("test.db");
-        
+
         let mut config = AgentConfig::default();
         config.memory.database_url = Some(format!("sqlite://{}", db_path.to_str().unwrap()));
-        
+
         Agent::new(config).await.unwrap()
     }
 
@@ -577,11 +628,11 @@ mod tests {
     #[tokio::test]
     async fn test_conversation_management() {
         let mut agent = create_test_agent().await;
-        
+
         // Test message adding
         agent.add_message(user_message("Hello"));
         assert_eq!(agent.conversation.len(), 2); // System + user message
-        
+
         // Test conversation clearing
         agent.clear_conversation();
         assert_eq!(agent.conversation.len(), 1); // Only system message remains
@@ -591,7 +642,7 @@ mod tests {
     async fn test_available_tools() {
         let agent = create_test_agent().await;
         let tools = agent.get_available_tools().await;
-        
+
         // Should have at least built-in tools
         assert!(!tools.is_empty());
         assert!(tools.contains(&"system_info".to_string()));

@@ -13,17 +13,17 @@
 //!    - Input structuring and parameter extraction
 //!    - Adaptive task decomposition
 
-use the_agency::{
-    workflow::{
-        WorkflowBuilder, WorkflowContext, StepSchema,
-        WorkflowDecision, WorkflowStep, MapperFn, ConditionFn
-    },
-    error::Result,
-};
 use async_trait::async_trait;
-use std::sync::Arc;
-use std::collections::HashMap;
 use serde_json::{json, Value};
+use std::collections::HashMap;
+use std::sync::Arc;
+use the_agency::{
+    error::Result,
+    workflow::{
+        ConditionFn, MapperFn, StepSchema, WorkflowBuilder, WorkflowContext, WorkflowDecision,
+        WorkflowStep,
+    },
+};
 use tokio;
 
 /// Represents different types of specialized agents in the network
@@ -88,11 +88,14 @@ impl SpecializedAgent {
             capabilities: capabilities.iter().map(|s| s.to_string()).collect(),
         }
     }
-    
+
     /// Process a task with this specialized agent
     pub async fn process(&self, task: &str, context: &Value) -> Result<Value> {
-        println!("  🤖 Agent '{}' ({:?}) processing task", self.name, self.agent_type);
-        
+        println!(
+            "  🤖 Agent '{}' ({:?}) processing task",
+            self.name, self.agent_type
+        );
+
         // Simulate agent processing time based on complexity
         let processing_time = match self.agent_type {
             AgentType::Router => 50,
@@ -102,9 +105,9 @@ impl SpecializedAgent {
             AgentType::Orchestrator => 75,
             AgentType::DomainExpert(_) => 250,
         };
-        
+
         tokio::time::sleep(tokio::time::Duration::from_millis(processing_time)).await;
-        
+
         // Generate mock response based on agent type and task
         let response = match self.agent_type {
             AgentType::Router => self.route_task(task).await,
@@ -114,16 +117,16 @@ impl SpecializedAgent {
             AgentType::Orchestrator => self.orchestrate_workflow(task, context).await,
             AgentType::DomainExpert(ref domain) => self.provide_expertise(task, domain).await,
         };
-        
+
         println!("  ✅ Agent '{}' completed processing", self.name);
         Ok(response)
     }
-    
+
     async fn route_task(&self, task: &str) -> Value {
         // Analyze task and determine routing
         let intent = self.classify_intent(task);
         let complexity = self.assess_complexity(task);
-        
+
         json!({
             "type": "routing_decision",
             "intent": format!("{:?}", intent),
@@ -133,7 +136,7 @@ impl SpecializedAgent {
             "execution_plan": self.create_execution_plan(&complexity)
         })
     }
-    
+
     async fn process_language_task(&self, task: &str) -> Value {
         if task.contains("sentiment") {
             json!({
@@ -164,7 +167,7 @@ impl SpecializedAgent {
             })
         }
     }
-    
+
     async fn analyze_data(&self, task: &str, context: &Value) -> Value {
         if task.contains("statistics") {
             json!({
@@ -191,7 +194,7 @@ impl SpecializedAgent {
             })
         }
     }
-    
+
     async fn process_document(&self, task: &str) -> Value {
         if task.contains("convert") {
             json!({
@@ -218,7 +221,7 @@ impl SpecializedAgent {
             })
         }
     }
-    
+
     async fn orchestrate_workflow(&self, task: &str, context: &Value) -> Value {
         json!({
             "type": "workflow_orchestration",
@@ -233,7 +236,7 @@ impl SpecializedAgent {
             "execution_strategy": "parallel_with_dependencies"
         })
     }
-    
+
     async fn provide_expertise(&self, task: &str, domain: &str) -> Value {
         json!({
             "type": "domain_expertise",
@@ -247,34 +250,53 @@ impl SpecializedAgent {
             "confidence": 0.88
         })
     }
-    
+
     fn classify_intent(&self, task: &str) -> TaskIntent {
         let task_lower = task.to_lowercase();
-        
-        if task_lower.contains("analyze") || task_lower.contains("sentiment") || task_lower.contains("summarize") {
+
+        if task_lower.contains("analyze")
+            || task_lower.contains("sentiment")
+            || task_lower.contains("summarize")
+        {
             TaskIntent::TextProcessing
-        } else if task_lower.contains("data") || task_lower.contains("statistics") || task_lower.contains("chart") {
+        } else if task_lower.contains("data")
+            || task_lower.contains("statistics")
+            || task_lower.contains("chart")
+        {
             TaskIntent::DataAnalysis
-        } else if task_lower.contains("document") || task_lower.contains("file") || task_lower.contains("pdf") {
+        } else if task_lower.contains("document")
+            || task_lower.contains("file")
+            || task_lower.contains("pdf")
+        {
             TaskIntent::DocumentOperations
-        } else if task_lower.contains("workflow") || task_lower.contains("orchestrate") || task_lower.contains("coordinate") {
+        } else if task_lower.contains("workflow")
+            || task_lower.contains("orchestrate")
+            || task_lower.contains("coordinate")
+        {
             TaskIntent::ComplexWorkflow
-        } else if task_lower.contains("medical") || task_lower.contains("legal") || task_lower.contains("financial") {
-            let domain = if task_lower.contains("medical") { "medical" }
-                      else if task_lower.contains("legal") { "legal" }
-                      else { "financial" };
+        } else if task_lower.contains("medical")
+            || task_lower.contains("legal")
+            || task_lower.contains("financial")
+        {
+            let domain = if task_lower.contains("medical") {
+                "medical"
+            } else if task_lower.contains("legal") {
+                "legal"
+            } else {
+                "financial"
+            };
             TaskIntent::DomainSpecific(domain.to_string())
         } else {
             TaskIntent::Unknown
         }
     }
-    
+
     fn assess_complexity(&self, task: &str) -> TaskComplexity {
         let task_lower = task.to_lowercase();
-        let complexity_indicators = task_lower.matches("and").count() + 
-                                  task_lower.matches("then").count() + 
-                                  task_lower.matches("also").count();
-        
+        let complexity_indicators = task_lower.matches("and").count()
+            + task_lower.matches("then").count()
+            + task_lower.matches("also").count();
+
         if complexity_indicators == 0 {
             TaskComplexity::Simple
         } else if task_lower.contains("first") || task_lower.contains("then") {
@@ -285,10 +307,10 @@ impl SpecializedAgent {
             TaskComplexity::Conditional
         }
     }
-    
+
     fn recommend_agents(&self, intent: &TaskIntent, complexity: &TaskComplexity) -> Vec<String> {
         let mut agents = Vec::new();
-        
+
         match intent {
             TaskIntent::TextProcessing => agents.push("LanguageProcessor".to_string()),
             TaskIntent::DataAnalysis => agents.push("DataAnalyst".to_string()),
@@ -304,7 +326,7 @@ impl SpecializedAgent {
             }
             TaskIntent::Unknown => agents.push("Router".to_string()),
         }
-        
+
         match complexity {
             TaskComplexity::Sequential | TaskComplexity::Parallel => {
                 if !agents.contains(&"Orchestrator".to_string()) {
@@ -313,10 +335,10 @@ impl SpecializedAgent {
             }
             _ => {}
         }
-        
+
         agents
     }
-    
+
     fn structure_task(&self, task: &str, intent: &TaskIntent) -> Value {
         match intent {
             TaskIntent::TextProcessing => json!({
@@ -335,10 +357,10 @@ impl SpecializedAgent {
                 "task_type": "general",
                 "description": task,
                 "requires_routing": true
-            })
+            }),
         }
     }
-    
+
     fn create_execution_plan(&self, complexity: &TaskComplexity) -> Value {
         match complexity {
             TaskComplexity::Simple => json!({
@@ -384,33 +406,36 @@ impl AgentStep {
 impl WorkflowStep for AgentStep {
     async fn execute(&self, context: &mut WorkflowContext) -> Result<WorkflowDecision> {
         // Get task from context
-        let task = context.metadata.get("current_task")
+        let task = context
+            .metadata
+            .get("current_task")
             .cloned()
             .unwrap_or_else(|| "default task".to_string());
-        
+
         // Get additional context data
         let context_data = json!({
             "metadata": context.metadata,
             "step_count": context.step_count
         });
-        
+
         // Process with the specialized agent
         let result = self.agent.process(&task, &context_data).await?;
-        
+
         // Store result in context
-        context.metadata.insert(
-            format!("{}_result", self.name),
-            result.to_string()
-        );
-        
+        context
+            .metadata
+            .insert(format!("{}_result", self.name), result.to_string());
+
         // Update task based on result if it's a routing decision
         if let Some(structured_task) = result.get("structured_task") {
-            context.metadata.insert("current_task".to_string(), structured_task.to_string());
+            context
+                .metadata
+                .insert("current_task".to_string(), structured_task.to_string());
         }
-        
+
         Ok(WorkflowDecision::Continue)
     }
-    
+
     fn name(&self) -> &str {
         &self.name
     }
@@ -424,124 +449,166 @@ pub struct AgentNetwork {
 impl AgentNetwork {
     pub fn new() -> Self {
         let mut agents = HashMap::new();
-        
+
         // Create specialized agents
         let router = Arc::new(SpecializedAgent::new(
-            "TaskRouter", 
-            AgentType::Router, 
-            vec!["intent_recognition", "task_classification", "agent_selection"]
+            "TaskRouter",
+            AgentType::Router,
+            vec![
+                "intent_recognition",
+                "task_classification",
+                "agent_selection",
+            ],
         ));
-        
+
         let language_processor = Arc::new(SpecializedAgent::new(
-            "LanguageProcessor", 
-            AgentType::LanguageProcessor, 
-            vec!["sentiment_analysis", "summarization", "translation", "text_generation"]
+            "LanguageProcessor",
+            AgentType::LanguageProcessor,
+            vec![
+                "sentiment_analysis",
+                "summarization",
+                "translation",
+                "text_generation",
+            ],
         ));
-        
+
         let data_analyst = Arc::new(SpecializedAgent::new(
-            "DataAnalyst", 
-            AgentType::DataAnalyst, 
-            vec!["statistical_analysis", "data_visualization", "pattern_recognition"]
+            "DataAnalyst",
+            AgentType::DataAnalyst,
+            vec![
+                "statistical_analysis",
+                "data_visualization",
+                "pattern_recognition",
+            ],
         ));
-        
+
         let document_processor = Arc::new(SpecializedAgent::new(
-            "DocumentProcessor", 
-            AgentType::DocumentProcessor, 
-            vec!["format_conversion", "information_extraction", "document_analysis"]
+            "DocumentProcessor",
+            AgentType::DocumentProcessor,
+            vec![
+                "format_conversion",
+                "information_extraction",
+                "document_analysis",
+            ],
         ));
-        
+
         let orchestrator = Arc::new(SpecializedAgent::new(
-            "Orchestrator", 
-            AgentType::Orchestrator, 
-            vec!["workflow_management", "agent_coordination", "result_aggregation"]
+            "Orchestrator",
+            AgentType::Orchestrator,
+            vec![
+                "workflow_management",
+                "agent_coordination",
+                "result_aggregation",
+            ],
         ));
-        
+
         let medical_expert = Arc::new(SpecializedAgent::new(
-            "MedicalExpert", 
-            AgentType::DomainExpert("medical".to_string()), 
-            vec!["medical_analysis", "diagnosis_assistance", "treatment_recommendations"]
+            "MedicalExpert",
+            AgentType::DomainExpert("medical".to_string()),
+            vec![
+                "medical_analysis",
+                "diagnosis_assistance",
+                "treatment_recommendations",
+            ],
         ));
-        
+
         agents.insert("router".to_string(), router);
         agents.insert("language".to_string(), language_processor);
         agents.insert("data".to_string(), data_analyst);
         agents.insert("document".to_string(), document_processor);
         agents.insert("orchestrator".to_string(), orchestrator);
         agents.insert("medical".to_string(), medical_expert);
-        
+
         Self { agents }
     }
-    
+
     /// Create a workflow for handling unstructured input
     pub fn create_input_routing_workflow(&self) -> WorkflowBuilder {
         let router = self.agents.get("router").unwrap().clone();
-        
+
         WorkflowBuilder::new("input_routing_workflow")
             .with_input_schema(
                 StepSchema::new_object()
                     .add_property("unstructured_input", "string")
-                    .add_required("unstructured_input")
+                    .add_required("unstructured_input"),
             )
             // Step 1: Route and structure the input
             .then(Box::new(AgentStep::new("route_input", router)))
             // Step 2: Execute based on routing decision (conditional branching would be added here)
             .with_initial_data(json!({"current_task": "Route this unstructured input"}))
     }
-    
+
     /// Create a workflow for sequential multi-agent collaboration
     pub fn create_sequential_workflow(&self) -> WorkflowBuilder {
         let language_agent = self.agents.get("language").unwrap().clone();
         let data_agent = self.agents.get("data").unwrap().clone();
         let document_agent = self.agents.get("document").unwrap().clone();
-        
+
         WorkflowBuilder::new("sequential_collaboration")
-            .then(Box::new(AgentStep::new("language_processing", language_agent)))
+            .then(Box::new(AgentStep::new(
+                "language_processing",
+                language_agent,
+            )))
             .then(Box::new(AgentStep::new("data_analysis", data_agent)))
-            .then(Box::new(AgentStep::new("document_generation", document_agent)))
+            .then(Box::new(AgentStep::new(
+                "document_generation",
+                document_agent,
+            )))
     }
-    
+
     /// Create a workflow for parallel multi-agent processing
     pub fn create_parallel_workflow(&self) -> WorkflowBuilder {
         let language_agent = self.agents.get("language").unwrap().clone();
         let data_agent = self.agents.get("data").unwrap().clone();
         let document_agent = self.agents.get("document").unwrap().clone();
-        
+
         // Create parallel steps
         let parallel_agents: Vec<Box<dyn WorkflowStep + Send + Sync>> = vec![
             Box::new(AgentStep::new("parallel_language", language_agent)),
             Box::new(AgentStep::new("parallel_data", data_agent)),
             Box::new(AgentStep::new("parallel_document", document_agent)),
         ];
-        
+
         WorkflowBuilder::new("parallel_collaboration")
             .parallel(parallel_agents)
-            .then(Box::new(AgentStep::new("aggregation", self.agents.get("orchestrator").unwrap().clone())))
+            .then(Box::new(AgentStep::new(
+                "aggregation",
+                self.agents.get("orchestrator").unwrap().clone(),
+            )))
     }
-    
+
     /// Create a complex orchestrated workflow
     pub fn create_orchestrated_workflow(&self) -> WorkflowBuilder {
         let orchestrator = self.agents.get("orchestrator").unwrap().clone();
         let router = self.agents.get("router").unwrap().clone();
         let language_agent = self.agents.get("language").unwrap().clone();
         let data_agent = self.agents.get("data").unwrap().clone();
-        
+
         // Condition for routing decision
-        let routing_condition: ConditionFn = Arc::new(|context, _| {
-            context.metadata.get("complexity") == Some(&"high".to_string())
-        });
-        
+        let routing_condition: ConditionFn =
+            Arc::new(|context, _| context.metadata.get("complexity") == Some(&"high".to_string()));
+
         WorkflowBuilder::new("orchestrated_collaboration")
             // Step 1: Orchestrator plans the execution
-            .then(Box::new(AgentStep::new("orchestrate_planning", orchestrator)))
+            .then(Box::new(AgentStep::new(
+                "orchestrate_planning",
+                orchestrator,
+            )))
             // Step 2: Router analyzes and structures the task
             .then(Box::new(AgentStep::new("route_and_structure", router)))
             // Step 3: Conditional execution based on complexity
             .branch(
                 routing_condition,
-                Box::new(AgentStep::new("complex_language_processing", language_agent)),
-                Some(Box::new(AgentStep::new("simple_data_analysis", data_agent)))
+                Box::new(AgentStep::new(
+                    "complex_language_processing",
+                    language_agent,
+                )),
+                Some(Box::new(AgentStep::new("simple_data_analysis", data_agent))),
             )
-            .then(Box::new(AgentStep::new("final_orchestration", self.agents.get("orchestrator").unwrap().clone())))
+            .then(Box::new(AgentStep::new(
+                "final_orchestration",
+                self.agents.get("orchestrator").unwrap().clone(),
+            )))
     }
 }
 
@@ -559,110 +626,143 @@ async fn main() -> anyhow::Result<()> {
     // Demo 1: Unstructured Input Routing
     println!("📋 Demo 1: Unstructured Input → Structured Task Routing");
     println!("-------------------------------------------------------");
-    
+
     let unstructured_inputs = vec![
         "I need to analyze the sentiment of this customer feedback and create a summary report",
         "Please extract information from this PDF document and convert it to Excel format",
         "Can you help me create statistical analysis and charts for my sales data?",
         "I need medical expertise to review this patient case and provide recommendations",
     ];
-    
+
     for (i, input) in unstructured_inputs.iter().enumerate() {
         println!("\nInput {}: {}", i + 1, input);
-        
-        let routing_workflow = network.create_input_routing_workflow()
+
+        let routing_workflow = network
+            .create_input_routing_workflow()
             .with_initial_data(json!({"current_task": input}))
             .build();
-        
+
         let context = WorkflowContext::new(10);
         let result = routing_workflow.execute(context).await?;
-        println!("Routing completed for input {}: Steps executed = {}", i + 1, result.steps_executed);
+        println!(
+            "Routing completed for input {}: Steps executed = {}",
+            i + 1,
+            result.steps_executed
+        );
     }
 
     // Demo 2: Sequential Multi-Agent Collaboration
     println!("\n📋 Demo 2: Sequential Multi-Agent Collaboration");
     println!("-----------------------------------------------");
-    
+
     let sequential_workflow = network.create_sequential_workflow()
         .with_initial_data(json!({
             "current_task": "Process this document: analyze language, extract data insights, then generate final report"
         }))
         .build();
-    
+
     let context = WorkflowContext::new(15);
     let result = sequential_workflow.execute(context).await?;
-    println!("Sequential collaboration completed: Steps executed = {}\n", result.steps_executed);
+    println!(
+        "Sequential collaboration completed: Steps executed = {}\n",
+        result.steps_executed
+    );
 
     // Demo 3: Parallel Multi-Agent Processing
     println!("📋 Demo 3: Parallel Multi-Agent Processing");
     println!("------------------------------------------");
-    
+
     let parallel_workflow = network.create_parallel_workflow()
         .with_initial_data(json!({
             "current_task": "Simultaneously process language analysis, data visualization, and document formatting"
         }))
         .build();
-    
+
     let context = WorkflowContext::new(15);
     let start_time = std::time::Instant::now();
     let result = parallel_workflow.execute(context).await?;
     let elapsed = start_time.elapsed();
-    println!("Parallel processing completed in {}ms: Steps executed = {}\n", elapsed.as_millis(), result.steps_executed);
+    println!(
+        "Parallel processing completed in {}ms: Steps executed = {}\n",
+        elapsed.as_millis(),
+        result.steps_executed
+    );
 
     // Demo 4: Orchestrated Complex Workflow
     println!("📋 Demo 4: Orchestrated Complex Multi-Agent Workflow");
     println!("----------------------------------------------------");
-    
+
     let orchestrated_workflow = network.create_orchestrated_workflow()
         .with_initial_data(json!({
             "current_task": "Execute complex document analysis with conditional processing based on content complexity",
             "complexity": "high"
         }))
         .build();
-    
+
     let context = WorkflowContext::new(20);
     let result = orchestrated_workflow.execute(context).await?;
-    println!("Orchestrated workflow completed: Steps executed = {}\n", result.steps_executed);
+    println!(
+        "Orchestrated workflow completed: Steps executed = {}\n",
+        result.steps_executed
+    );
 
     // Demo 5: Domain Expert Consultation
     println!("📋 Demo 5: Domain Expert Consultation");
     println!("-------------------------------------");
-    
+
     let medical_agent = network.agents.get("medical").unwrap().clone();
     let expert_workflow = WorkflowBuilder::new("expert_consultation")
-        .then(Box::new(AgentStep::new("medical_consultation", medical_agent)))
+        .then(Box::new(AgentStep::new(
+            "medical_consultation",
+            medical_agent,
+        )))
         .with_initial_data(json!({
             "current_task": "Review medical case history and provide treatment recommendations"
         }))
         .build();
-    
+
     let context = WorkflowContext::new(10);
     let result = expert_workflow.execute(context).await?;
-    println!("Expert consultation completed: Steps executed = {}\n", result.steps_executed);
+    println!(
+        "Expert consultation completed: Steps executed = {}\n",
+        result.steps_executed
+    );
 
     // Demo 6: Dynamic Agent Selection Based on Input
     println!("📋 Demo 6: Dynamic Agent Selection Based on Input Analysis");
     println!("----------------------------------------------------------");
-    
+
     let dynamic_inputs = vec![
-        ("Data Analysis Task", "Create statistical analysis and visualization for quarterly sales data"),
-        ("Language Task", "Perform sentiment analysis and summarization of customer reviews"),
-        ("Document Task", "Convert PDF contracts to Word format and extract key terms"),
-        ("Complex Task", "Orchestrate multi-step workflow for comprehensive business report generation"),
+        (
+            "Data Analysis Task",
+            "Create statistical analysis and visualization for quarterly sales data",
+        ),
+        (
+            "Language Task",
+            "Perform sentiment analysis and summarization of customer reviews",
+        ),
+        (
+            "Document Task",
+            "Convert PDF contracts to Word format and extract key terms",
+        ),
+        (
+            "Complex Task",
+            "Orchestrate multi-step workflow for comprehensive business report generation",
+        ),
     ];
-    
+
     for (task_type, task_description) in dynamic_inputs {
         println!("\nTask Type: {}", task_type);
         println!("Description: {}", task_description);
-        
+
         // Use router to determine appropriate agent
         let router = network.agents.get("router").unwrap();
         let routing_result = router.process(task_description, &json!({})).await?;
-        
+
         if let Some(recommended_agents) = routing_result.get("recommended_agents") {
             println!("Recommended agents: {:?}", recommended_agents);
         }
-        
+
         if let Some(execution_plan) = routing_result.get("execution_plan") {
             println!("Execution plan: {:?}", execution_plan);
         }
@@ -674,8 +774,12 @@ async fn main() -> anyhow::Result<()> {
     println!("   • Multi-Agent Coordination - Sequential, parallel, and conditional collaboration");
     println!("   • Dynamic Agent Selection - Context-aware agent recommendation and routing");
     println!("   • Complex Workflow Orchestration - Multi-step, multi-agent task execution");
-    println!("   • Domain Expertise Integration - Specialized knowledge agents for specific domains");
-    println!("   • Adaptive Task Decomposition - Breaking complex tasks into manageable components");
+    println!(
+        "   • Domain Expertise Integration - Specialized knowledge agents for specific domains"
+    );
+    println!(
+        "   • Adaptive Task Decomposition - Breaking complex tasks into manageable components"
+    );
 
     println!("\n🏗️ Architecture Benefits:");
     println!("   • Scalability - Easy to add new specialized agents");

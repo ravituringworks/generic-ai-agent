@@ -7,8 +7,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{sqlite::SqlitePool, Row};
 use std::collections::HashMap;
-use uuid::Uuid;
 use tracing::{debug, info, warn};
+use uuid::Uuid;
 
 /// A memory entry with embedding
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,16 +35,32 @@ pub trait MemoryStore: Send + Sync {
     async fn initialize(&mut self) -> Result<()>;
 
     /// Store a memory entry
-    async fn store(&mut self, content: String, embedding: Vec<f32>, metadata: HashMap<String, String>) -> Result<Uuid>;
+    async fn store(
+        &mut self,
+        content: String,
+        embedding: Vec<f32>,
+        metadata: HashMap<String, String>,
+    ) -> Result<Uuid>;
 
     /// Search for similar memories
-    async fn search(&self, query_embedding: Vec<f32>, limit: usize, threshold: f32) -> Result<Vec<SearchResult>>;
+    async fn search(
+        &self,
+        query_embedding: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<SearchResult>>;
 
     /// Get a specific memory by ID
     async fn get(&self, id: Uuid) -> Result<Option<MemoryEntry>>;
 
     /// Update a memory entry
-    async fn update(&mut self, id: Uuid, content: Option<String>, embedding: Option<Vec<f32>>, metadata: Option<HashMap<String, String>>) -> Result<()>;
+    async fn update(
+        &mut self,
+        id: Uuid,
+        content: Option<String>,
+        embedding: Option<Vec<f32>>,
+        metadata: Option<HashMap<String, String>>,
+    ) -> Result<()>;
 
     /// Delete a memory entry
     async fn delete(&mut self, id: Uuid) -> Result<()>;
@@ -66,7 +82,12 @@ pub trait VectorStore: Send + Sync {
     async fn add_vectors(&mut self, vectors: Vec<(Uuid, Vec<f32>)>) -> Result<()>;
 
     /// Search for similar vectors
-    async fn search_vectors(&self, query: Vec<f32>, limit: usize, threshold: f32) -> Result<Vec<(Uuid, f32)>>;
+    async fn search_vectors(
+        &self,
+        query: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<(Uuid, f32)>>;
 
     /// Remove vectors from the store
     async fn remove_vectors(&mut self, ids: Vec<Uuid>) -> Result<()>;
@@ -95,10 +116,7 @@ pub struct SqliteMemoryStore {
 impl SqliteMemoryStore {
     /// Create a new SQLite memory store
     pub fn new(config: MemoryConfig) -> Self {
-        Self {
-            pool: None,
-            config,
-        }
+        Self { pool: None, config }
     }
 
     /// Get database pool
@@ -154,9 +172,10 @@ impl MemoryStore for SqliteMemoryStore {
     async fn initialize(&mut self) -> Result<()> {
         info!("Initializing SQLite memory store");
 
-        let database_url = self.config.database_url
-            .as_ref()
-            .ok_or_else(|| MemoryError::StorageFailed("No database URL provided".to_string()))?;
+        let database_url =
+            self.config.database_url.as_ref().ok_or_else(|| {
+                MemoryError::StorageFailed("No database URL provided".to_string())
+            })?;
 
         let pool = SqlitePool::connect(database_url).await?;
 
@@ -171,7 +190,7 @@ impl MemoryStore for SqliteMemoryStore {
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
-            "#
+            "#,
         )
         .execute(&pool)
         .await?;
@@ -187,14 +206,20 @@ impl MemoryStore for SqliteMemoryStore {
         Ok(())
     }
 
-    async fn store(&mut self, content: String, embedding: Vec<f32>, metadata: HashMap<String, String>) -> Result<Uuid> {
+    async fn store(
+        &mut self,
+        content: String,
+        embedding: Vec<f32>,
+        metadata: HashMap<String, String>,
+    ) -> Result<Uuid> {
         let pool = self.pool()?;
-        
+
         if embedding.len() != self.config.embedding_dimension {
             return Err(MemoryError::InvalidDimension {
                 expected: self.config.embedding_dimension,
                 actual: embedding.len(),
-            }.into());
+            }
+            .into());
         }
 
         let id = Uuid::new_v4();
@@ -206,7 +231,7 @@ impl MemoryStore for SqliteMemoryStore {
             r#"
             INSERT INTO memories (id, content, embedding, metadata, created_at, updated_at)
             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-            "#
+            "#,
         )
         .bind(id.to_string())
         .bind(&content)
@@ -221,14 +246,20 @@ impl MemoryStore for SqliteMemoryStore {
         Ok(id)
     }
 
-    async fn search(&self, query_embedding: Vec<f32>, limit: usize, threshold: f32) -> Result<Vec<SearchResult>> {
+    async fn search(
+        &self,
+        query_embedding: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<SearchResult>> {
         let pool = self.pool()?;
 
         if query_embedding.len() != self.config.embedding_dimension {
             return Err(MemoryError::InvalidDimension {
                 expected: self.config.embedding_dimension,
                 actual: query_embedding.len(),
-            }.into());
+            }
+            .into());
         }
 
         // For SQLite without vector extensions, we need to do brute-force similarity search
@@ -251,7 +282,8 @@ impl MemoryStore for SqliteMemoryStore {
 
             if similarity >= threshold {
                 let entry = MemoryEntry {
-                    id: Uuid::parse_str(&id).map_err(|e| MemoryError::StorageFailed(e.to_string()))?,
+                    id: Uuid::parse_str(&id)
+                        .map_err(|e| MemoryError::StorageFailed(e.to_string()))?,
                     content,
                     embedding,
                     metadata: Self::deserialize_metadata(&metadata_json)?,
@@ -268,10 +300,18 @@ impl MemoryStore for SqliteMemoryStore {
         }
 
         // Sort by similarity (highest first) and limit results
-        results.sort_by(|a, b| b.similarity.partial_cmp(&a.similarity).unwrap_or(std::cmp::Ordering::Equal));
+        results.sort_by(|a, b| {
+            b.similarity
+                .partial_cmp(&a.similarity)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         results.truncate(limit);
 
-        debug!("Found {} similar memories above threshold {}", results.len(), threshold);
+        debug!(
+            "Found {} similar memories above threshold {}",
+            results.len(),
+            threshold
+        );
         Ok(results)
     }
 
@@ -310,7 +350,13 @@ impl MemoryStore for SqliteMemoryStore {
         }
     }
 
-    async fn update(&mut self, id: Uuid, content: Option<String>, embedding: Option<Vec<f32>>, metadata: Option<HashMap<String, String>>) -> Result<()> {
+    async fn update(
+        &mut self,
+        id: Uuid,
+        content: Option<String>,
+        embedding: Option<Vec<f32>>,
+        metadata: Option<HashMap<String, String>>,
+    ) -> Result<()> {
         let pool = self.pool()?;
         let now = Utc::now();
 
@@ -319,7 +365,8 @@ impl MemoryStore for SqliteMemoryStore {
                 return Err(MemoryError::InvalidDimension {
                     expected: self.config.embedding_dimension,
                     actual: emb.len(),
-                }.into());
+                }
+                .into());
             }
         }
 
@@ -335,7 +382,8 @@ impl MemoryStore for SqliteMemoryStore {
             query_parts.push("embedding = ?");
             let embedding_blob = Self::serialize_embedding(&embedding);
             use base64::Engine;
-            values.push(base64::engine::general_purpose::STANDARD.encode(embedding_blob)); // Simplified for example
+            values.push(base64::engine::general_purpose::STANDARD.encode(embedding_blob));
+            // Simplified for example
         }
 
         if let Some(metadata) = metadata {
@@ -362,7 +410,7 @@ impl MemoryStore for SqliteMemoryStore {
         query = query.bind(id.to_string());
 
         let result = query.execute(pool).await?;
-        
+
         if result.rows_affected() == 0 {
             warn!("No memory found with ID: {}", id);
         } else {
@@ -393,14 +441,15 @@ impl MemoryStore for SqliteMemoryStore {
         let pool = self.pool()?;
 
         let query = if let Some(limit) = limit {
-            format!("SELECT * FROM memories ORDER BY created_at DESC LIMIT {}", limit)
+            format!(
+                "SELECT * FROM memories ORDER BY created_at DESC LIMIT {}",
+                limit
+            )
         } else {
             "SELECT * FROM memories ORDER BY created_at DESC".to_string()
         };
 
-        let rows = sqlx::query(&query)
-            .fetch_all(pool)
-            .await?;
+        let rows = sqlx::query(&query).fetch_all(pool).await?;
 
         let mut entries = Vec::new();
 
@@ -436,9 +485,7 @@ impl MemoryStore for SqliteMemoryStore {
     async fn clear(&mut self) -> Result<()> {
         let pool = self.pool()?;
 
-        let result = sqlx::query("DELETE FROM memories")
-            .execute(pool)
-            .await?;
+        let result = sqlx::query("DELETE FROM memories").execute(pool).await?;
 
         info!("Cleared {} memory entries", result.rows_affected());
         Ok(())
@@ -470,7 +517,7 @@ mod tests {
     async fn create_test_store() -> SqliteMemoryStore {
         let temp_file = NamedTempFile::new().unwrap();
         let database_url = format!("sqlite://{}", temp_file.path().to_str().unwrap());
-        
+
         let config = MemoryConfig {
             database_url: Some(database_url),
             embedding_dimension: 384,
@@ -491,11 +538,14 @@ mod tests {
         let mut metadata = HashMap::new();
         metadata.insert("source".to_string(), "test".to_string());
 
-        let id = store.store(
-            "This is a test memory".to_string(),
-            embedding.clone(),
-            metadata.clone(),
-        ).await.unwrap();
+        let id = store
+            .store(
+                "This is a test memory".to_string(),
+                embedding.clone(),
+                metadata.clone(),
+            )
+            .await
+            .unwrap();
 
         // Retrieve the memory
         let retrieved = store.get(id).await.unwrap().unwrap();
@@ -506,13 +556,16 @@ mod tests {
         // Update the memory
         let mut new_metadata = HashMap::new();
         new_metadata.insert("updated".to_string(), "true".to_string());
-        
-        store.update(
-            id,
-            Some("Updated content".to_string()),
-            None,
-            Some(new_metadata),
-        ).await.unwrap();
+
+        store
+            .update(
+                id,
+                Some("Updated content".to_string()),
+                None,
+                Some(new_metadata),
+            )
+            .await
+            .unwrap();
 
         let updated = store.get(id).await.unwrap().unwrap();
         assert_eq!(updated.content, "Updated content");
@@ -532,18 +585,39 @@ mod tests {
         base_embedding.resize(384, 0.0);
         let mut similar_embedding = vec![1.0, 0.1, 0.0, 0.0]; // Similar to base
         let mut different_embedding = vec![0.0, 0.0, 1.0, 0.0];
-        
+
         // Pad vectors to required dimension
         similar_embedding.resize(384, 0.0);
         different_embedding.resize(384, 0.0);
 
-        store.store("Base document".to_string(), base_embedding.clone(), HashMap::new()).await.unwrap();
-        store.store("Similar document".to_string(), similar_embedding, HashMap::new()).await.unwrap();
-        store.store("Different document".to_string(), different_embedding, HashMap::new()).await.unwrap();
+        store
+            .store(
+                "Base document".to_string(),
+                base_embedding.clone(),
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        store
+            .store(
+                "Similar document".to_string(),
+                similar_embedding,
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
+        store
+            .store(
+                "Different document".to_string(),
+                different_embedding,
+                HashMap::new(),
+            )
+            .await
+            .unwrap();
 
         // Search for similar vectors
         let results = store.search(base_embedding, 10, 0.5).await.unwrap();
-        
+
         // Should find at least the exact match and similar document
         assert!(results.len() >= 1);
         assert!(results[0].similarity > 0.8);
@@ -564,7 +638,7 @@ mod tests {
         let embedding = vec![1.5, -2.3, 0.0, 42.1];
         let serialized = SqliteMemoryStore::serialize_embedding(&embedding);
         let deserialized = SqliteMemoryStore::deserialize_embedding(&serialized);
-        
+
         assert_eq!(embedding.len(), deserialized.len());
         for (orig, deser) in embedding.iter().zip(deserialized.iter()) {
             assert!((orig - deser).abs() < f32::EPSILON);

@@ -1,18 +1,18 @@
 //! Comprehensive unit tests for the unified storage system
 
-use the_agency::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tempfile::tempdir;
+use the_agency::*;
 use tokio::time::sleep;
 
 // Re-include the unified storage system components for testing
 // In a real project, these would be in the main library
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
-use async_trait::async_trait;
 
 /// Storage backend types
 #[derive(Debug, Clone)]
@@ -37,7 +37,7 @@ impl ResourceId {
             id: id.to_string(),
         }
     }
-    
+
     pub fn to_key(&self) -> String {
         format!("{}:{}", self.namespace, self.id)
     }
@@ -60,10 +60,20 @@ pub struct SuspendedWorkflow {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SuspendReason {
     UserPause,
-    WaitingForEvent { event_id: String, timeout_ms: Option<u64> },
-    Sleep { duration_ms: u64 },
-    SleepUntil { timestamp: SystemTime },
-    ExternalDependency { dependency_type: String, details: String },
+    WaitingForEvent {
+        event_id: String,
+        timeout_ms: Option<u64>,
+    },
+    Sleep {
+        duration_ms: u64,
+    },
+    SleepUntil {
+        timestamp: SystemTime,
+    },
+    ExternalDependency {
+        dependency_type: String,
+        details: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -214,35 +224,56 @@ pub struct TraceFilters {
 pub trait UnifiedStorage: Send + Sync {
     // Suspended Workflow Management
     async fn store_suspended_workflow(&self, workflow: &SuspendedWorkflow) -> error::Result<()>;
-    async fn get_suspended_workflow(&self, workflow_id: &str) -> error::Result<Option<SuspendedWorkflow>>;
-    async fn list_suspended_workflows(&self, resource_id: &ResourceId) -> error::Result<Vec<SuspendedWorkflow>>;
+    async fn get_suspended_workflow(
+        &self,
+        workflow_id: &str,
+    ) -> error::Result<Option<SuspendedWorkflow>>;
+    async fn list_suspended_workflows(
+        &self,
+        resource_id: &ResourceId,
+    ) -> error::Result<Vec<SuspendedWorkflow>>;
     async fn resume_workflow(&self, workflow_id: &str) -> error::Result<SuspendedWorkflow>;
     async fn delete_suspended_workflow(&self, workflow_id: &str) -> error::Result<()>;
-    
+
     // Memory Management
     async fn create_memory_thread(&self, thread: &MemoryThread) -> error::Result<()>;
     async fn get_memory_thread(&self, thread_id: &str) -> error::Result<Option<MemoryThread>>;
-    async fn list_memory_threads(&self, resource_id: &ResourceId) -> error::Result<Vec<MemoryThread>>;
+    async fn list_memory_threads(
+        &self,
+        resource_id: &ResourceId,
+    ) -> error::Result<Vec<MemoryThread>>;
     async fn add_memory_message(&self, message: &MemoryMessage) -> error::Result<()>;
-    async fn get_memory_messages(&self, thread_id: &str, limit: Option<usize>) -> error::Result<Vec<MemoryMessage>>;
+    async fn get_memory_messages(
+        &self,
+        thread_id: &str,
+        limit: Option<usize>,
+    ) -> error::Result<Vec<MemoryMessage>>;
     async fn delete_memory_thread(&self, thread_id: &str) -> error::Result<()>;
-    
+
     // Trace Management
     async fn store_trace(&self, trace: &TraceData) -> error::Result<()>;
     async fn get_trace(&self, trace_id: &str) -> error::Result<Option<TraceData>>;
-    async fn query_traces(&self, resource_id: &ResourceId, filters: TraceFilters) -> error::Result<Vec<TraceData>>;
+    async fn query_traces(
+        &self,
+        resource_id: &ResourceId,
+        filters: TraceFilters,
+    ) -> error::Result<Vec<TraceData>>;
     async fn delete_traces_before(&self, timestamp: SystemTime) -> error::Result<usize>;
-    
+
     // Evaluation Management
     async fn create_eval_dataset(&self, dataset: &EvalDataset) -> error::Result<()>;
     async fn get_eval_dataset(&self, dataset_id: &str) -> error::Result<Option<EvalDataset>>;
-    async fn list_eval_datasets(&self, resource_id: &ResourceId) -> error::Result<Vec<EvalDataset>>;
+    async fn list_eval_datasets(&self, resource_id: &ResourceId)
+        -> error::Result<Vec<EvalDataset>>;
     async fn store_eval_score(&self, score: &EvalScore) -> error::Result<()>;
     async fn get_eval_scores(&self, run_id: &str) -> error::Result<Vec<EvalScore>>;
-    
+
     // Storage Management
     async fn get_storage_stats(&self) -> error::Result<StorageStats>;
-    async fn cleanup_old_data(&self, retention_policy: &RetentionPolicy) -> error::Result<CleanupStats>;
+    async fn cleanup_old_data(
+        &self,
+        retention_policy: &RetentionPolicy,
+    ) -> error::Result<CleanupStats>;
 }
 
 /// In-memory test implementation
@@ -275,59 +306,77 @@ impl UnifiedStorage for InMemoryUnifiedStorage {
         workflows.insert(workflow.workflow_id.clone(), workflow.clone());
         Ok(())
     }
-    
-    async fn get_suspended_workflow(&self, workflow_id: &str) -> error::Result<Option<SuspendedWorkflow>> {
+
+    async fn get_suspended_workflow(
+        &self,
+        workflow_id: &str,
+    ) -> error::Result<Option<SuspendedWorkflow>> {
         let workflows = self.workflows.read().await;
         Ok(workflows.get(workflow_id).cloned())
     }
-    
-    async fn list_suspended_workflows(&self, resource_id: &ResourceId) -> error::Result<Vec<SuspendedWorkflow>> {
+
+    async fn list_suspended_workflows(
+        &self,
+        resource_id: &ResourceId,
+    ) -> error::Result<Vec<SuspendedWorkflow>> {
         let workflows = self.workflows.read().await;
-        Ok(workflows.values()
+        Ok(workflows
+            .values()
             .filter(|w| &w.resource_id == resource_id)
             .cloned()
             .collect())
     }
-    
+
     async fn resume_workflow(&self, workflow_id: &str) -> error::Result<SuspendedWorkflow> {
         let mut workflows = self.workflows.write().await;
-        workflows.remove(workflow_id)
-            .ok_or_else(|| error::AgentError::Config(format!("Workflow {} not found", workflow_id)).into())
+        workflows.remove(workflow_id).ok_or_else(|| {
+            error::AgentError::Config(format!("Workflow {} not found", workflow_id)).into()
+        })
     }
-    
+
     async fn delete_suspended_workflow(&self, workflow_id: &str) -> error::Result<()> {
         let mut workflows = self.workflows.write().await;
         workflows.remove(workflow_id);
         Ok(())
     }
-    
+
     async fn create_memory_thread(&self, thread: &MemoryThread) -> error::Result<()> {
         let mut threads = self.threads.write().await;
         threads.insert(thread.thread_id.clone(), thread.clone());
         Ok(())
     }
-    
+
     async fn get_memory_thread(&self, thread_id: &str) -> error::Result<Option<MemoryThread>> {
         let threads = self.threads.read().await;
         Ok(threads.get(thread_id).cloned())
     }
-    
-    async fn list_memory_threads(&self, resource_id: &ResourceId) -> error::Result<Vec<MemoryThread>> {
+
+    async fn list_memory_threads(
+        &self,
+        resource_id: &ResourceId,
+    ) -> error::Result<Vec<MemoryThread>> {
         let threads = self.threads.read().await;
-        Ok(threads.values()
+        Ok(threads
+            .values()
             .filter(|t| &t.resource_id == resource_id)
             .cloned()
             .collect())
     }
-    
+
     async fn add_memory_message(&self, message: &MemoryMessage) -> error::Result<()> {
         let mut messages = self.messages.write().await;
-        let thread_messages = messages.entry(message.thread_id.clone()).or_insert_with(Vec::new);
+        let thread_messages = messages
+            .entry(message.thread_id.clone())
+            .or_insert_with(Vec::new);
         thread_messages.push(message.clone());
         Ok(())
     }
-    
-    async fn get_memory_messages(&self, thread_id: &str, limit: Option<usize>) -> error::Result<Vec<MemoryMessage>> {
+
+    async fn get_memory_messages(
+        &self,
+        thread_id: &str,
+        limit: Option<usize>,
+    ) -> error::Result<Vec<MemoryMessage>> {
         let messages = self.messages.read().await;
         if let Some(thread_messages) = messages.get(thread_id) {
             let mut result = thread_messages.clone();
@@ -339,7 +388,7 @@ impl UnifiedStorage for InMemoryUnifiedStorage {
             Ok(vec![])
         }
     }
-    
+
     async fn delete_memory_thread(&self, thread_id: &str) -> error::Result<()> {
         let mut threads = self.threads.write().await;
         let mut messages = self.messages.write().await;
@@ -347,75 +396,84 @@ impl UnifiedStorage for InMemoryUnifiedStorage {
         messages.remove(thread_id);
         Ok(())
     }
-    
+
     async fn store_trace(&self, trace: &TraceData) -> error::Result<()> {
         let mut traces = self.traces.write().await;
         traces.insert(trace.trace_id.clone(), trace.clone());
         Ok(())
     }
-    
+
     async fn get_trace(&self, trace_id: &str) -> error::Result<Option<TraceData>> {
         let traces = self.traces.read().await;
         Ok(traces.get(trace_id).cloned())
     }
-    
-    async fn query_traces(&self, resource_id: &ResourceId, filters: TraceFilters) -> error::Result<Vec<TraceData>> {
+
+    async fn query_traces(
+        &self,
+        resource_id: &ResourceId,
+        filters: TraceFilters,
+    ) -> error::Result<Vec<TraceData>> {
         let traces = self.traces.read().await;
-        let mut result: Vec<TraceData> = traces.values()
+        let mut result: Vec<TraceData> = traces
+            .values()
             .filter(|t| &t.resource_id == resource_id)
             .cloned()
             .collect();
-        
+
         // Apply filters
         if let Some(component) = &filters.component {
             result.retain(|t| &t.component == component);
         }
-        
+
         if let Some(operation_name) = &filters.operation_name {
             result.retain(|t| &t.operation_name == operation_name);
         }
-        
+
         Ok(result)
     }
-    
+
     async fn delete_traces_before(&self, timestamp: SystemTime) -> error::Result<usize> {
         let mut traces = self.traces.write().await;
         let initial_count = traces.len();
         traces.retain(|_, trace| trace.start_time >= timestamp);
         Ok(initial_count - traces.len())
     }
-    
+
     async fn create_eval_dataset(&self, dataset: &EvalDataset) -> error::Result<()> {
         let mut datasets = self.datasets.write().await;
         datasets.insert(dataset.dataset_id.clone(), dataset.clone());
         Ok(())
     }
-    
+
     async fn get_eval_dataset(&self, dataset_id: &str) -> error::Result<Option<EvalDataset>> {
         let datasets = self.datasets.read().await;
         Ok(datasets.get(dataset_id).cloned())
     }
-    
-    async fn list_eval_datasets(&self, resource_id: &ResourceId) -> error::Result<Vec<EvalDataset>> {
+
+    async fn list_eval_datasets(
+        &self,
+        resource_id: &ResourceId,
+    ) -> error::Result<Vec<EvalDataset>> {
         let datasets = self.datasets.read().await;
-        Ok(datasets.values()
+        Ok(datasets
+            .values()
             .filter(|d| &d.resource_id == resource_id)
             .cloned()
             .collect())
     }
-    
+
     async fn store_eval_score(&self, score: &EvalScore) -> error::Result<()> {
         let mut scores = self.scores.write().await;
         let run_scores = scores.entry(score.run_id.clone()).or_insert_with(Vec::new);
         run_scores.push(score.clone());
         Ok(())
     }
-    
+
     async fn get_eval_scores(&self, run_id: &str) -> error::Result<Vec<EvalScore>> {
         let scores = self.scores.read().await;
         Ok(scores.get(run_id).cloned().unwrap_or_default())
     }
-    
+
     async fn get_storage_stats(&self) -> error::Result<StorageStats> {
         let workflows = self.workflows.read().await;
         let threads = self.threads.read().await;
@@ -423,10 +481,10 @@ impl UnifiedStorage for InMemoryUnifiedStorage {
         let traces = self.traces.read().await;
         let datasets = self.datasets.read().await;
         let scores = self.scores.read().await;
-        
+
         let total_messages = messages.values().map(|v| v.len()).sum();
         let total_scores = scores.values().map(|v| v.len()).sum();
-        
+
         Ok(StorageStats {
             suspended_workflows: workflows.len(),
             memory_threads: threads.len(),
@@ -438,20 +496,27 @@ impl UnifiedStorage for InMemoryUnifiedStorage {
             storage_size_bytes: 1024 * 1024, // Mock 1MB
         })
     }
-    
-    async fn cleanup_old_data(&self, retention_policy: &RetentionPolicy) -> error::Result<CleanupStats> {
+
+    async fn cleanup_old_data(
+        &self,
+        retention_policy: &RetentionPolicy,
+    ) -> error::Result<CleanupStats> {
         let now = SystemTime::now();
-        let traces_cutoff = now.checked_sub(retention_policy.traces_retention).unwrap_or(now);
-        let memory_cutoff = now.checked_sub(retention_policy.memory_retention).unwrap_or(now);
-        
+        let traces_cutoff = now
+            .checked_sub(retention_policy.traces_retention)
+            .unwrap_or(now);
+        let memory_cutoff = now
+            .checked_sub(retention_policy.memory_retention)
+            .unwrap_or(now);
+
         // Clean traces
         let traces_deleted = self.delete_traces_before(traces_cutoff).await?;
-        
+
         // Mock cleanup stats for messages and workflows
         let messages_deleted = 5;
         let workflows_deleted = 1;
         let eval_data_deleted = 2;
-        
+
         Ok(CleanupStats {
             traces_deleted,
             messages_deleted,
@@ -475,7 +540,7 @@ impl StorageManager {
             retention_policy,
         }
     }
-    
+
     pub async fn suspend_workflow(
         &self,
         workflow_id: &str,
@@ -496,15 +561,17 @@ impl StorageManager {
             suspend_reason,
             resume_conditions: vec![ResumeCondition::ManualResume],
         };
-        
-        self.storage.store_suspended_workflow(&suspended_workflow).await
+
+        self.storage
+            .store_suspended_workflow(&suspended_workflow)
+            .await
     }
-    
+
     pub async fn resume_workflow(&self, workflow_id: &str) -> error::Result<(Value, usize)> {
         let suspended = self.storage.resume_workflow(workflow_id).await?;
         Ok((suspended.context_state, suspended.current_step))
     }
-    
+
     pub async fn create_conversation_thread(
         &self,
         resource_id: ResourceId,
@@ -520,11 +587,11 @@ impl StorageManager {
             metadata: HashMap::new(),
             message_count: 0,
         };
-        
+
         self.storage.create_memory_thread(&thread).await?;
         Ok(thread_id)
     }
-    
+
     pub async fn add_message(
         &self,
         thread_id: &str,
@@ -543,11 +610,11 @@ impl StorageManager {
             metadata: HashMap::new(),
             parent_message_id: None,
         };
-        
+
         self.storage.add_memory_message(&message).await?;
         Ok(message_id)
     }
-    
+
     pub async fn record_trace(
         &self,
         resource_id: ResourceId,
@@ -560,9 +627,11 @@ impl StorageManager {
     ) -> error::Result<String> {
         let trace_id = Uuid::new_v4().to_string();
         let span_id = Uuid::new_v4().to_string();
-        let duration_ms = end_time.duration_since(start_time).ok()
+        let duration_ms = end_time
+            .duration_since(start_time)
+            .ok()
             .map(|d| d.as_millis() as u64);
-        
+
         let trace = TraceData {
             trace_id: trace_id.clone(),
             span_id,
@@ -577,11 +646,11 @@ impl StorageManager {
             events: vec![],
             component: component.to_string(),
         };
-        
+
         self.storage.store_trace(&trace).await?;
         Ok(trace_id)
     }
-    
+
     pub async fn create_evaluation_dataset(
         &self,
         resource_id: ResourceId,
@@ -599,11 +668,11 @@ impl StorageManager {
             version: version.to_string(),
             metadata: HashMap::new(),
         };
-        
+
         self.storage.create_eval_dataset(&dataset).await?;
         Ok(dataset_id)
     }
-    
+
     pub async fn record_evaluation_score(
         &self,
         run_id: &str,
@@ -626,14 +695,14 @@ impl StorageManager {
             metadata: HashMap::new(),
             scored_at: SystemTime::now(),
         };
-        
+
         self.storage.store_eval_score(&score_record).await
     }
-    
+
     pub async fn perform_maintenance(&self) -> error::Result<CleanupStats> {
         self.storage.cleanup_old_data(&self.retention_policy).await
     }
-    
+
     pub async fn get_statistics(&self) -> error::Result<StorageStats> {
         self.storage.get_storage_stats().await
     }
@@ -653,7 +722,7 @@ mod tests {
         RetentionPolicy {
             traces_retention: Duration::from_secs(7 * 24 * 3600), // 7 days
             memory_retention: Duration::from_secs(30 * 24 * 3600), // 30 days
-            eval_retention: Duration::from_secs(90 * 24 * 3600), // 90 days
+            eval_retention: Duration::from_secs(90 * 24 * 3600),  // 90 days
             suspended_workflows_retention: Duration::from_secs(365 * 24 * 3600), // 1 year
         }
     }
@@ -670,7 +739,7 @@ mod tests {
     async fn test_suspended_workflow_storage_and_retrieval() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         let workflow = SuspendedWorkflow {
             workflow_id: "test_workflow_001".to_string(),
             resource_id: resource_id.clone(),
@@ -687,7 +756,10 @@ mod tests {
         storage.store_suspended_workflow(&workflow).await.unwrap();
 
         // Retrieve workflow
-        let retrieved = storage.get_suspended_workflow("test_workflow_001").await.unwrap();
+        let retrieved = storage
+            .get_suspended_workflow("test_workflow_001")
+            .await
+            .unwrap();
         assert!(retrieved.is_some());
         let retrieved = retrieved.unwrap();
         assert_eq!(retrieved.workflow_id, "test_workflow_001");
@@ -695,7 +767,10 @@ mod tests {
         assert_eq!(retrieved.resource_id, resource_id);
 
         // List workflows for resource
-        let workflows = storage.list_suspended_workflows(&resource_id).await.unwrap();
+        let workflows = storage
+            .list_suspended_workflows(&resource_id)
+            .await
+            .unwrap();
         assert_eq!(workflows.len(), 1);
         assert_eq!(workflows[0].workflow_id, "test_workflow_001");
     }
@@ -704,7 +779,7 @@ mod tests {
     async fn test_workflow_resume_and_delete() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         let workflow = SuspendedWorkflow {
             workflow_id: "test_workflow_002".to_string(),
             resource_id: resource_id.clone(),
@@ -725,7 +800,10 @@ mod tests {
         assert_eq!(resumed.current_step, 5);
 
         // Should no longer exist
-        let retrieved = storage.get_suspended_workflow("test_workflow_002").await.unwrap();
+        let retrieved = storage
+            .get_suspended_workflow("test_workflow_002")
+            .await
+            .unwrap();
         assert!(retrieved.is_none());
     }
 
@@ -733,7 +811,7 @@ mod tests {
     async fn test_memory_thread_management() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         let thread = MemoryThread {
             thread_id: "thread_001".to_string(),
             resource_id: resource_id.clone(),
@@ -764,7 +842,7 @@ mod tests {
     async fn test_memory_message_management() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         // Create thread first
         let thread = MemoryThread {
             thread_id: "thread_002".to_string(),
@@ -780,7 +858,11 @@ mod tests {
         // Add messages
         let messages = vec![
             ("msg_001", MessageRole::User, "Hello, how are you?"),
-            ("msg_002", MessageRole::Assistant, "I'm doing well, thank you!"),
+            (
+                "msg_002",
+                MessageRole::Assistant,
+                "I'm doing well, thank you!",
+            ),
             ("msg_003", MessageRole::User, "What's the weather like?"),
         ];
 
@@ -799,17 +881,26 @@ mod tests {
         }
 
         // Retrieve all messages
-        let retrieved = storage.get_memory_messages("thread_002", None).await.unwrap();
+        let retrieved = storage
+            .get_memory_messages("thread_002", None)
+            .await
+            .unwrap();
         assert_eq!(retrieved.len(), 3);
         assert_eq!(retrieved[0].message_id, "msg_001");
 
         // Retrieve limited messages
-        let limited = storage.get_memory_messages("thread_002", Some(2)).await.unwrap();
+        let limited = storage
+            .get_memory_messages("thread_002", Some(2))
+            .await
+            .unwrap();
         assert_eq!(limited.len(), 2);
 
         // Delete thread (should remove messages too)
         storage.delete_memory_thread("thread_002").await.unwrap();
-        let retrieved = storage.get_memory_messages("thread_002", None).await.unwrap();
+        let retrieved = storage
+            .get_memory_messages("thread_002", None)
+            .await
+            .unwrap();
         assert!(retrieved.is_empty());
     }
 
@@ -818,7 +909,7 @@ mod tests {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
         let now = SystemTime::now();
-        
+
         let trace = TraceData {
             trace_id: "trace_001".to_string(),
             span_id: "span_001".to_string(),
@@ -864,7 +955,7 @@ mod tests {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
         let now = SystemTime::now();
-        
+
         // Store traces with different timestamps
         for i in 0..5 {
             let trace = TraceData {
@@ -899,7 +990,7 @@ mod tests {
     async fn test_evaluation_dataset_management() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         let dataset = EvalDataset {
             dataset_id: "dataset_001".to_string(),
             name: "Test Dataset".to_string(),
@@ -931,7 +1022,7 @@ mod tests {
     async fn test_evaluation_score_management() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         let scores = vec![
             ("score_001", "run_001", "accuracy", 0.85),
             ("score_002", "run_001", "precision", 0.90),
@@ -958,8 +1049,11 @@ mod tests {
         // Retrieve scores for run
         let run_scores = storage.get_eval_scores("run_001").await.unwrap();
         assert_eq!(run_scores.len(), 3);
-        
-        let accuracy_score = run_scores.iter().find(|s| s.metric_name == "accuracy").unwrap();
+
+        let accuracy_score = run_scores
+            .iter()
+            .find(|s| s.metric_name == "accuracy")
+            .unwrap();
         assert_eq!(accuracy_score.score, 0.85);
         assert_eq!(accuracy_score.scorer_name, "test_scorer");
     }
@@ -1009,17 +1103,20 @@ mod tests {
         let resource_id = create_test_resource_id();
 
         // Suspend workflow
-        manager.suspend_workflow(
-            "manager_test_001",
-            resource_id.clone(),
-            "test_workflow",
-            2,
-            json!({"step": 2, "test": true}),
-            SuspendReason::WaitingForEvent {
-                event_id: "user_input".to_string(),
-                timeout_ms: Some(30000),
-            },
-        ).await.unwrap();
+        manager
+            .suspend_workflow(
+                "manager_test_001",
+                resource_id.clone(),
+                "test_workflow",
+                2,
+                json!({"step": 2, "test": true}),
+                SuspendReason::WaitingForEvent {
+                    event_id: "user_input".to_string(),
+                    timeout_ms: Some(30000),
+                },
+            )
+            .await
+            .unwrap();
 
         // Resume workflow
         let (context, step) = manager.resume_workflow("manager_test_001").await.unwrap();
@@ -1036,27 +1133,33 @@ mod tests {
         let resource_id = create_test_resource_id();
 
         // Create conversation thread
-        let thread_id = manager.create_conversation_thread(
-            resource_id.clone(),
-            "Test Conversation"
-        ).await.unwrap();
+        let thread_id = manager
+            .create_conversation_thread(resource_id.clone(), "Test Conversation")
+            .await
+            .unwrap();
 
         assert!(!thread_id.is_empty());
 
         // Add messages
-        let message_id1 = manager.add_message(
-            &thread_id,
-            resource_id.clone(),
-            MessageRole::User,
-            "Hello, how are you?"
-        ).await.unwrap();
+        let message_id1 = manager
+            .add_message(
+                &thread_id,
+                resource_id.clone(),
+                MessageRole::User,
+                "Hello, how are you?",
+            )
+            .await
+            .unwrap();
 
-        let message_id2 = manager.add_message(
-            &thread_id,
-            resource_id.clone(),
-            MessageRole::Assistant,
-            "I'm doing well, thanks!"
-        ).await.unwrap();
+        let message_id2 = manager
+            .add_message(
+                &thread_id,
+                resource_id.clone(),
+                MessageRole::Assistant,
+                "I'm doing well, thanks!",
+            )
+            .await
+            .unwrap();
 
         assert!(!message_id1.is_empty());
         assert!(!message_id2.is_empty());
@@ -1076,15 +1179,18 @@ mod tests {
         attributes.insert("user_id".to_string(), "123".to_string());
 
         // Record trace
-        let trace_id = manager.record_trace(
-            resource_id,
-            "test_component",
-            "test_operation",
-            now,
-            now + Duration::from_millis(150),
-            TraceStatus::Ok,
-            attributes,
-        ).await.unwrap();
+        let trace_id = manager
+            .record_trace(
+                resource_id,
+                "test_component",
+                "test_operation",
+                now,
+                now + Duration::from_millis(150),
+                TraceStatus::Ok,
+                attributes,
+            )
+            .await
+            .unwrap();
 
         assert!(!trace_id.is_empty());
     }
@@ -1097,25 +1203,31 @@ mod tests {
         let resource_id = create_test_resource_id();
 
         // Create evaluation dataset
-        let dataset_id = manager.create_evaluation_dataset(
-            resource_id.clone(),
-            "Test Evaluation Dataset",
-            "A comprehensive test dataset",
-            "2.0",
-        ).await.unwrap();
+        let dataset_id = manager
+            .create_evaluation_dataset(
+                resource_id.clone(),
+                "Test Evaluation Dataset",
+                "A comprehensive test dataset",
+                "2.0",
+            )
+            .await
+            .unwrap();
 
         assert!(!dataset_id.is_empty());
 
         // Record evaluation score
-        manager.record_evaluation_score(
-            "eval_run_001",
-            "item_001",
-            resource_id,
-            "accuracy",
-            0.92,
-            "High accuracy achieved",
-            "automated_evaluator",
-        ).await.unwrap();
+        manager
+            .record_evaluation_score(
+                "eval_run_001",
+                "item_001",
+                resource_id,
+                "accuracy",
+                0.92,
+                "High accuracy achieved",
+                "automated_evaluator",
+            )
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -1137,14 +1249,14 @@ mod tests {
     async fn test_concurrent_storage_operations() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         // Spawn concurrent tasks
         let mut handles = vec![];
-        
+
         for i in 0..10 {
             let storage_clone = Arc::clone(&storage);
             let resource_id_clone = resource_id.clone();
-            
+
             let handle = tokio::spawn(async move {
                 // Each task stores a workflow and a trace
                 let workflow = SuspendedWorkflow {
@@ -1158,9 +1270,12 @@ mod tests {
                     suspend_reason: SuspendReason::UserPause,
                     resume_conditions: vec![],
                 };
-                
-                storage_clone.store_suspended_workflow(&workflow).await.unwrap();
-                
+
+                storage_clone
+                    .store_suspended_workflow(&workflow)
+                    .await
+                    .unwrap();
+
                 let trace = TraceData {
                     trace_id: format!("concurrent_trace_{}", i),
                     span_id: format!("concurrent_span_{}", i),
@@ -1175,26 +1290,31 @@ mod tests {
                     events: vec![],
                     component: "concurrent_component".to_string(),
                 };
-                
+
                 storage_clone.store_trace(&trace).await.unwrap();
-                
+
                 i
             });
-            
+
             handles.push(handle);
         }
-        
+
         // Wait for all tasks to complete
-        let results: Vec<_> = futures::future::join_all(handles).await.into_iter()
+        let results: Vec<_> = futures::future::join_all(handles)
+            .await
+            .into_iter()
             .map(|r| r.unwrap())
             .collect();
-        
+
         assert_eq!(results.len(), 10);
-        
+
         // Verify all data was stored
-        let workflows = storage.list_suspended_workflows(&resource_id).await.unwrap();
+        let workflows = storage
+            .list_suspended_workflows(&resource_id)
+            .await
+            .unwrap();
         assert_eq!(workflows.len(), 10);
-        
+
         let filters = TraceFilters {
             component: Some("concurrent_component".to_string()),
             ..Default::default()
@@ -1206,10 +1326,10 @@ mod tests {
     #[tokio::test]
     async fn test_resource_isolation() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
-        
+
         let resource_1 = ResourceId::new("app1", "user1");
         let resource_2 = ResourceId::new("app2", "user2");
-        
+
         // Store data for different resources
         let workflow_1 = SuspendedWorkflow {
             workflow_id: "isolation_test_1".to_string(),
@@ -1222,7 +1342,7 @@ mod tests {
             suspend_reason: SuspendReason::UserPause,
             resume_conditions: vec![],
         };
-        
+
         let workflow_2 = SuspendedWorkflow {
             workflow_id: "isolation_test_2".to_string(),
             resource_id: resource_2.clone(),
@@ -1234,14 +1354,14 @@ mod tests {
             suspend_reason: SuspendReason::UserPause,
             resume_conditions: vec![],
         };
-        
+
         storage.store_suspended_workflow(&workflow_1).await.unwrap();
         storage.store_suspended_workflow(&workflow_2).await.unwrap();
-        
+
         // Verify isolation
         let workflows_1 = storage.list_suspended_workflows(&resource_1).await.unwrap();
         let workflows_2 = storage.list_suspended_workflows(&resource_2).await.unwrap();
-        
+
         assert_eq!(workflows_1.len(), 1);
         assert_eq!(workflows_2.len(), 1);
         assert_eq!(workflows_1[0].workflow_id, "isolation_test_1");
@@ -1251,7 +1371,7 @@ mod tests {
     #[tokio::test]
     async fn test_serialization_deserialization() {
         let resource_id = ResourceId::new("test", "123");
-        
+
         // Test SuspendedWorkflow serialization
         let workflow = SuspendedWorkflow {
             workflow_id: "serialization_test".to_string(),
@@ -1271,29 +1391,33 @@ mod tests {
                 timeout_ms: Some(60000),
             },
             resume_conditions: vec![
-                ResumeCondition::EventReceived { event_id: "test_event".to_string() },
+                ResumeCondition::EventReceived {
+                    event_id: "test_event".to_string(),
+                },
                 ResumeCondition::TimeElapsed,
             ],
         };
-        
+
         let serialized = serde_json::to_string(&workflow).unwrap();
         let deserialized: SuspendedWorkflow = serde_json::from_str(&serialized).unwrap();
-        
+
         assert_eq!(workflow.workflow_id, deserialized.workflow_id);
         assert_eq!(workflow.current_step, deserialized.current_step);
         assert_eq!(workflow.context_state, deserialized.context_state);
         assert_eq!(workflow.metadata, deserialized.metadata);
-        
+
         // Test TraceStatus serialization
         let status_ok = TraceStatus::Ok;
-        let status_error = TraceStatus::Error { message: "Test error".to_string() };
-        
+        let status_error = TraceStatus::Error {
+            message: "Test error".to_string(),
+        };
+
         let serialized_ok = serde_json::to_string(&status_ok).unwrap();
         let serialized_error = serde_json::to_string(&status_error).unwrap();
-        
+
         let deserialized_ok: TraceStatus = serde_json::from_str(&serialized_ok).unwrap();
         let deserialized_error: TraceStatus = serde_json::from_str(&serialized_error).unwrap();
-        
+
         assert!(matches!(deserialized_ok, TraceStatus::Ok));
         if let TraceStatus::Error { message } = deserialized_error {
             assert_eq!(message, "Test error");
@@ -1301,27 +1425,27 @@ mod tests {
             panic!("Expected error status");
         }
     }
-    
-    #[tokio::test] 
+
+    #[tokio::test]
     async fn test_error_handling() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
-        
+
         // Test resuming non-existent workflow
         let result = storage.resume_workflow("non_existent").await;
         assert!(result.is_err());
-        
+
         // Test getting non-existent thread
         let thread = storage.get_memory_thread("non_existent").await.unwrap();
         assert!(thread.is_none());
-        
+
         // Test getting non-existent trace
         let trace = storage.get_trace("non_existent").await.unwrap();
         assert!(trace.is_none());
-        
+
         // Test getting non-existent dataset
         let dataset = storage.get_eval_dataset("non_existent").await.unwrap();
         assert!(dataset.is_none());
-        
+
         // Test getting scores for non-existent run
         let scores = storage.get_eval_scores("non_existent").await.unwrap();
         assert!(scores.is_empty());
@@ -1331,20 +1455,20 @@ mod tests {
     async fn test_performance_under_load() {
         let storage = Arc::new(InMemoryUnifiedStorage::new());
         let resource_id = create_test_resource_id();
-        
+
         let start_time = SystemTime::now();
-        
+
         // Store a large number of items quickly
         let mut handles = vec![];
-        
+
         for batch in 0..10 {
             let storage_clone = Arc::clone(&storage);
             let resource_id_clone = resource_id.clone();
-            
+
             let handle = tokio::spawn(async move {
                 for i in 0..100 {
                     let item_id = batch * 100 + i;
-                    
+
                     // Store a trace
                     let trace = TraceData {
                         trace_id: format!("perf_trace_{}", item_id),
@@ -1360,20 +1484,20 @@ mod tests {
                         events: vec![],
                         component: "performance_component".to_string(),
                     };
-                    
+
                     storage_clone.store_trace(&trace).await.unwrap();
                 }
                 batch
             });
-            
+
             handles.push(handle);
         }
-        
+
         futures::future::join_all(handles).await;
-        
+
         let elapsed = start_time.elapsed().unwrap();
         println!("Stored 1000 traces in {:?}", elapsed);
-        
+
         // Verify all traces were stored
         let filters = TraceFilters {
             component: Some("performance_component".to_string()),
@@ -1381,7 +1505,7 @@ mod tests {
         };
         let traces = storage.query_traces(&resource_id, filters).await.unwrap();
         assert_eq!(traces.len(), 1000);
-        
+
         // Performance should be reasonable (less than 5 seconds for 1000 items)
         assert!(elapsed.as_secs() < 5);
     }

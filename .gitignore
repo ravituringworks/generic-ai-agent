@@ -18,6 +18,9 @@ memory.db
 .env.*
 *.env
 
+# User-specific configuration
+config.toml
+
 # Logs
 logs/
 *.log
@@ -58,3 +61,6 @@ Icon
 
 # SQLx offline data (if used)
 .sqlx/
+
+# Generated workspace artifacts (except README)
+examples/robotics_workspace/humanoid_robot_project/

@@ -1,9 +1,9 @@
 //! Cucumber step definitions for BDD tests
 
 use cucumber::{given, then, when, World};
-use the_agency::*;
 use std::collections::HashMap;
 use tempfile::tempdir;
+use the_agency::*;
 
 #[derive(World)]
 #[world(init = Self::new)]
@@ -44,13 +44,13 @@ impl AgentWorld {
 async fn initialize_agent(world: &mut AgentWorld) {
     let temp_dir = tempdir().expect("Failed to create temp directory");
     let db_path = temp_dir.path().join("test.db");
-    
+
     let mut config = AgentConfig::default();
     config.memory.database_url = Some(format!("sqlite://{}", db_path.to_str().unwrap()));
-    
+
     world.temp_dir = Some(temp_dir);
     world.config = Some(config.clone());
-    
+
     // In a real test environment, we might mock the Ollama client
     // For now, we'll create the agent but expect it might fail without Ollama
     match Agent::new(config).await {
@@ -68,7 +68,10 @@ async fn initialize_agent(world: &mut AgentWorld) {
 async fn verify_builtin_tools(world: &mut AgentWorld) {
     if let Some(agent) = &world.agent {
         let available_tools = agent.get_available_tools().await;
-        assert!(!available_tools.is_empty(), "Agent should have built-in tools available");
+        assert!(
+            !available_tools.is_empty(),
+            "Agent should have built-in tools available"
+        );
         assert!(
             available_tools.contains(&"system_info".to_string()),
             "Agent should have system_info tool"
@@ -119,7 +122,9 @@ async fn ask_agent_question(world: &mut AgentWorld, question: String) {
 async fn create_long_conversation(world: &mut AgentWorld) {
     if let Some(agent) = &mut world.agent {
         for i in 1..=5 {
-            let _ = agent.process(&format!("This is message number {}", i)).await;
+            let _ = agent
+                .process(&format!("This is message number {}", i))
+                .await;
         }
     }
 }
@@ -132,7 +137,7 @@ async fn create_several_interactions(world: &mut AgentWorld) {
             "Remember that I like coffee",
             "What's my system information?",
         ];
-        
+
         for interaction in interactions {
             let _ = agent.process(interaction).await;
         }
@@ -201,7 +206,7 @@ async fn check_agent_statistics(world: &mut AgentWorld) {
 async fn set_invalid_ollama_url(world: &mut AgentWorld) {
     if let Some(config) = &mut world.config {
         config.llm.ollama_url = "invalid-url".to_string();
-        
+
         match config.validate() {
             Ok(_) => {
                 world.error = Some("Configuration should have failed validation".to_string());
@@ -218,16 +223,20 @@ async fn verify_greeting_response(world: &mut AgentWorld) {
     if let Some(response) = &world.last_response {
         let response_lower = response.to_lowercase();
         assert!(
-            response_lower.contains("hello") || 
-            response_lower.contains("hi") || 
-            response_lower.contains("greet") ||
-            response_lower.contains("how can i help"),
-            "Response should contain a greeting: {}", response
+            response_lower.contains("hello")
+                || response_lower.contains("hi")
+                || response_lower.contains("greet")
+                || response_lower.contains("how can i help"),
+            "Response should contain a greeting: {}",
+            response
         );
     } else if let Some(error) = &world.error {
         // If Ollama is not available, we expect an error
-        assert!(error.contains("Connection") || error.contains("Ollama"), 
-                "Expected connection error, got: {}", error);
+        assert!(
+            error.contains("Connection") || error.contains("Ollama"),
+            "Expected connection error, got: {}",
+            error
+        );
     }
 }
 
@@ -248,10 +257,10 @@ async fn verify_conversation_length(world: &mut AgentWorld, expected_count: usiz
     if let Some(agent) = &world.agent {
         let conversation = agent.get_conversation();
         assert_eq!(
-            conversation.len(), 
+            conversation.len(),
             expected_count,
-            "Expected {} messages, got {}", 
-            expected_count, 
+            "Expected {} messages, got {}",
+            expected_count,
             conversation.len()
         );
     }
@@ -263,8 +272,8 @@ async fn verify_name_mention(world: &mut AgentWorld, name: String) {
         let name_clean = name.trim_matches('"');
         assert!(
             response.contains(name_clean),
-            "Response should mention name '{}': {}", 
-            name_clean, 
+            "Response should mention name '{}': {}",
+            name_clean,
             response
         );
     }
@@ -275,9 +284,11 @@ async fn verify_mention(world: &mut AgentWorld, expected_text: String) {
     if let Some(response) = &world.last_response {
         let expected_clean = expected_text.trim_matches('"');
         assert!(
-            response.to_lowercase().contains(&expected_clean.to_lowercase()),
-            "Response should mention '{}': {}", 
-            expected_clean, 
+            response
+                .to_lowercase()
+                .contains(&expected_clean.to_lowercase()),
+            "Response should mention '{}': {}",
+            expected_clean,
             response
         );
     }
@@ -290,10 +301,10 @@ async fn verify_system_info_tool_call(world: &mut AgentWorld) {
         // For now, we check if the response contains system information
         let response_lower = response.to_lowercase();
         assert!(
-            response_lower.contains("system") || 
-            response_lower.contains("os") ||
-            response_lower.contains("arch"),
-            "Response should indicate system info tool was called: {}", 
+            response_lower.contains("system")
+                || response_lower.contains("os")
+                || response_lower.contains("arch"),
+            "Response should indicate system info tool was called: {}",
             response
         );
     }
@@ -304,10 +315,10 @@ async fn verify_system_details(world: &mut AgentWorld) {
     if let Some(response) = &world.last_response {
         let response_lower = response.to_lowercase();
         assert!(
-            response_lower.contains("system") ||
-            response_lower.contains("os") ||
-            response_lower.contains("operating"),
-            "Response should contain system details: {}", 
+            response_lower.contains("system")
+                || response_lower.contains("os")
+                || response_lower.contains("operating"),
+            "Response should contain system details: {}",
             response
         );
     }
@@ -318,12 +329,12 @@ async fn verify_os_mention(world: &mut AgentWorld) {
     if let Some(response) = &world.last_response {
         let response_lower = response.to_lowercase();
         assert!(
-            response_lower.contains("macos") ||
-            response_lower.contains("linux") ||
-            response_lower.contains("windows") ||
-            response_lower.contains("unix") ||
-            response_lower.contains("os"),
-            "Response should mention operating system: {}", 
+            response_lower.contains("macos")
+                || response_lower.contains("linux")
+                || response_lower.contains("windows")
+                || response_lower.contains("unix")
+                || response_lower.contains("os"),
+            "Response should mention operating system: {}",
             response
         );
     }
@@ -348,9 +359,9 @@ async fn verify_combined_response(world: &mut AgentWorld) {
         // Response should indicate both system info and memory storage occurred
         let response_lower = response.to_lowercase();
         assert!(
-            response_lower.contains("system") && 
-            (response_lower.contains("remember") || response_lower.contains("stored")),
-            "Response should combine tool results and memory storage: {}", 
+            response_lower.contains("system")
+                && (response_lower.contains("remember") || response_lower.contains("stored")),
+            "Response should combine tool results and memory storage: {}",
             response
         );
     }
@@ -360,14 +371,16 @@ async fn verify_combined_response(world: &mut AgentWorld) {
 async fn verify_conversation_limit(world: &mut AgentWorld) {
     if let Some(agent) = &world.agent {
         let conversation = agent.get_conversation();
-        let max_length = world.config.as_ref()
+        let max_length = world
+            .config
+            .as_ref()
             .map(|c| c.agent.max_history_length)
             .unwrap_or(20);
-        
+
         assert!(
             conversation.len() <= max_length,
-            "Conversation length {} should not exceed maximum {}", 
-            conversation.len(), 
+            "Conversation length {} should not exceed maximum {}",
+            conversation.len(),
             max_length
         );
     }
@@ -406,8 +419,7 @@ async fn verify_no_crash(world: &mut AgentWorld) {
 async fn verify_conversation_length_in_stats(world: &mut AgentWorld) {
     if let Some(response) = &world.last_response {
         assert!(
-            response.contains("conversation_length") || 
-            response.contains("conversation"),
+            response.contains("conversation_length") || response.contains("conversation"),
             "Statistics should include conversation length"
         );
     }
@@ -417,8 +429,7 @@ async fn verify_conversation_length_in_stats(world: &mut AgentWorld) {
 async fn verify_memory_statistics(world: &mut AgentWorld) {
     if let Some(response) = &world.last_response {
         assert!(
-            response.contains("memory_stats") || 
-            response.contains("memory"),
+            response.contains("memory_stats") || response.contains("memory"),
             "Statistics should include memory information"
         );
     }
@@ -428,8 +439,7 @@ async fn verify_memory_statistics(world: &mut AgentWorld) {
 async fn verify_tool_availability(world: &mut AgentWorld) {
     if let Some(response) = &world.last_response {
         assert!(
-            response.contains("builtin_tools_count") || 
-            response.contains("tools"),
+            response.contains("builtin_tools_count") || response.contains("tools"),
             "Statistics should include tool information"
         );
     }
@@ -447,10 +457,8 @@ async fn verify_config_validation_failure(world: &mut AgentWorld) {
 async fn verify_meaningful_error(world: &mut AgentWorld) {
     if let Some(error) = &world.error {
         assert!(
-            error.contains("Invalid") || 
-            error.contains("URL") ||
-            error.contains("Ollama"),
-            "Error message should be meaningful: {}", 
+            error.contains("Invalid") || error.contains("URL") || error.contains("Ollama"),
+            "Error message should be meaningful: {}",
             error
         );
     } else {

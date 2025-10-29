@@ -3,7 +3,7 @@
 //! This system provides a unified interface for managing:
 //! - Suspended Workflows: Serialized state of suspended workflows for resumption
 //! - Memory: Threads and messages per resourceId in applications
-//! - Traces: OpenTelemetry traces from all components 
+//! - Traces: OpenTelemetry traces from all components
 //! - Eval Datasets: Scores and scoring reasons from evaluation runs
 //!
 //! Features:
@@ -13,17 +13,20 @@
 //! - Data retention policies and cleanup
 //! - Schema versioning and migrations
 
-use the_agency::{
-    workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep, SuspendReason as WorkflowSuspendReason},
-    error::Result,
-};
 use async_trait::async_trait;
-use std::sync::Arc;
-use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use the_agency::{
+    error::Result,
+    workflow::{
+        SuspendReason as WorkflowSuspendReason, WorkflowBuilder, WorkflowContext, WorkflowDecision,
+        WorkflowStep,
+    },
+};
 use tokio;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
 use uuid::Uuid;
 
 /// Storage backend types
@@ -49,7 +52,7 @@ impl ResourceId {
             id: id.to_string(),
         }
     }
-    
+
     pub fn to_key(&self) -> String {
         format!("{}:{}", self.namespace, self.id)
     }
@@ -72,10 +75,20 @@ pub struct SuspendedWorkflow {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SuspendReason {
     UserPause,
-    WaitingForEvent { event_id: String, timeout_ms: Option<u64> },
-    Sleep { duration_ms: u64 },
-    SleepUntil { timestamp: SystemTime },
-    ExternalDependency { dependency_type: String, details: String },
+    WaitingForEvent {
+        event_id: String,
+        timeout_ms: Option<u64>,
+    },
+    Sleep {
+        duration_ms: u64,
+    },
+    SleepUntil {
+        timestamp: SystemTime,
+    },
+    ExternalDependency {
+        dependency_type: String,
+        details: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -212,24 +225,35 @@ pub trait UnifiedStorage: Send + Sync {
     // Suspended Workflow Management
     async fn store_suspended_workflow(&self, workflow: &SuspendedWorkflow) -> Result<()>;
     async fn get_suspended_workflow(&self, workflow_id: &str) -> Result<Option<SuspendedWorkflow>>;
-    async fn list_suspended_workflows(&self, resource_id: &ResourceId) -> Result<Vec<SuspendedWorkflow>>;
+    async fn list_suspended_workflows(
+        &self,
+        resource_id: &ResourceId,
+    ) -> Result<Vec<SuspendedWorkflow>>;
     async fn resume_workflow(&self, workflow_id: &str) -> Result<SuspendedWorkflow>;
     async fn delete_suspended_workflow(&self, workflow_id: &str) -> Result<()>;
-    
+
     // Memory Management
     async fn create_memory_thread(&self, thread: &MemoryThread) -> Result<()>;
     async fn get_memory_thread(&self, thread_id: &str) -> Result<Option<MemoryThread>>;
     async fn list_memory_threads(&self, resource_id: &ResourceId) -> Result<Vec<MemoryThread>>;
     async fn add_memory_message(&self, message: &MemoryMessage) -> Result<()>;
-    async fn get_memory_messages(&self, thread_id: &str, limit: Option<usize>) -> Result<Vec<MemoryMessage>>;
+    async fn get_memory_messages(
+        &self,
+        thread_id: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<MemoryMessage>>;
     async fn delete_memory_thread(&self, thread_id: &str) -> Result<()>;
-    
+
     // Trace Management
     async fn store_trace(&self, trace: &TraceData) -> Result<()>;
     async fn get_trace(&self, trace_id: &str) -> Result<Option<TraceData>>;
-    async fn query_traces(&self, resource_id: &ResourceId, filters: TraceFilters) -> Result<Vec<TraceData>>;
+    async fn query_traces(
+        &self,
+        resource_id: &ResourceId,
+        filters: TraceFilters,
+    ) -> Result<Vec<TraceData>>;
     async fn delete_traces_before(&self, timestamp: SystemTime) -> Result<usize>;
-    
+
     // Evaluation Management
     async fn create_eval_dataset(&self, dataset: &EvalDataset) -> Result<()>;
     async fn get_eval_dataset(&self, dataset_id: &str) -> Result<Option<EvalDataset>>;
@@ -238,7 +262,7 @@ pub trait UnifiedStorage: Send + Sync {
     async fn get_eval_run(&self, run_id: &str) -> Result<Option<EvalRun>>;
     async fn store_eval_score(&self, score: &EvalScore) -> Result<()>;
     async fn get_eval_scores(&self, run_id: &str) -> Result<Vec<EvalScore>>;
-    
+
     // Storage Management
     async fn get_storage_stats(&self) -> Result<StorageStats>;
     async fn cleanup_old_data(&self, retention_policy: &RetentionPolicy) -> Result<CleanupStats>;
@@ -301,10 +325,13 @@ impl SQLiteUnifiedStorage {
             file_path: file_path.to_string(),
         }
     }
-    
+
     async fn execute_query(&self, query: &str) -> Result<()> {
         // Simulate database query execution
-        println!("  📊 Executing SQLite query: {}", query.chars().take(60).collect::<String>());
+        println!(
+            "  📊 Executing SQLite query: {}",
+            query.chars().take(60).collect::<String>()
+        );
         tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
         Ok(())
     }
@@ -326,11 +353,15 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
         self.execute_query(&query).await?;
         Ok(())
     }
-    
+
     async fn get_suspended_workflow(&self, workflow_id: &str) -> Result<Option<SuspendedWorkflow>> {
         println!("  🔍 Retrieving suspended workflow: {}", workflow_id);
-        self.execute_query(&format!("SELECT * FROM suspended_workflows WHERE id = '{}'", workflow_id)).await?;
-        
+        self.execute_query(&format!(
+            "SELECT * FROM suspended_workflows WHERE id = '{}'",
+            workflow_id
+        ))
+        .await?;
+
         // Mock returning a workflow
         Ok(Some(SuspendedWorkflow {
             workflow_id: workflow_id.to_string(),
@@ -344,32 +375,52 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             resume_conditions: vec![ResumeCondition::ManualResume],
         }))
     }
-    
-    async fn list_suspended_workflows(&self, resource_id: &ResourceId) -> Result<Vec<SuspendedWorkflow>> {
-        println!("  📋 Listing suspended workflows for resource: {}", resource_id.to_key());
-        self.execute_query(&format!("SELECT * FROM suspended_workflows WHERE resource_id = '{}'", resource_id.to_key())).await?;
+
+    async fn list_suspended_workflows(
+        &self,
+        resource_id: &ResourceId,
+    ) -> Result<Vec<SuspendedWorkflow>> {
+        println!(
+            "  📋 Listing suspended workflows for resource: {}",
+            resource_id.to_key()
+        );
+        self.execute_query(&format!(
+            "SELECT * FROM suspended_workflows WHERE resource_id = '{}'",
+            resource_id.to_key()
+        ))
+        .await?;
         Ok(vec![]) // Mock empty result
     }
-    
+
     async fn resume_workflow(&self, workflow_id: &str) -> Result<SuspendedWorkflow> {
         println!("  ▶️  Resuming workflow: {}", workflow_id);
         let workflow = self.get_suspended_workflow(workflow_id).await?;
         if let Some(wf) = workflow {
-            self.execute_query(&format!("DELETE FROM suspended_workflows WHERE id = '{}'", workflow_id)).await?;
+            self.execute_query(&format!(
+                "DELETE FROM suspended_workflows WHERE id = '{}'",
+                workflow_id
+            ))
+            .await?;
             Ok(wf)
         } else {
-            Err(the_agency::error::AgentError::Config(
-                format!("Workflow {} not found", workflow_id)
-            ).into())
+            Err(the_agency::error::AgentError::Config(format!(
+                "Workflow {} not found",
+                workflow_id
+            ))
+            .into())
         }
     }
-    
+
     async fn delete_suspended_workflow(&self, workflow_id: &str) -> Result<()> {
         println!("  🗑️  Deleting suspended workflow: {}", workflow_id);
-        self.execute_query(&format!("DELETE FROM suspended_workflows WHERE id = '{}'", workflow_id)).await?;
+        self.execute_query(&format!(
+            "DELETE FROM suspended_workflows WHERE id = '{}'",
+            workflow_id
+        ))
+        .await?;
         Ok(())
     }
-    
+
     async fn create_memory_thread(&self, thread: &MemoryThread) -> Result<()> {
         println!("  💭 Creating memory thread: {}", thread.thread_id);
         let query = format!(
@@ -382,11 +433,15 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
         self.execute_query(&query).await?;
         Ok(())
     }
-    
+
     async fn get_memory_thread(&self, thread_id: &str) -> Result<Option<MemoryThread>> {
         println!("  🔍 Retrieving memory thread: {}", thread_id);
-        self.execute_query(&format!("SELECT * FROM memory_threads WHERE id = '{}'", thread_id)).await?;
-        
+        self.execute_query(&format!(
+            "SELECT * FROM memory_threads WHERE id = '{}'",
+            thread_id
+        ))
+        .await?;
+
         Ok(Some(MemoryThread {
             thread_id: thread_id.to_string(),
             resource_id: ResourceId::new("default", "test"),
@@ -397,13 +452,20 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             message_count: 0,
         }))
     }
-    
+
     async fn list_memory_threads(&self, resource_id: &ResourceId) -> Result<Vec<MemoryThread>> {
-        println!("  📋 Listing memory threads for resource: {}", resource_id.to_key());
-        self.execute_query(&format!("SELECT * FROM memory_threads WHERE resource_id = '{}'", resource_id.to_key())).await?;
+        println!(
+            "  📋 Listing memory threads for resource: {}",
+            resource_id.to_key()
+        );
+        self.execute_query(&format!(
+            "SELECT * FROM memory_threads WHERE resource_id = '{}'",
+            resource_id.to_key()
+        ))
+        .await?;
         Ok(vec![])
     }
-    
+
     async fn add_memory_message(&self, message: &MemoryMessage) -> Result<()> {
         println!("  💬 Adding memory message: {}", message.message_id);
         let query = format!(
@@ -417,23 +479,45 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
         self.execute_query(&query).await?;
         Ok(())
     }
-    
-    async fn get_memory_messages(&self, thread_id: &str, limit: Option<usize>) -> Result<Vec<MemoryMessage>> {
+
+    async fn get_memory_messages(
+        &self,
+        thread_id: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<MemoryMessage>> {
         let limit_clause = limit.map(|l| format!(" LIMIT {}", l)).unwrap_or_default();
-        println!("  📨 Getting memory messages for thread: {} (limit: {:?})", thread_id, limit);
-        self.execute_query(&format!("SELECT * FROM memory_messages WHERE thread_id = '{}' ORDER BY timestamp DESC{}", thread_id, limit_clause)).await?;
+        println!(
+            "  📨 Getting memory messages for thread: {} (limit: {:?})",
+            thread_id, limit
+        );
+        self.execute_query(&format!(
+            "SELECT * FROM memory_messages WHERE thread_id = '{}' ORDER BY timestamp DESC{}",
+            thread_id, limit_clause
+        ))
+        .await?;
         Ok(vec![])
     }
-    
+
     async fn delete_memory_thread(&self, thread_id: &str) -> Result<()> {
         println!("  🗑️  Deleting memory thread: {}", thread_id);
-        self.execute_query(&format!("DELETE FROM memory_messages WHERE thread_id = '{}'", thread_id)).await?;
-        self.execute_query(&format!("DELETE FROM memory_threads WHERE id = '{}'", thread_id)).await?;
+        self.execute_query(&format!(
+            "DELETE FROM memory_messages WHERE thread_id = '{}'",
+            thread_id
+        ))
+        .await?;
+        self.execute_query(&format!(
+            "DELETE FROM memory_threads WHERE id = '{}'",
+            thread_id
+        ))
+        .await?;
         Ok(())
     }
-    
+
     async fn store_trace(&self, trace: &TraceData) -> Result<()> {
-        println!("  📊 Storing trace: {} ({})", trace.trace_id, trace.operation_name);
+        println!(
+            "  📊 Storing trace: {} ({})",
+            trace.trace_id, trace.operation_name
+        );
         let query = format!(
             "INSERT INTO traces (trace_id, span_id, resource_id, operation, start_time, component) VALUES ('{}', '{}', '{}', '{}', '{}', '{}')",
             trace.trace_id,
@@ -446,11 +530,15 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
         self.execute_query(&query).await?;
         Ok(())
     }
-    
+
     async fn get_trace(&self, trace_id: &str) -> Result<Option<TraceData>> {
         println!("  🔍 Retrieving trace: {}", trace_id);
-        self.execute_query(&format!("SELECT * FROM traces WHERE trace_id = '{}'", trace_id)).await?;
-        
+        self.execute_query(&format!(
+            "SELECT * FROM traces WHERE trace_id = '{}'",
+            trace_id
+        ))
+        .await?;
+
         Ok(Some(TraceData {
             trace_id: trace_id.to_string(),
             span_id: Uuid::new_v4().to_string(),
@@ -466,26 +554,37 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             component: "test".to_string(),
         }))
     }
-    
-    async fn query_traces(&self, resource_id: &ResourceId, filters: TraceFilters) -> Result<Vec<TraceData>> {
-        println!("  🔍 Querying traces for resource: {} with filters", resource_id.to_key());
-        let mut query = format!("SELECT * FROM traces WHERE resource_id = '{}'", resource_id.to_key());
-        
+
+    async fn query_traces(
+        &self,
+        resource_id: &ResourceId,
+        filters: TraceFilters,
+    ) -> Result<Vec<TraceData>> {
+        println!(
+            "  🔍 Querying traces for resource: {} with filters",
+            resource_id.to_key()
+        );
+        let mut query = format!(
+            "SELECT * FROM traces WHERE resource_id = '{}'",
+            resource_id.to_key()
+        );
+
         if let Some(component) = &filters.component {
             query.push_str(&format!(" AND component = '{}'", component));
         }
-        
+
         self.execute_query(&query).await?;
         Ok(vec![])
     }
-    
+
     async fn delete_traces_before(&self, timestamp: SystemTime) -> Result<usize> {
         let ts = timestamp.duration_since(UNIX_EPOCH).unwrap().as_secs();
         println!("  🗑️  Deleting traces before timestamp: {}", ts);
-        self.execute_query(&format!("DELETE FROM traces WHERE start_time < '{}'", ts)).await?;
+        self.execute_query(&format!("DELETE FROM traces WHERE start_time < '{}'", ts))
+            .await?;
         Ok(0) // Mock deleted count
     }
-    
+
     async fn create_eval_dataset(&self, dataset: &EvalDataset) -> Result<()> {
         println!("  📊 Creating eval dataset: {}", dataset.name);
         let query = format!(
@@ -499,11 +598,15 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
         self.execute_query(&query).await?;
         Ok(())
     }
-    
+
     async fn get_eval_dataset(&self, dataset_id: &str) -> Result<Option<EvalDataset>> {
         println!("  🔍 Retrieving eval dataset: {}", dataset_id);
-        self.execute_query(&format!("SELECT * FROM eval_datasets WHERE id = '{}'", dataset_id)).await?;
-        
+        self.execute_query(&format!(
+            "SELECT * FROM eval_datasets WHERE id = '{}'",
+            dataset_id
+        ))
+        .await?;
+
         Ok(Some(EvalDataset {
             dataset_id: dataset_id.to_string(),
             name: "Test Dataset".to_string(),
@@ -514,13 +617,20 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             metadata: HashMap::new(),
         }))
     }
-    
+
     async fn list_eval_datasets(&self, resource_id: &ResourceId) -> Result<Vec<EvalDataset>> {
-        println!("  📋 Listing eval datasets for resource: {}", resource_id.to_key());
-        self.execute_query(&format!("SELECT * FROM eval_datasets WHERE resource_id = '{}'", resource_id.to_key())).await?;
+        println!(
+            "  📋 Listing eval datasets for resource: {}",
+            resource_id.to_key()
+        );
+        self.execute_query(&format!(
+            "SELECT * FROM eval_datasets WHERE resource_id = '{}'",
+            resource_id.to_key()
+        ))
+        .await?;
         Ok(vec![])
     }
-    
+
     async fn create_eval_run(&self, run: &EvalRun) -> Result<()> {
         println!("  🏃 Creating eval run: {}", run.run_id);
         let query = format!(
@@ -535,11 +645,12 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
         self.execute_query(&query).await?;
         Ok(())
     }
-    
+
     async fn get_eval_run(&self, run_id: &str) -> Result<Option<EvalRun>> {
         println!("  🔍 Retrieving eval run: {}", run_id);
-        self.execute_query(&format!("SELECT * FROM eval_runs WHERE id = '{}'", run_id)).await?;
-        
+        self.execute_query(&format!("SELECT * FROM eval_runs WHERE id = '{}'", run_id))
+            .await?;
+
         Ok(Some(EvalRun {
             run_id: run_id.to_string(),
             dataset_id: "test_dataset".to_string(),
@@ -552,9 +663,12 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             summary: None,
         }))
     }
-    
+
     async fn store_eval_score(&self, score: &EvalScore) -> Result<()> {
-        println!("  📊 Storing eval score: {} = {}", score.metric_name, score.score);
+        println!(
+            "  📊 Storing eval score: {} = {}",
+            score.metric_name, score.score
+        );
         let query = format!(
             "INSERT INTO eval_scores (id, run_id, metric_name, score, reason, scorer_name, scored_at) VALUES ('{}', '{}', '{}', {}, '{}', '{}', '{}')",
             score.score_id,
@@ -568,19 +682,25 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
         self.execute_query(&query).await?;
         Ok(())
     }
-    
+
     async fn get_eval_scores(&self, run_id: &str) -> Result<Vec<EvalScore>> {
         println!("  📊 Getting eval scores for run: {}", run_id);
-        self.execute_query(&format!("SELECT * FROM eval_scores WHERE run_id = '{}'", run_id)).await?;
+        self.execute_query(&format!(
+            "SELECT * FROM eval_scores WHERE run_id = '{}'",
+            run_id
+        ))
+        .await?;
         Ok(vec![])
     }
-    
+
     async fn get_storage_stats(&self) -> Result<StorageStats> {
         println!("  📊 Getting storage statistics");
-        self.execute_query("SELECT COUNT(*) FROM suspended_workflows").await?;
-        self.execute_query("SELECT COUNT(*) FROM memory_threads").await?;
+        self.execute_query("SELECT COUNT(*) FROM suspended_workflows")
+            .await?;
+        self.execute_query("SELECT COUNT(*) FROM memory_threads")
+            .await?;
         self.execute_query("SELECT COUNT(*) FROM traces").await?;
-        
+
         Ok(StorageStats {
             suspended_workflows: 5,
             memory_threads: 12,
@@ -592,23 +712,24 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             storage_size_bytes: 1024 * 1024 * 50, // 50MB
         })
     }
-    
+
     async fn cleanup_old_data(&self, retention_policy: &RetentionPolicy) -> Result<CleanupStats> {
         println!("  🧹 Cleaning up old data based on retention policy");
-        
+
         let now = SystemTime::now();
         let traces_cutoff = now - retention_policy.traces_retention;
         let memory_cutoff = now - retention_policy.memory_retention;
-        
+
         // Clean up old traces
         let _traces_deleted = self.delete_traces_before(traces_cutoff).await?;
-        
+
         // Clean up old memory messages (mock)
         self.execute_query(&format!(
             "DELETE FROM memory_messages WHERE timestamp < '{}'",
             memory_cutoff.duration_since(UNIX_EPOCH).unwrap().as_secs()
-        )).await?;
-        
+        ))
+        .await?;
+
         Ok(CleanupStats {
             traces_deleted: 25,
             messages_deleted: 100,
@@ -632,7 +753,7 @@ impl StorageManager {
             retention_policy,
         }
     }
-    
+
     /// Suspend a workflow with serialized state
     pub async fn suspend_workflow(
         &self,
@@ -658,32 +779,42 @@ impl StorageManager {
             suspend_reason,
             resume_conditions: vec![ResumeCondition::ManualResume],
         };
-        
-        self.storage.store_suspended_workflow(&suspended_workflow).await
+
+        self.storage
+            .store_suspended_workflow(&suspended_workflow)
+            .await
     }
-    
+
     /// Resume a suspended workflow
     pub async fn resume_workflow(&self, workflow_id: &str) -> Result<(WorkflowContext, usize)> {
         let suspended = self.storage.resume_workflow(workflow_id).await?;
-        
+
         // Reconstruct WorkflowContext from serialized state
         let mut context = WorkflowContext::new(20); // Default max steps
-        
-        if let Some(step_count) = suspended.context_state.get("step_count").and_then(|v| v.as_u64()) {
+
+        if let Some(step_count) = suspended
+            .context_state
+            .get("step_count")
+            .and_then(|v| v.as_u64())
+        {
             context.step_count = step_count as usize;
         }
-        
-        if let Some(metadata) = suspended.context_state.get("metadata").and_then(|v| v.as_object()) {
+
+        if let Some(metadata) = suspended
+            .context_state
+            .get("metadata")
+            .and_then(|v| v.as_object())
+        {
             for (k, v) in metadata {
                 if let Some(s) = v.as_str() {
                     context.metadata.insert(k.clone(), s.to_string());
                 }
             }
         }
-        
+
         Ok((context, suspended.current_step))
     }
-    
+
     /// Create a new conversation thread
     pub async fn create_conversation_thread(
         &self,
@@ -700,11 +831,11 @@ impl StorageManager {
             metadata: HashMap::new(),
             message_count: 0,
         };
-        
+
         self.storage.create_memory_thread(&thread).await?;
         Ok(thread_id)
     }
-    
+
     /// Add a message to a conversation thread
     pub async fn add_message(
         &self,
@@ -724,11 +855,11 @@ impl StorageManager {
             metadata: HashMap::new(),
             parent_message_id: None,
         };
-        
+
         self.storage.add_memory_message(&message).await?;
         Ok(message_id)
     }
-    
+
     /// Record a trace for observability
     pub async fn record_trace(
         &self,
@@ -742,9 +873,11 @@ impl StorageManager {
     ) -> Result<String> {
         let trace_id = Uuid::new_v4().to_string();
         let span_id = Uuid::new_v4().to_string();
-        let duration_ms = end_time.duration_since(start_time).ok()
+        let duration_ms = end_time
+            .duration_since(start_time)
+            .ok()
             .map(|d| d.as_millis() as u64);
-        
+
         let trace = TraceData {
             trace_id: trace_id.clone(),
             span_id,
@@ -759,11 +892,11 @@ impl StorageManager {
             events: vec![],
             component: component.to_string(),
         };
-        
+
         self.storage.store_trace(&trace).await?;
         Ok(trace_id)
     }
-    
+
     /// Create an evaluation dataset
     pub async fn create_evaluation_dataset(
         &self,
@@ -782,11 +915,11 @@ impl StorageManager {
             version: version.to_string(),
             metadata: HashMap::new(),
         };
-        
+
         self.storage.create_eval_dataset(&dataset).await?;
         Ok(dataset_id)
     }
-    
+
     /// Start an evaluation run
     pub async fn start_evaluation_run(
         &self,
@@ -807,11 +940,11 @@ impl StorageManager {
             status: EvalStatus::Running,
             summary: None,
         };
-        
+
         self.storage.create_eval_run(&run).await?;
         Ok(run_id)
     }
-    
+
     /// Record an evaluation score
     pub async fn record_evaluation_score(
         &self,
@@ -835,19 +968,24 @@ impl StorageManager {
             metadata: HashMap::new(),
             scored_at: SystemTime::now(),
         };
-        
+
         self.storage.store_eval_score(&score_record).await
     }
-    
+
     /// Perform maintenance cleanup
     pub async fn perform_maintenance(&self) -> Result<CleanupStats> {
         println!("🧹 Performing storage maintenance");
-        let stats = self.storage.cleanup_old_data(&self.retention_policy).await?;
-        println!("✅ Maintenance completed: {} traces, {} messages, {} workflows deleted", 
-                stats.traces_deleted, stats.messages_deleted, stats.workflows_deleted);
+        let stats = self
+            .storage
+            .cleanup_old_data(&self.retention_policy)
+            .await?;
+        println!(
+            "✅ Maintenance completed: {} traces, {} messages, {} workflows deleted",
+            stats.traces_deleted, stats.messages_deleted, stats.workflows_deleted
+        );
         Ok(stats)
     }
-    
+
     /// Get comprehensive storage statistics
     pub async fn get_statistics(&self) -> Result<StorageStats> {
         self.storage.get_storage_stats().await
@@ -873,51 +1011,56 @@ impl StorageIntegratedStep {
 impl WorkflowStep for StorageIntegratedStep {
     async fn execute(&self, context: &mut WorkflowContext) -> Result<WorkflowDecision> {
         println!("  📊 Storage-integrated step '{}' executing", self.name);
-        
+
         let resource_id = ResourceId::new("demo", "workflow_execution");
         let start_time = SystemTime::now();
-        
+
         // Simulate some processing
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-        
+
         let end_time = SystemTime::now();
-        
+
         // Record trace for this step execution
         let mut attributes = HashMap::new();
         attributes.insert("step_name".to_string(), self.name.clone());
         attributes.insert("step_count".to_string(), context.step_count.to_string());
-        
-        let _trace_id = self.storage_manager.record_trace(
-            resource_id,
-            "workflow",
-            &format!("step_{}", self.name),
-            start_time,
-            end_time,
-            TraceStatus::Ok,
-            attributes,
-        ).await?;
-        
+
+        let _trace_id = self
+            .storage_manager
+            .record_trace(
+                resource_id,
+                "workflow",
+                &format!("step_{}", self.name),
+                start_time,
+                end_time,
+                TraceStatus::Ok,
+                attributes,
+            )
+            .await?;
+
         // Check if we should suspend based on metadata
         if context.metadata.get("should_suspend") == Some(&"true".to_string()) {
             println!("  ⏸️  Step requested workflow suspension");
-            
+
             // Suspend the workflow
-            self.storage_manager.suspend_workflow(
-                "demo_workflow_001",
-                ResourceId::new("demo", "workflow"),
-                "demo_workflow",
-                context.step_count,
-                context,
-                SuspendReason::UserPause,
-            ).await?;
-            
+            self.storage_manager
+                .suspend_workflow(
+                    "demo_workflow_001",
+                    ResourceId::new("demo", "workflow"),
+                    "demo_workflow",
+                    context.step_count,
+                    context,
+                    SuspendReason::UserPause,
+                )
+                .await?;
+
             return Ok(WorkflowDecision::Suspend(WorkflowSuspendReason::Manual));
         }
-        
+
         println!("  ✅ Storage-integrated step '{}' completed", self.name);
         Ok(WorkflowDecision::Continue)
     }
-    
+
     fn name(&self) -> &str {
         &self.name
     }
@@ -933,57 +1076,68 @@ async fn main() -> anyhow::Result<()> {
 
     // Create storage backend
     let storage = Arc::new(SQLiteUnifiedStorage::new("./storage_demo.db"));
-    
+
     // Create retention policy
     let retention_policy = RetentionPolicy {
         traces_retention: Duration::from_secs(7 * 24 * 3600), // 7 days
         memory_retention: Duration::from_secs(30 * 24 * 3600), // 30 days
-        eval_retention: Duration::from_secs(90 * 24 * 3600), // 90 days
+        eval_retention: Duration::from_secs(90 * 24 * 3600),  // 90 days
         suspended_workflows_retention: Duration::from_secs(365 * 24 * 3600), // 1 year
     };
-    
+
     // Create storage manager
     let storage_manager = Arc::new(StorageManager::new(storage, retention_policy));
 
     // Demo 1: Suspended Workflow Management
     println!("📋 Demo 1: Suspended Workflow Management");
     println!("----------------------------------------");
-    
+
     let resource_id = ResourceId::new("demo_app", "user_123");
-    
+
     // Create a workflow that will be suspended
     let suspended_workflow_demo = WorkflowBuilder::new("suspendable_workflow")
-        .then(Box::new(StorageIntegratedStep::new("step1", storage_manager.clone())))
-        .then(Box::new(StorageIntegratedStep::new("step2", storage_manager.clone())))
-        .then(Box::new(StorageIntegratedStep::new("step3", storage_manager.clone())))
+        .then(Box::new(StorageIntegratedStep::new(
+            "step1",
+            storage_manager.clone(),
+        )))
+        .then(Box::new(StorageIntegratedStep::new(
+            "step2",
+            storage_manager.clone(),
+        )))
+        .then(Box::new(StorageIntegratedStep::new(
+            "step3",
+            storage_manager.clone(),
+        )))
         .with_initial_data(json!({"should_suspend": "true"}))
         .build();
-    
+
     let context = WorkflowContext::new(10);
     let result = suspended_workflow_demo.execute(context).await?;
     println!("Workflow suspended after {} steps\n", result.steps_executed);
-    
+
     // Resume the workflow
     println!("🔄 Resuming suspended workflow...");
     match storage_manager.resume_workflow("demo_workflow_001").await {
         Ok((restored_context, step)) => {
-            println!("✅ Workflow resumed from step {} with {} metadata items", 
-                    step, restored_context.metadata.len());
-        },
+            println!(
+                "✅ Workflow resumed from step {} with {} metadata items",
+                step,
+                restored_context.metadata.len()
+            );
+        }
         Err(e) => println!("❌ Failed to resume workflow: {}", e),
     }
 
     // Demo 2: Memory Management (Conversation Threads)
     println!("\n📋 Demo 2: Memory Management (Conversation Threads)");
     println!("---------------------------------------------------");
-    
+
     // Create conversation thread
-    let thread_id = storage_manager.create_conversation_thread(
-        resource_id.clone(),
-        "Customer Support Conversation"
-    ).await?;
+    let thread_id = storage_manager
+        .create_conversation_thread(resource_id.clone(), "Customer Support Conversation")
+        .await?;
     println!("Created conversation thread: {}", thread_id);
-    
+
     // Add messages to the thread
     let conversations = vec![
         (MessageRole::User, "Hello, I have a problem with my account"),
@@ -993,99 +1147,118 @@ async fn main() -> anyhow::Result<()> {
         (MessageRole::User, "My user ID is user_123"),
         (MessageRole::Assistant, "I found the issue. Your account was temporarily locked due to multiple failed login attempts. I've unlocked it for you."),
     ];
-    
+
     for (role, content) in conversations {
-        let message_id = storage_manager.add_message(&thread_id, resource_id.clone(), role, content).await?;
-        println!("Added message: {} ({:?})", message_id, content.chars().take(30).collect::<String>());
+        let message_id = storage_manager
+            .add_message(&thread_id, resource_id.clone(), role, content)
+            .await?;
+        println!(
+            "Added message: {} ({:?})",
+            message_id,
+            content.chars().take(30).collect::<String>()
+        );
     }
 
     // Demo 3: Trace Management (OpenTelemetry)
     println!("\n📋 Demo 3: Trace Management (OpenTelemetry)");
     println!("-------------------------------------------");
-    
+
     // Record various traces for different components
     let trace_scenarios = vec![
         ("llm", "generate_response", TraceStatus::Ok, 250),
         ("memory", "search_conversations", TraceStatus::Ok, 50),
         ("workflow", "execute_step", TraceStatus::Ok, 100),
-        ("agent", "process_user_input", TraceStatus::Error { message: "Rate limit exceeded".to_string() }, 30),
+        (
+            "agent",
+            "process_user_input",
+            TraceStatus::Error {
+                message: "Rate limit exceeded".to_string(),
+            },
+            30,
+        ),
         ("vector_store", "similarity_search", TraceStatus::Ok, 80),
     ];
-    
+
     for (component, operation, status, duration_ms) in trace_scenarios {
         let start_time = SystemTime::now();
         let end_time = start_time + Duration::from_millis(duration_ms);
-        
+
         let mut attributes = HashMap::new();
         attributes.insert("duration_ms".to_string(), duration_ms.to_string());
         attributes.insert("user_id".to_string(), resource_id.id.clone());
-        
-        let trace_id = storage_manager.record_trace(
-            resource_id.clone(),
-            component,
-            operation,
-            start_time,
-            end_time,
-            status.clone(),
-            attributes,
-        ).await?;
-        
-        println!("Recorded trace: {} for {}::{} ({:?})", trace_id, component, operation, status);
+
+        let trace_id = storage_manager
+            .record_trace(
+                resource_id.clone(),
+                component,
+                operation,
+                start_time,
+                end_time,
+                status.clone(),
+                attributes,
+            )
+            .await?;
+
+        println!(
+            "Recorded trace: {} for {}::{} ({:?})",
+            trace_id, component, operation, status
+        );
     }
-    
+
     // Query traces
     println!("\n🔍 Querying traces...");
     let trace_filters = TraceFilters {
         component: Some("llm".to_string()),
         ..Default::default()
     };
-    let _traces = storage_manager.storage.query_traces(&resource_id, trace_filters).await?;
+    let _traces = storage_manager
+        .storage
+        .query_traces(&resource_id, trace_filters)
+        .await?;
 
     // Demo 4: Evaluation Dataset Management
     println!("\n📋 Demo 4: Evaluation Dataset Management");
     println!("----------------------------------------");
-    
+
     // Create evaluation datasets
     let datasets = vec![
-        ("customer_support_qa", "Customer support question-answer pairs", "1.0"),
+        (
+            "customer_support_qa",
+            "Customer support question-answer pairs",
+            "1.0",
+        ),
         ("code_generation", "Code generation benchmark", "2.1"),
         ("reasoning_tasks", "Multi-step reasoning problems", "1.3"),
     ];
-    
+
     let mut dataset_ids = Vec::new();
     for (name, description, version) in datasets {
-        let dataset_id = storage_manager.create_evaluation_dataset(
-            resource_id.clone(),
-            name,
-            description,
-            version,
-        ).await?;
+        let dataset_id = storage_manager
+            .create_evaluation_dataset(resource_id.clone(), name, description, version)
+            .await?;
         dataset_ids.push(dataset_id.clone());
         println!("Created eval dataset: {} ({})", name, dataset_id);
     }
-    
+
     // Start evaluation runs
     println!("\n🏃 Starting evaluation runs...");
     let models = vec!["gpt-4", "claude-3", "local-llm"];
     let mut run_ids = Vec::new();
-    
+
     for (dataset_id, model_name) in dataset_ids.iter().zip(models.iter()) {
         let config = json!({
             "temperature": 0.7,
             "max_tokens": 1000,
             "batch_size": 10
         });
-        
-        let run_id = storage_manager.start_evaluation_run(
-            dataset_id,
-            resource_id.clone(),
-            model_name,
-            config,
-        ).await?;
+
+        let run_id = storage_manager
+            .start_evaluation_run(dataset_id, resource_id.clone(), model_name, config)
+            .await?;
         run_ids.push(run_id.clone());
         println!("Started eval run: {} with model {}", run_id, model_name);
     }
-    
+
     // Record evaluation scores
     println!("\n📊 Recording evaluation scores...");
     let metrics = vec![
@@ -1093,27 +1266,32 @@ async fn main() -> anyhow::Result<()> {
         ("relevance", vec![0.90, 0.88, 0.82]),
         ("fluency", vec![0.95, 0.93, 0.87]),
     ];
-    
+
     for (metric_name, scores) in metrics {
         for (run_id, score) in run_ids.iter().zip(scores.iter()) {
             let reason = format!("Scored {} based on automated evaluation criteria", score);
-            storage_manager.record_evaluation_score(
-                run_id,
-                "sample_item_001",
-                resource_id.clone(),
-                metric_name,
-                *score,
-                &reason,
-                "automated_scorer",
-            ).await?;
-            println!("Recorded score: {} = {} for run {}", metric_name, score, run_id);
+            storage_manager
+                .record_evaluation_score(
+                    run_id,
+                    "sample_item_001",
+                    resource_id.clone(),
+                    metric_name,
+                    *score,
+                    &reason,
+                    "automated_scorer",
+                )
+                .await?;
+            println!(
+                "Recorded score: {} = {} for run {}",
+                metric_name, score, run_id
+            );
         }
     }
 
     // Demo 5: Storage Statistics and Maintenance
     println!("\n📋 Demo 5: Storage Statistics and Maintenance");
     println!("--------------------------------------------");
-    
+
     // Get storage statistics
     let stats = storage_manager.get_statistics().await?;
     println!("📊 Storage Statistics:");
@@ -1124,8 +1302,11 @@ async fn main() -> anyhow::Result<()> {
     println!("   Eval Datasets: {}", stats.eval_datasets);
     println!("   Eval Runs: {}", stats.eval_runs);
     println!("   Eval Scores: {}", stats.eval_scores);
-    println!("   Storage Size: {:.2} MB", stats.storage_size_bytes as f64 / (1024.0 * 1024.0));
-    
+    println!(
+        "   Storage Size: {:.2} MB",
+        stats.storage_size_bytes as f64 / (1024.0 * 1024.0)
+    );
+
     // Perform maintenance cleanup
     println!("\n🧹 Performing maintenance cleanup...");
     let cleanup_stats = storage_manager.perform_maintenance().await?;
@@ -1134,22 +1315,37 @@ async fn main() -> anyhow::Result<()> {
     println!("   Messages Deleted: {}", cleanup_stats.messages_deleted);
     println!("   Workflows Deleted: {}", cleanup_stats.workflows_deleted);
     println!("   Eval Data Deleted: {}", cleanup_stats.eval_data_deleted);
-    println!("   Bytes Freed: {:.2} MB", cleanup_stats.bytes_freed as f64 / (1024.0 * 1024.0));
+    println!(
+        "   Bytes Freed: {:.2} MB",
+        cleanup_stats.bytes_freed as f64 / (1024.0 * 1024.0)
+    );
 
     // Demo 6: Integrated Workflow with Storage
     println!("\n📋 Demo 6: Integrated Workflow with Storage Operations");
     println!("-----------------------------------------------------");
-    
+
     let storage_workflow = WorkflowBuilder::new("storage_integrated_workflow")
-        .then(Box::new(StorageIntegratedStep::new("initialize", storage_manager.clone())))
-        .then(Box::new(StorageIntegratedStep::new("process", storage_manager.clone())))
-        .then(Box::new(StorageIntegratedStep::new("finalize", storage_manager.clone())))
+        .then(Box::new(StorageIntegratedStep::new(
+            "initialize",
+            storage_manager.clone(),
+        )))
+        .then(Box::new(StorageIntegratedStep::new(
+            "process",
+            storage_manager.clone(),
+        )))
+        .then(Box::new(StorageIntegratedStep::new(
+            "finalize",
+            storage_manager.clone(),
+        )))
         .with_initial_data(json!({"operation": "demo"}))
         .build();
-    
+
     let context = WorkflowContext::new(15);
     let result = storage_workflow.execute(context).await?;
-    println!("Storage-integrated workflow completed: {} steps executed", result.steps_executed);
+    println!(
+        "Storage-integrated workflow completed: {} steps executed",
+        result.steps_executed
+    );
 
     println!("\n🎉 Unified Storage System Demo Completed!");
     println!("\n💡 Key Features Demonstrated:");

@@ -23,6 +23,24 @@ timeout = 300
 # Enable streaming responses
 stream = false
 
+# LLM response cache configuration
+[llm.cache]
+# Enable or disable caching
+enabled = true
+
+# Maximum number of cache entries
+max_entries = 1000
+
+# Time-to-live for cache entries in seconds (1 hour)
+ttl_seconds = 3600
+
+# SQLite database path for cache
+db_path = "cache.db"
+
+# Minimum temperature threshold for caching
+# Only cache deterministic queries (low temperature)
+min_temperature_threshold = 0.3
+
 # Task-specific model configurations
 # Each task can use a different model with custom settings
 
@@ -97,8 +115,10 @@ max_concurrent_calls = 5
 # Enable tool call caching
 enable_caching = true
 
-# MCP server configurations
-# Add your custom MCP servers here
+# MCP server configurations (empty by default)
+servers = {}
+
+# Example MCP server configuration:
 # [mcp.servers.example_server]
 # transport = "http"
 # url = "http://localhost:8000"
@@ -160,25 +180,42 @@ debug_steps = false
 [a2a]
 # Agent ID configuration
 [a2a.agent_id]
-network = "default"
+namespace = "default"
 name = "assistant"
+instance = "00000000-0000-0000-0000-000000000000"
 
 # Discovery service configuration
 [a2a.discovery]
 enabled = false
+registry_type = "http"
 registry_url = "http://localhost:8500"
-heartbeat_interval_secs = 30
-health_check_interval_secs = 60
+heartbeat_interval = { secs = 30, nanos = 0 }
+discovery_interval = { secs = 60, nanos = 0 }
+ttl = { secs = 90, nanos = 0 }
 
-# Communication protocol settings
-[a2a.protocol]
-type = "http"
-port = 8080
-host = "0.0.0.0"
+# HTTP protocol configuration
+[a2a.protocols.Http]
+enabled = true
+endpoint = "http://localhost:8080"
+timeout = { secs = 30, nanos = 0 }
+retry_attempts = 3
+connection_pool_size = 10
+settings = {}
 
 # Security settings
 [a2a.security]
-enable_auth = false
+enable_authentication = false
 enable_encryption = false
-enable_rate_limiting = true
-rate_limit_requests_per_minute = 60
+
+# Routing configuration
+[a2a.routing]
+enable_routing = false
+routing_table = {}
+load_balancing = "RoundRobin"
+
+# Circuit breaker configuration
+[a2a.routing.circuit_breaker]
+enabled = false
+failure_threshold = 5
+timeout = { secs = 60, nanos = 0 }
+half_open_max_calls = 3
