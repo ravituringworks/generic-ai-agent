@@ -107,7 +107,9 @@ struct WorkspaceTask {
     description: String,
     assigned_to: String,
     status: TaskStatus,
+    #[allow(dead_code)]
     dependencies: Vec<String>,
+    #[allow(dead_code)]
     artifacts_produced: Vec<String>,
 }
 
@@ -116,6 +118,7 @@ enum TaskStatus {
     Pending,
     InProgress,
     Completed,
+    #[allow(dead_code)]
     Blocked,
 }
 
@@ -175,6 +178,7 @@ impl Workspace {
         self.tasks.push(task);
     }
 
+    #[allow(dead_code)]
     fn get_pending_tasks(&self, agent_name: &str) -> Vec<&WorkspaceTask> {
         self.tasks
             .iter()
@@ -209,6 +213,7 @@ impl Workspace {
 /// Specialized agent wrapper for collaboration
 struct CollaborativeAgent {
     name: String,
+    #[allow(dead_code)]
     role: AgentRole,
     agent: Agent,
 }
@@ -324,7 +329,7 @@ impl CollaborativeAgent {
         String::new()
     }
 
-    async fn review_artifact(&mut self, artifact: &Artifact) -> Result<bool> {
+    async fn review_artifact(&mut self, _artifact: &Artifact) -> Result<bool> {
         // Fast auto-approval for demo - skip LLM review
         println!("  ⚡ Fast-tracking artifact review for demo");
         Ok(true)
@@ -381,7 +386,7 @@ async fn main() -> Result<()> {
     )
     .await?;
 
-    let mut coordinator = CollaborativeAgent::new(
+    let coordinator = CollaborativeAgent::new(
         "Coordinator_Charlie".to_string(),
         AgentRole::ProjectCoordinator,
         config.clone(),
@@ -446,7 +451,7 @@ async fn main() -> Result<()> {
 
     // List all artifacts
     println!("\n📋 Produced Artifacts:");
-    for (id, artifact) in &workspace.artifacts {
+    for (_id, artifact) in &workspace.artifacts {
         println!(
             "  • {} ({}) - by {}{}",
             artifact.name,

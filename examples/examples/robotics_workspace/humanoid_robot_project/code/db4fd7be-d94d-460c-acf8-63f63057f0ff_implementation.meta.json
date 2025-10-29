@@ -1,0 +1,18 @@
+{
+  "id": "b2858a14-861c-4eed-8695-f7228202d9a2",
+  "name": "db4fd7be-d94d-460c-acf8-63f63057f0ff_implementation.py",
+  "artifact_type": {
+    "Code": {
+      "language": "Python",
+      "purpose": "Create a basic Python class for a robot simulation environment"
+    }
+  },
+  "content": "import numpy as np\n\nclass RobotSimulation:\n    \"\"\"\n    Minimal robot simulation environment with basic physics and control\n    \"\"\"\n    \n    def __init__(self, dt=0.01, gravity=-9.81):\n        self.dt = dt  # simulation timestep\n        self.gravity = gravity\n        self.time = 0.0\n        self.robot_state = {\n            'position': np.array([0.0, 0.0, 0.0]),  # [x, y, z]\n            'velocity': np.array([0.0, 0.0, 0.0]),  # [vx, vy, vz]\n            'acceleration': np.array([0.0, 0.0, gravity])  # [ax, ay, az]\n        }\n    \n    def apply_force(self, force):\n        \"\"\"Apply external force to robot (e.g., thrusters, motors)\"\"\"\n        # F = ma -> a = F/m (assuming unit mass)\n        self.robot_state['acceleration'] = np.array([0.0, 0.0, self.gravity]) + force\n    \n    def step(self):\n        \"\"\"Advance simulation by one timestep using Euler integration\"\"\"\n        # Update velocity: v = v0 + a*dt\n        self.robot_state['velocity'] += self.robot_state['acceleration'] * self.dt\n        \n        # Update position: x = x0 + v*dt\n        self.robot_state['position'] += self.robot_state['velocity'] * self.dt\n        \n        self.time += self.dt\n        return self.robot_state.copy()\n    \n    def reset(self):\n        \"\"\"Reset simulation to initial state\"\"\"\n        self.time = 0.0\n        self.robot_state = {\n            'position': np.array([0.0, 0.0, 0.0]),\n            'velocity': np.array([0.0, 0.0, 0.0]),\n            'acceleration': np.array([0.0, 0.0, self.gravity])\n        }\n\n# Example usage\nif __name__ == \"__main__\":\n    sim = RobotSimulation(dt=0.01)\n    \n    # Apply upward force (like a thruster)\n    sim.apply_force(np.array([0.0, 0.0, 15.0]))\n    \n    # Run simulation for 100 steps\n    for i in range(100):\n        state = sim.step()\n        if i % 20 == 0:\n            print(f\"Time: {sim.time:.2f}s, Position: {state['position']}\")",
+  "metadata": {
+    "version": "1.0"
+  },
+  "produced_by": "SimulationEngineer_Alice",
+  "reviewed_by": "ScalingEngineer_Bob",
+  "created_at": "2025-10-29T20:59:23.537087+00:00",
+  "verified": true
+}
