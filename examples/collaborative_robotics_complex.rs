@@ -431,12 +431,12 @@ async fn main() -> Result<()> {
 
     // SimulationEngineer - Code generation specialist
     let mut config_sim = base_config.clone();
-    config_sim.llm.text_model = "qwen3-coder:480b-cloud".to_string();
+    config_sim.llm.text_model = "qwen2.5-coder:3b".to_string();
     config_sim.llm.max_tokens = 1024;
     config_sim.llm.timeout = 60;
     config_sim.agent.use_memory = false;
     config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • SimulationEngineer → qwen3-coder:480b-cloud (Python code specialist)");
+    println!("  • SimulationEngineer → qwen2.5-coder:3b (Python code specialist)");
 
     // ScalingEngineer - Performance & distributed systems (needs strong reasoning)
     let mut config_scaling = base_config.clone();
