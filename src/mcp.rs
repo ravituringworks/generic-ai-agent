@@ -241,7 +241,7 @@ impl McpClient {
                 "sampling": {}
             },
             "clientInfo": {
-                "name": "generic-ai-agent",
+                "name": "the-agency",
                 "version": "0.1.0"
             }
         });

@@ -11,7 +11,7 @@
 //! - Nested workflows and cloning
 //! - Concurrency control
 
-use generic_ai_agent::{
+use the-agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         ParallelExecutionStep, ConditionFn, MapperFn, ItemsExtractorFn,

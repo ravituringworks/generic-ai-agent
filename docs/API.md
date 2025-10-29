@@ -151,7 +151,7 @@ Process PDF documents with table extraction and semantic indexing.
 ```rust
 // Enable PDF features in Cargo.toml
 [dependencies]
-generic-ai-agent = { version = "0.1.0", features = ["pdf"] }
+the-agency = { version = "0.1.0", features = ["pdf"] }
 ```
 
 ### DocumentRAGSystem
@@ -245,7 +245,7 @@ impl AdvancedPDFProcessor {
 ### Usage Example
 
 ```rust
-use generic_ai_agent::{DocumentRAGSystem};
+use the-agency::{DocumentRAGSystem};
 use std::path::Path;
 
 #[tokio::main]

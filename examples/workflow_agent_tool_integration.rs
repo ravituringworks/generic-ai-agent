@@ -10,7 +10,7 @@
 //! - Mapping workflow input to agent-compatible prompts
 //! - Composing complex business logic with agents, tools, and workflows
 
-use generic_ai_agent::{
+use the-agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         WorkflowDecision, WorkflowStep, MapperFn

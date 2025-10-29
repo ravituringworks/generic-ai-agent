@@ -1101,47 +1101,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "generic-ai-agent"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.21.7",
- "chrono",
- "config",
- "criterion",
- "cucumber",
- "futures",
- "jsonrpc-core",
- "jsonrpc-derive",
- "jsonrpc-http-server",
- "lopdf 0.32.0",
- "mockall",
- "ollama-rs",
- "pdf-extract",
- "proptest",
- "rand 0.8.5",
- "regex",
- "reqwest 0.11.27",
- "serde",
- "serde_json",
- "serde_yaml",
- "serial_test",
- "sqlx",
- "table-extract",
- "tempfile",
- "thiserror 1.0.69",
- "tokio",
- "tokio-test",
- "tokio-tungstenite",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "wiremock",
-]
-
-[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4162,6 +4121,47 @@ dependencies = [
  "smawk",
  "unicode-linebreak",
  "unicode-width",
+]
+
+[[package]]
+name = "the-agency"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.21.7",
+ "chrono",
+ "config",
+ "criterion",
+ "cucumber",
+ "futures",
+ "jsonrpc-core",
+ "jsonrpc-derive",
+ "jsonrpc-http-server",
+ "lopdf 0.32.0",
+ "mockall",
+ "ollama-rs",
+ "pdf-extract",
+ "proptest",
+ "rand 0.8.5",
+ "regex",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "serial_test",
+ "sqlx",
+ "table-extract",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-test",
+ "tokio-tungstenite",
+ "toml 0.8.23",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "wiremock",
 ]
 
 [[package]]

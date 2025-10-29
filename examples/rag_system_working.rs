@@ -9,7 +9,7 @@
 //! - Query caching and optimization
 //! - Integration with workflow system
 
-use generic_ai_agent::{
+use the-agency::{
     workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep},
     error::Result,
 };

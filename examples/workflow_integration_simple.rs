@@ -7,7 +7,7 @@
 //! - Mapping workflow input for different processing patterns
 //! - Composing complex business logic with reusable components
 
-use generic_ai_agent::{
+use the-agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         WorkflowDecision, WorkflowStep, MapperFn

@@ -6,7 +6,7 @@
 //! - Handle different suspend scenarios
 //! - Resume workflows from snapshots
 
-use generic_ai_agent::{
+use the-agency::{
     workflow::{
         WorkflowEngine, WorkflowContext, WorkflowSuspendConfig, FileSnapshotStorage,
         HumanApprovalStep, RateLimitedApiStep, EnhancedMemoryRetrievalStep, SuspendReason

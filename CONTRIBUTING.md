@@ -56,8 +56,8 @@ This helps us:
 
 3. **Development Setup**:
    ```bash
-   git clone https://github.com/ravituringworks/generic-ai-agent.git
-   cd generic-ai-agent
+   git clone https://github.com/ravituringworks/the-agency.git
+   cd the-agency
    cargo build
    cargo test
    ```

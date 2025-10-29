@@ -1,4 +1,4 @@
-# Generic AI Agent
+# The Agency
 
 [![Rust](https://img.shields.io/badge/rust-1.75+-orange.svg)](https://www.rust-lang.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -55,15 +55,15 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 3. **Clone and build**:
    ```bash
-   git clone https://github.com/ravituringworks/generic-ai-agent.git
-   cd generic-ai-agent
+   git clone https://github.com/ravituringworks/the-agency.git
+   cd the-agency
    cargo build --release
    ```
 
 ### Basic Usage
 
 ```rust
-use generic_ai_agent::{Agent, AgentConfig};
+use the_agency::{Agent, AgentConfig};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -90,7 +90,7 @@ async fn main() -> anyhow::Result<()> {
 ### Multi-Agent Communication
 
 ```rust
-use generic_ai_agent::{Agent, AgentConfig, AgentId};
+use the_agency::{Agent, AgentConfig, AgentId};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -126,7 +126,7 @@ async fn main() -> anyhow::Result<()> {
 Process and query PDF documents with table extraction:
 
 ```rust
-use generic_ai_agent::{
+use the_agency::{
     memory::{MemoryStore, SqliteMemoryStore},
     llm::{OllamaClient, LlmClient, user_message},
     config::MemoryConfig,
@@ -149,7 +149,7 @@ async fn main() -> anyhow::Result<()> {
     memory_store.initialize().await?;
     
     // Initialize LLM client
-    let llm_config = generic_ai_agent::config::LlmConfig {
+    let llm_config = the_agency::config::LlmConfig {
         ollama_url: "http://localhost:11434".to_string(),
         text_model: "llama3.2".to_string(),
         embedding_model: "nomic-embed-text".to_string(),
@@ -198,7 +198,7 @@ async fn main() -> anyhow::Result<()> {
     let system_prompt = "You are an AI assistant that answers questions based on provided document context. Use only the information from the context to answer questions.";
     
     let messages = vec![
-        generic_ai_agent::llm::system_message(system_prompt),
+        the-agency::llm::system_message(system_prompt),
         user_message(&format!("Context:\n{}\n\nQuestion: {}", context_text, question)),
     ];
     
@@ -378,7 +378,7 @@ enabled = true
 ### Programmatic Configuration
 
 ```rust
-use generic_ai_agent::{AgentBuilder, config::*};
+use the-agency::{AgentBuilder, config::*};
 
 let agent = AgentBuilder::new()
     .with_name("Custom Assistant".to_string())
@@ -395,7 +395,7 @@ The agent supports the Model Context Protocol (MCP) for calling external tools:
 ### Adding MCP Servers
 
 ```rust
-use generic_ai_agent::config::{McpServerConfig};
+use the-agency::config::{McpServerConfig};
 
 let mut config = AgentConfig::default();
 
@@ -436,7 +436,7 @@ The A2A system enables sophisticated multi-agent architectures where specialized
 ### Multi-Protocol Support
 
 ```rust
-use generic_ai_agent::{a2a::*, AgentConfig};
+use the-agency::{a2a::*, AgentConfig};
 
 // HTTP communication
 let http_client = HttpA2AClient::new(A2AConfig {
@@ -585,7 +585,7 @@ agent.process("What do you know about my programming preferences?").await?;
 ### Custom Memory Operations
 
 ```rust
-use generic_ai_agent::memory::{MemoryStore, SqliteMemoryStore};
+use the-agency::memory::{MemoryStore, SqliteMemoryStore};
 
 // Direct memory access
 let mut store = SqliteMemoryStore::new(config.memory);
@@ -618,8 +618,8 @@ agent.process("What's my system information?").await?;
 ### Adding Custom Tools
 
 ```rust
-use generic_ai_agent::tools::BuiltinTools;
-use generic_ai_agent::mcp::{ToolResult, ToolContent};
+use the-agency::tools::BuiltinTools;
+use the-agency::mcp::{ToolResult, ToolContent};
 
 // Custom tools can be added by extending the BuiltinTools struct
 // or by implementing MCP servers
@@ -789,7 +789,7 @@ let final_report = format!(
 ### Custom Workflow Steps
 
 ```rust
-use generic_ai_agent::workflow::{WorkflowStep, WorkflowDecision, WorkflowContext};
+use the-agency::workflow::{WorkflowStep, WorkflowDecision, WorkflowContext};
 use async_trait::async_trait;
 
 struct CustomStep;
@@ -815,7 +815,7 @@ let workflow = WorkflowEngine::new()
 ### Custom Memory Store
 
 ```rust
-use generic_ai_agent::memory::{MemoryStore, MemoryEntry, SearchResult};
+use the-agency::memory::{MemoryStore, MemoryEntry, SearchResult};
 
 struct CustomMemoryStore {
     // Your implementation
@@ -833,7 +833,7 @@ impl MemoryStore for CustomMemoryStore {
 ### Custom LLM Client
 
 ```rust
-use generic_ai_agent::llm::{LlmClient, Message, GenerationResponse, EmbeddingResponse};
+use the-agency::llm::{LlmClient, Message, GenerationResponse, EmbeddingResponse};
 
 struct CustomLlmClient;
 
@@ -859,8 +859,8 @@ impl LlmClient for CustomLlmClient {
 
 ```bash
 # Clone repository
-git clone https://github.com/ravituringworks/generic-ai-agent.git
-cd generic-ai-agent
+git clone https://github.com/ravituringworks/the-agency.git
+cd the-agency
 
 # Install dependencies and run tests
 cargo build
@@ -899,7 +899,7 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 - **Company**: [Turing Works](https://turingworks.com)
 
 ### 📚 Documentation & Resources
-- 📜 [API Documentation](https://docs.rs/generic-ai-agent)
+- 📜 [API Documentation](https://docs.rs/the-agency)
 - 🌐 [A2A Communication Guide](docs/A2A_COMMUNICATION.md)
 - 🔄 [State Management Guide](docs/PAUSE_EXECUTION.md)
 - 🗄️ [Unified Storage Guide](docs/UNIFIED_STORAGE_README.md)
@@ -908,9 +908,9 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 - 📄 [Document RAG Examples](examples/pdf_rag_with_tables.rs)
 
 ### 🐛 Issues & Discussions
-- 🐛 [Report Issues](https://github.com/ravituringworks/generic-ai-agent/issues)
-- 💬 [Community Discussions](https://github.com/ravituringworks/generic-ai-agent/discussions)
-- 🚀 [Feature Requests](https://github.com/ravituringworks/generic-ai-agent/issues/new?template=feature_request.md)
+- 🐛 [Report Issues](https://github.com/ravituringworks/the-agency/issues)
+- 💬 [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)
+- 🚀 [Feature Requests](https://github.com/ravituringworks/the-agency/issues/new?template=feature_request.md)
 
 ---
 

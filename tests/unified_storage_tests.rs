@@ -1,6 +1,6 @@
 //! Comprehensive unit tests for the unified storage system
 
-use generic_ai_agent::*;
+use the-agency::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};

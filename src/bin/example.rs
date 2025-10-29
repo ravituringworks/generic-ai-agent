@@ -1,6 +1,6 @@
 //! Example application demonstrating the Generic AI Agent
 
-use generic_ai_agent::{
+use the-agency::{
     Agent, AgentBuilder, AgentConfig,
     config::{McpServerConfig, MemoryConfig},
 };
@@ -157,7 +157,7 @@ fn print_help() {
     println!();
 }
 
-fn print_stats(stats: &generic_ai_agent::agent::AgentStats) {
+fn print_stats(stats: &the-agency::agent::AgentStats) {
     println!("\n📊 Current Agent Statistics:");
     println!("┌─────────────────────────────────────────┐");
     println!("│ Conversation & Memory                   │");

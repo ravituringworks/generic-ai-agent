@@ -13,7 +13,7 @@
 //!    - Input structuring and parameter extraction
 //!    - Adaptive task decomposition
 
-use generic_ai_agent::{
+use the-agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         WorkflowDecision, WorkflowStep, MapperFn, ConditionFn

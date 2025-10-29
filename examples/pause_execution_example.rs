@@ -6,7 +6,7 @@
 //! - waitForEvent(): Pause until an external event is received
 //! - sendEvent(): Send an event to resume a waiting workflow
 
-use generic_ai_agent::{
+use the-agency::{
     workflow::{
         WorkflowEngine, WorkflowContext, WorkflowSuspendConfig, FileSnapshotStorage,
         EventBus, WorkflowEvent, SleepStep, SleepUntilStep, WaitForEventStep,

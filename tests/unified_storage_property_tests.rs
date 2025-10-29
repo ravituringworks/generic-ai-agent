@@ -9,7 +9,7 @@ use uuid::Uuid;
 use tokio::time::sleep;
 
 // Include the storage system components from the library
-use generic_ai_agent::*;
+use the-agency::*;
 
 // Property test strategies
 

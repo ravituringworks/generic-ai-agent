@@ -1,13 +1,13 @@
 [package]
-name = "generic-ai-agent"
+name = "the-agency"
 version = "0.2.0"
 edition = "2021"
 authors = ["Ravindra Boddipalli <rboddipalli@turingworks.com>"]
 description = "A comprehensive AI agent framework with Ollama LLM, vector memory, Document RAG, MCP tools, and multi-agent communication"
 license = "MIT"
-repository = "https://github.com/ravituringworks/generic-ai-agent"
-homepage = "https://github.com/ravituringworks/generic-ai-agent"
-documentation = "https://docs.rs/generic-ai-agent"
+repository = "https://github.com/ravituringworks/the-agency"
+homepage = "https://github.com/ravituringworks/the-agency"
+documentation = "https://docs.rs/the-agency"
 readme = "README.md"
 keywords = ["ai", "agent", "llm", "ollama", "rag", "pdf", "multiagent"]
 categories = ["science", "text-processing", "web-programming", "asynchronous"]
@@ -116,5 +116,5 @@ name = "agent-example"
 path = "src/bin/example.rs"
 
 [lib]
-name = "generic_ai_agent"
+name = "the_agency"
 path = "src/lib.rs"
