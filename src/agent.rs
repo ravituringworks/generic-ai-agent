@@ -1,6 +1,6 @@
 //! Main AI Agent implementation
 
-use crate::a2a::{A2AManager, A2AClient, HttpA2AClient, AgentId, AgentCapabilities};
+use crate::a2a::{A2AManager, HttpA2AClient, AgentId, AgentCapabilities};
 use crate::config::AgentConfig;
 use crate::error::Result;
 use crate::llm::{LlmClient, OllamaClient, Message, Role, system_message, user_message, assistant_message};
@@ -12,7 +12,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn};
-use uuid::Uuid;
 
 /// Main AI Agent that coordinates all components
 pub struct Agent {
@@ -377,7 +376,7 @@ impl Agent {
     /// Start A2A communication (register agent and begin listening)
     pub async fn start_a2a(&self) -> Result<()> {
         if let Some(a2a) = &self.a2a {
-            let capabilities = AgentCapabilities {
+            let _capabilities = AgentCapabilities {
                 services: vec![
                     "chat".to_string(),
                     "llm".to_string(),
@@ -414,7 +413,7 @@ impl Agent {
     /// Send a message to another agent via A2A
     pub async fn send_to_agent(&self, target_agent: AgentId, message: &str) -> Result<String> {
         if let Some(a2a) = &self.a2a {
-            use crate::a2a::{MessagePayload, A2AResponse};
+            use crate::a2a::MessagePayload;
             
             let payload = MessagePayload::Text { 
                 content: message.to_string() 

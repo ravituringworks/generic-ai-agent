@@ -344,6 +344,7 @@ impl HttpA2AClient {
         handlers.push(handler);
     }
     
+    #[allow(dead_code)]
     async fn process_incoming_message(&self, message: A2AMessage) -> Result<Option<MessagePayload>> {
         let handlers = self.message_handlers.read().await;
         
@@ -395,7 +396,7 @@ impl A2AClient for HttpA2AClient {
             .await
             .map_err(|e| AgentError::Network(format!("HTTP request failed: {}", e)))?;
             
-        let processing_time = start_time.elapsed()
+        let _processing_time = start_time.elapsed()
             .unwrap_or(Duration::from_secs(0))
             .as_millis() as u64;
             

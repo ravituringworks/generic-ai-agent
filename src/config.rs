@@ -2,7 +2,6 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::PathBuf;
 use crate::a2a::A2AConfig;
 
 /// Main configuration for the AI agent

@@ -89,16 +89,22 @@ struct OllamaGenerateResponse {
     #[serde(default)]
     eval_count: Option<u32>,
     #[serde(default)]
+    #[allow(dead_code)]
     created_at: Option<String>,
     #[serde(default)]
+    #[allow(dead_code)]
     total_duration: Option<u64>,
     #[serde(default)]
+    #[allow(dead_code)]
     load_duration: Option<u64>,
     #[serde(default)]
+    #[allow(dead_code)]
     prompt_eval_count: Option<u32>,
     #[serde(default)]
+    #[allow(dead_code)]
     prompt_eval_duration: Option<u64>,
     #[serde(default)]
+    #[allow(dead_code)]
     eval_duration: Option<u64>,
 }
 
@@ -125,8 +131,10 @@ struct OllamaModelsResponse {
 struct OllamaModelInfo {
     name: String,
     #[serde(default)]
+    #[allow(dead_code)]
     size: Option<u64>,
     #[serde(default)]
+    #[allow(dead_code)]
     digest: Option<String>,
 }
 

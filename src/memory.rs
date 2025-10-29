@@ -334,7 +334,8 @@ impl MemoryStore for SqliteMemoryStore {
         if let Some(embedding) = embedding {
             query_parts.push("embedding = ?");
             let embedding_blob = Self::serialize_embedding(&embedding);
-            values.push(base64::encode(embedding_blob)); // Simplified for example
+            use base64::Engine;
+            values.push(base64::engine::general_purpose::STANDARD.encode(embedding_blob)); // Simplified for example
         }
 
         if let Some(metadata) = metadata {

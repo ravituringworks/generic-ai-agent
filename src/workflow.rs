@@ -9,15 +9,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use std::future::Future;
-use std::pin::Pin;
 use tokio::fs;
-use tokio::sync::{broadcast, Notify, Semaphore};
-use tokio::time::{sleep, Duration, Instant};
+use tokio::sync::broadcast;
+use tokio::time::{sleep, Duration};
 use chrono::{DateTime, Utc};
 use tracing::{debug, info, warn};
 use uuid::Uuid;
-use futures::future::join_all;
 
 /// Serializable snapshot of workflow state for suspend/resume
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1405,12 +1402,12 @@ impl WorkflowStep for ParallelExecutionStep {
     async fn execute(&self, context: &mut WorkflowContext) -> Result<WorkflowDecision> {
         debug!("Executing {} steps in parallel", self.steps.len());
         
-        let mut handles: Vec<tokio::task::JoinHandle<Result<WorkflowDecision>>> = Vec::new();
+        let _handles: Vec<tokio::task::JoinHandle<Result<WorkflowDecision>>> = Vec::new();
         
         // Execute all steps in parallel
         for (i, step) in self.steps.iter().enumerate() {
             let mut context_clone = context.clone();
-            let step_name = step.name().to_string();
+            let _step_name = step.name().to_string();
             
             // Since we can't clone trait objects, we'll execute them sequentially for now
             // In a real implementation, you'd need a different approach
