@@ -438,14 +438,14 @@ async fn main() -> Result<()> {
     config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
     println!("  • SimulationEngineer → qwen3-coder:480b-cloud (Python code specialist)");
 
-    // ScalingEngineer - Performance & distributed systems
+    // ScalingEngineer - Performance & distributed systems (needs strong reasoning)
     let mut config_scaling = base_config.clone();
-    config_scaling.llm.text_model = "qwen3-coder:480b-cloud".to_string();
+    config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
     config_scaling.llm.max_tokens = 1024;
     config_scaling.llm.timeout = 60;
     config_scaling.agent.use_memory = false;
     config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • ScalingEngineer → qwen3-coder:480b-cloud (Optimization specialist)");
+    println!("  • ScalingEngineer → gpt-oss:120b-cloud (Distributed systems & reasoning)");
 
     // ConfigSpecialist - URDF/XML configuration
     let mut config_config = base_config.clone();
@@ -456,14 +456,14 @@ async fn main() -> Result<()> {
     config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
     println!("  • ConfigSpecialist → deepseek-v3.1:671b-cloud (Configuration specialist)");
 
-    // Coordinator - Documentation & reporting
+    // Coordinator - Documentation & reporting (needs integration reasoning)
     let mut config_coord = base_config.clone();
-    config_coord.llm.text_model = "glm-4.6:cloud".to_string();
+    config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
     config_coord.llm.max_tokens = 1024;
     config_coord.llm.timeout = 60;
     config_coord.agent.use_memory = false;
     config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • Coordinator → glm-4.6:cloud (Documentation specialist)");
+    println!("  • Coordinator → gpt-oss:120b-cloud (Integration & documentation)");
 
     // Create collaborative agents with specialized models
     println!("\\n👥 Initializing specialized agents...");

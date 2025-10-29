@@ -15,9 +15,9 @@ Each agent uses a model best suited for their work:
 | Agent | Role | Model | Specialization |
 |-------|------|-------|----------------|
 | **SimulationEngineer_Alice** | Code Generation | `qwen3-coder:480b-cloud` | Python simulation code, physics engines |
-| **ScalingEngineer_Bob** | Performance & ML | `qwen3-coder:480b-cloud` | Optimization code, distributed systems |
+| **ScalingEngineer_Bob** | Performance & ML | `gpt-oss:120b-cloud` | Complex reasoning, distributed systems |
 | **ConfigSpecialist_Dana** | Configuration | `deepseek-v3.1:671b-cloud` | URDF/XML files, structured configs |
-| **Coordinator_Charlie** | Documentation | `glm-4.6:cloud` | Reports, integration guides, prose |
+| **Coordinator_Charlie** | Documentation | `gpt-oss:120b-cloud` | Integration reasoning, comprehensive reports |
 
 ---
 
@@ -25,7 +25,7 @@ Each agent uses a model best suited for their work:
 
 ### qwen3-coder:480b-cloud (Code-Heavy Tasks)
 
-**Used by:** SimulationEngineer, ScalingEngineer
+**Used by:** SimulationEngineer
 
 **Why:**
 - ✅ Excellent Python code generation
@@ -56,21 +56,27 @@ Each agent uses a model best suited for their work:
 - ROS configuration files
 - System parameter files
 
-### glm-4.6:cloud (Documentation)
+### gpt-oss:120b-cloud (Complex Reasoning)
 
-**Used by:** Coordinator
+**Used by:** ScalingEngineer, Coordinator
 
 **Why:**
-- ✅ Strong natural language generation
-- ✅ Excellent for reports and guides
-- ✅ Good summarization capabilities
-- ✅ Clear, well-structured prose
+- ✓ Excellent complex reasoning and problem-solving
+- ✓ Strong at distributed systems architecture
+- ✓ Good at integrating multiple components
+- ✓ Comprehensive documentation with technical depth
 
-**Tasks:**
+**Tasks (ScalingEngineer):**
+- Distributed training pipeline design
+- Performance optimization strategies
+- Benchmark suite architecture
+- Complex system integration
+
+**Tasks (Coordinator):**
 - Comprehensive project reports
-- Integration guides
-- Documentation
-- Project coordination summaries
+- Integration guides across all components
+- Technical documentation with system overview
+- Cross-phase coordination summaries
 
 ---
 
@@ -90,17 +96,17 @@ config_sim.llm.max_tokens = 1024;
 config_sim.llm.timeout = 60;
 config_sim.agent.use_memory = false;
 
-// ScalingEngineer - Performance specialist
+// ScalingEngineer - Complex reasoning for distributed systems
 let mut config_scaling = base_config.clone();
-config_scaling.llm.text_model = "qwen3-coder:480b-cloud".to_string();
+config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
 
 // ConfigSpecialist - Configuration specialist
 let mut config_config = base_config.clone();
 config_config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
 
-// Coordinator - Documentation specialist
+// Coordinator - Integration reasoning and documentation
 let mut config_coord = base_config.clone();
-config_coord.llm.text_model = "glm-4.6:cloud".to_string();
+config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
 
 // Create agents with specialized configs
 let sim_engineer = CollaborativeAgent::new(
@@ -294,9 +300,9 @@ cargo run --example collaborative_robotics_complex
 # Expected output:
 # 🤖 Configuring specialized models for each agent...
 #   • SimulationEngineer → qwen3-coder:480b-cloud (Python code specialist)
-#   • ScalingEngineer → qwen3-coder:480b-cloud (Optimization specialist)
+#   • ScalingEngineer → gpt-oss:120b-cloud (Distributed systems reasoning)
 #   • ConfigSpecialist → deepseek-v3.1:671b-cloud (Configuration specialist)
-#   • Coordinator → glm-4.6:cloud (Documentation specialist)
+#   • Coordinator → gpt-oss:120b-cloud (Integration & documentation)
 ```
 
 ---
