@@ -1,6 +1,6 @@
 //! Unit tests for the Generic AI Agent
 
-use the-agency::*;
+use the_agency::*;
 use mockall::predicate::*;
 use std::collections::HashMap;
 use tempfile::tempdir;

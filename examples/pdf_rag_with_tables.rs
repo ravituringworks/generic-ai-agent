@@ -11,7 +11,7 @@
 //! - RAG-based question answering
 //! - Table-aware content parsing
 
-use the-agency::{
+use the_agency::{
     memory::{MemoryStore, SqliteMemoryStore},
     llm::{OllamaClient, LlmClient, Message, user_message},
     config::MemoryConfig,
@@ -524,7 +524,7 @@ impl DocumentRAGSystem {
         let mut memory_store = SqliteMemoryStore::new(memory_config);
         memory_store.initialize().await?;
 
-        let llm_config = the-agency::config::LlmConfig {
+        let llm_config = the_agency::config::LlmConfig {
             ollama_url: "http://localhost:11434".to_string(),
             text_model: "llama3.2".to_string(),
             embedding_model: "nomic-embed-text".to_string(),
@@ -747,7 +747,7 @@ impl DocumentRAGSystem {
 Answer the user's question based on the provided context.";
 
         let messages = vec![
-            the-agency::llm::system_message(system_prompt),
+            the_agency::llm::system_message(system_prompt),
             user_message(&format!("Context:\n{}\n\nQuestion: {}", full_context, question)),
         ];
 

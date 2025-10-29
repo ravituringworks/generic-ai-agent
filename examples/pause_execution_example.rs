@@ -6,7 +6,7 @@
 //! - waitForEvent(): Pause until an external event is received
 //! - sendEvent(): Send an event to resume a waiting workflow
 
-use the-agency::{
+use the_agency::{
     workflow::{
         WorkflowEngine, WorkflowContext, WorkflowSuspendConfig, FileSnapshotStorage,
         EventBus, WorkflowEvent, SleepStep, SleepUntilStep, WaitForEventStep,

@@ -245,7 +245,7 @@ impl AdvancedPDFProcessor {
 ### Usage Example
 
 ```rust
-use the-agency::{DocumentRAGSystem};
+use the_agency::{DocumentRAGSystem};
 use std::path::Path;
 
 #[tokio::main]

@@ -9,7 +9,7 @@
 //! - Query optimization and caching
 //! - Integration with workflow system for enhanced responses
 
-use the-agency::{
+use the_agency::{
     workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep},
     error::Result,
 };

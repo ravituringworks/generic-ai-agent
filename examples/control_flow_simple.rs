@@ -8,7 +8,7 @@
 //! - .map() - Data transformation between steps
 //! - Input/output schemas and validation
 
-use the-agency::{
+use the_agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         ParallelExecutionStep, ConditionFn, MapperFn, ItemsExtractorFn,

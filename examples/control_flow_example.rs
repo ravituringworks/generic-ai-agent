@@ -11,7 +11,7 @@
 //! - Nested workflows and cloning
 //! - Concurrency control
 
-use the-agency::{
+use the_agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         ParallelExecutionStep, ConditionFn, MapperFn, ItemsExtractorFn,

@@ -6,7 +6,7 @@
 //! - Handle different suspend scenarios
 //! - Resume workflows from snapshots
 
-use the-agency::{
+use the_agency::{
     workflow::{
         WorkflowEngine, WorkflowContext, WorkflowSuspendConfig, FileSnapshotStorage,
         HumanApprovalStep, RateLimitedApiStep, EnhancedMemoryRetrievalStep, SuspendReason

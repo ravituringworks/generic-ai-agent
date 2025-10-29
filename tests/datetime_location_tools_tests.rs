@@ -1,6 +1,6 @@
 //! Tests for datetime and location tools
 
-use the-agency::tools::{execute_datetime_info, execute_location_info, BuiltinTools};
+use the_agency::tools::{execute_datetime_info, execute_location_info, BuiltinTools};
 use chrono::{DateTime, Utc};
 
 #[tokio::test]
@@ -12,7 +12,7 @@ async fn test_datetime_info_tool() {
     
     if let Some(content) = result.content.first() {
         match content {
-            the-agency::mcp::ToolContent::Text { text } => {
+            the_agency::mcp::ToolContent::Text { text } => {
                 // Check that the response contains expected datetime fields
                 assert!(text.contains("local_time"));
                 assert!(text.contains("utc_time"));
@@ -37,7 +37,7 @@ async fn test_location_info_tool() {
     
     if let Some(content) = result.content.first() {
         match content {
-            the-agency::mcp::ToolContent::Text { text } => {
+            the_agency::mcp::ToolContent::Text { text } => {
                 // Check that the response contains expected location fields
                 assert!(text.contains("method"));
                 assert!(text.contains("available_methods"));
@@ -103,7 +103,7 @@ async fn test_datetime_tool_json_parsing() {
     
     if let Some(content) = result.content.first() {
         match content {
-            the-agency::mcp::ToolContent::Text { text } => {
+            the_agency::mcp::ToolContent::Text { text } => {
                 // Extract JSON part from the response
                 if let Some(json_start) = text.find("{") {
                     let json_str = &text[json_start..];
@@ -141,7 +141,7 @@ async fn test_location_tool_json_parsing() {
     
     if let Some(content) = result.content.first() {
         match content {
-            the-agency::mcp::ToolContent::Text { text } => {
+            the_agency::mcp::ToolContent::Text { text } => {
                 // Extract JSON part from the response
                 if let Some(json_start) = text.find("{") {
                     let json_str = &text[json_start..];
@@ -169,7 +169,7 @@ async fn test_location_tool_json_parsing() {
 #[cfg(test)]
 mod integration_tests {
     use super::*;
-    use the-agency::{Agent, AgentConfig};
+    use the_agency::{Agent, AgentConfig};
     
     #[tokio::test]
     async fn test_agent_can_use_datetime_tool() {

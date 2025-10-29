@@ -9,7 +9,7 @@
 //! # Example
 //! 
 //! ```rust,no_run
-//! use the-agency::{Agent, AgentConfig};
+//! use the_agency::{Agent, AgentConfig};
 //! 
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

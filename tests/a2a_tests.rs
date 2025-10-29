@@ -1,6 +1,6 @@
 //! Comprehensive tests for Agent-to-Agent (A2A) communication system
 
-use the-agency::*;
+use the_agency::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};

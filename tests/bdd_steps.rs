@@ -1,7 +1,7 @@
 //! Cucumber step definitions for BDD tests
 
 use cucumber::{given, then, when, World};
-use the-agency::*;
+use the_agency::*;
 use std::collections::HashMap;
 use tempfile::tempdir;
 

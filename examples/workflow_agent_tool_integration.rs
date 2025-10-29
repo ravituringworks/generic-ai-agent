@@ -10,7 +10,7 @@
 //! - Mapping workflow input to agent-compatible prompts
 //! - Composing complex business logic with agents, tools, and workflows
 
-use the-agency::{
+use the_agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         WorkflowDecision, WorkflowStep, MapperFn

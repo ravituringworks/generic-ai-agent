@@ -7,7 +7,7 @@
 //! - Mapping workflow input for different processing patterns
 //! - Composing complex business logic with reusable components
 
-use the-agency::{
+use the_agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         WorkflowDecision, WorkflowStep, MapperFn

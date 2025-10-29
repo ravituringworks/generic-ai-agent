@@ -13,7 +13,7 @@
 //! - Data retention policies and cleanup
 //! - Schema versioning and migrations
 
-use the-agency::{
+use the_agency::{
     workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep, SuspendReason as WorkflowSuspendReason},
     error::Result,
 };
@@ -358,7 +358,7 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             self.execute_query(&format!("DELETE FROM suspended_workflows WHERE id = '{}'", workflow_id)).await?;
             Ok(wf)
         } else {
-            Err(the-agency::error::AgentError::Config(
+            Err(the_agency::error::AgentError::Config(
                 format!("Workflow {} not found", workflow_id)
             ).into())
         }

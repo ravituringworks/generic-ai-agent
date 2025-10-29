@@ -13,7 +13,7 @@
 //!    - Input structuring and parameter extraction
 //!    - Adaptive task decomposition
 
-use the-agency::{
+use the_agency::{
     workflow::{
         WorkflowBuilder, WorkflowContext, StepSchema,
         WorkflowDecision, WorkflowStep, MapperFn, ConditionFn

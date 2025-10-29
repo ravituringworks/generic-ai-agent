@@ -88,7 +88,7 @@ engine.sleep_until(future_time).await?;
 ### Workflow Steps with Pause
 
 ```rust
-use the-agency::workflow::{SleepStep, SleepUntilStep, WaitForEventStep};
+use the_agency::workflow::{SleepStep, SleepUntilStep, WaitForEventStep};
 
 // Create workflow with pause steps
 let engine = WorkflowEngine::new()
@@ -122,7 +122,7 @@ engine.send_event(approval_event)?;
 ### Conditional Pausing
 
 ```rust
-use the-agency::workflow::{ConditionalPauseStep, PauseType};
+use the_agency::workflow::{ConditionalPauseStep, PauseType};
 
 // Pause only if specific condition is met
 let conditional_step = ConditionalPauseStep::new(

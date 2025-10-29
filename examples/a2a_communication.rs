@@ -3,7 +3,7 @@
 //! This example demonstrates how to set up and use the A2A communication system
 //! to enable agents to discover and communicate with each other.
 
-use the-agency::*;
+use the_agency::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;

@@ -15,7 +15,7 @@ The Generic AI Agent framework provides comprehensive suspend and resume functio
 
 ### 1. Human Approval Workflows
 ```rust
-use the-agency::workflow::{HumanApprovalStep, WorkflowEngine};
+use the_agency::workflow::{HumanApprovalStep, WorkflowEngine};
 
 let engine = WorkflowEngine::new()
     .with_snapshot_storage(Box::new(file_storage))
@@ -34,7 +34,7 @@ let resumed = engine.resume_from_snapshot(snapshot_id).await?;
 
 ### 2. Rate-Limited API Calls
 ```rust
-use the-agency::workflow::RateLimitedApiStep;
+use the_agency::workflow::RateLimitedApiStep;
 
 let engine = WorkflowEngine::new()
     .add_step(Box::new(RateLimitedApiStep::new(
@@ -48,7 +48,7 @@ let engine = WorkflowEngine::new()
 
 ### 3. External Resource Availability
 ```rust
-use the-agency::workflow::EnhancedMemoryRetrievalStep;
+use the_agency::workflow::EnhancedMemoryRetrievalStep;
 
 let mut context = WorkflowContext::new(10);
 // Mark external resource as unavailable
@@ -75,7 +75,7 @@ debug_steps = false
 ### Programmatic Configuration
 
 ```rust
-use the-agency::workflow::{WorkflowSuspendConfig, FileSnapshotStorage};
+use the_agency::workflow::{WorkflowSuspendConfig, FileSnapshotStorage};
 
 let suspend_config = WorkflowSuspendConfig {
     auto_checkpoint: true,
@@ -128,7 +128,7 @@ pub enum SuspendReason {
 ### File-Based Storage
 
 ```rust
-use the-agency::workflow::FileSnapshotStorage;
+use the_agency::workflow::FileSnapshotStorage;
 
 let storage = FileSnapshotStorage::new("./snapshots");
 
@@ -141,7 +141,7 @@ let storage = FileSnapshotStorage::new("./snapshots");
 Implement the `SnapshotStorage` trait for custom storage backends:
 
 ```rust
-use the-agency::workflow::SnapshotStorage;
+use the_agency::workflow::SnapshotStorage;
 use async_trait::async_trait;
 
 pub struct DatabaseSnapshotStorage {
@@ -169,7 +169,7 @@ impl SnapshotStorage for DatabaseSnapshotStorage {
 ### Implementing SuspendableWorkflowStep
 
 ```rust
-use the-agency::workflow::{WorkflowStep, SuspendableWorkflowStep};
+use the_agency::workflow::{WorkflowStep, SuspendableWorkflowStep};
 
 pub struct CustomSuspendableStep;
 

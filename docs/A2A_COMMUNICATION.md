@@ -85,7 +85,7 @@ The A2A communication system extends the capabilities of individual AI agents by
 ### 1. Basic Setup
 
 ```rust
-use the-agency::*;
+use the_agency::*;
 use std::collections::HashMap;
 
 #[tokio::main]

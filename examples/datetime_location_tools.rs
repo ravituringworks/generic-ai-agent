@@ -3,7 +3,7 @@
 //! This example shows how to use the built-in datetime and location tools
 //! to get comprehensive time and location information from the system.
 
-use the-agency::{
+use the_agency::{
     Agent, AgentConfig,
     tools::{BuiltinTools, execute_datetime_info, execute_location_info, execute_system_info}
 };
@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let system_result = execute_system_info().await;
     if let Some(content) = system_result.content.first() {
         match content {
-            the-agency::mcp::ToolContent::Text { text } => {
+            the_agency::mcp::ToolContent::Text { text } => {
                 println!("✅ {}", text);
             }
             _ => println!("❌ Unexpected content format"),
@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let datetime_result = execute_datetime_info().await;
     if let Some(content) = datetime_result.content.first() {
         match content {
-            the-agency::mcp::ToolContent::Text { text } => {
+            the_agency::mcp::ToolContent::Text { text } => {
                 println!("✅ {}", text);
             }
             _ => println!("❌ Unexpected content format"),
@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let location_result = execute_location_info().await;
     if let Some(content) = location_result.content.first() {
         match content {
-            the-agency::mcp::ToolContent::Text { text } => {
+            the_agency::mcp::ToolContent::Text { text } => {
                 println!("✅ {}", text);
             }
             _ => println!("❌ Unexpected content format"),
@@ -73,7 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(result) = tools.execute(tool_name).await {
             if let Some(content) = result.content.first() {
                 match content {
-                    the-agency::mcp::ToolContent::Text { text } => {
+                    the_agency::mcp::ToolContent::Text { text } => {
                         // For display, truncate very long output
                         if text.len() > 500 {
                             println!("✅ {}... (truncated)", &text[..500]);
@@ -143,7 +143,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let result = execute_datetime_info().await;
             if let Some(content) = result.content.first() {
                 match content {
-                    the-agency::mcp::ToolContent::Text { text } => {
+                    the_agency::mcp::ToolContent::Text { text } => {
                         println!("🤖 Agent: Based on the datetime information:");
                         println!("{}", text);
                     }
@@ -157,7 +157,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let result = execute_location_info().await;
             if let Some(content) = result.content.first() {
                 match content {
-                    the-agency::mcp::ToolContent::Text { text } => {
+                    the_agency::mcp::ToolContent::Text { text } => {
                         println!("🤖 Agent: Based on the location information:");
                         println!("{}", text);
                     }
@@ -171,7 +171,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let result = execute_system_info().await;
             if let Some(content) = result.content.first() {
                 match content {
-                    the-agency::mcp::ToolContent::Text { text } => {
+                    the_agency::mcp::ToolContent::Text { text } => {
                         println!("🤖 Agent: Here's your system information:");
                         println!("{}", text);
                     }

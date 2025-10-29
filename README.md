@@ -203,7 +203,7 @@ async fn main() -> anyhow::Result<()> {
     let system_prompt = "You are an AI assistant that answers questions based on provided document context. Use only the information from the context to answer questions.";
     
     let messages = vec![
-        the-agency::llm::system_message(system_prompt),
+        the_agency::llm::system_message(system_prompt),
         user_message(&format!("Context:\n{}\n\nQuestion: {}", context_text, question)),
     ];
     
@@ -386,7 +386,7 @@ enabled = true
 ### Programmatic Configuration
 
 ```rust
-use the-agency::{AgentBuilder, config::*};
+use the_agency::{AgentBuilder, config::*};
 
 let agent = AgentBuilder::new()
     .with_name("Custom Assistant".to_string())
@@ -403,7 +403,7 @@ The agent supports the Model Context Protocol (MCP) for calling external tools:
 ### Adding MCP Servers
 
 ```rust
-use the-agency::config::{McpServerConfig};
+use the_agency::config::{McpServerConfig};
 
 let mut config = AgentConfig::default();
 
@@ -444,7 +444,7 @@ The A2A system enables sophisticated multi-agent architectures where specialized
 ### Multi-Protocol Support
 
 ```rust
-use the-agency::{a2a::*, AgentConfig};
+use the_agency::{a2a::*, AgentConfig};
 
 // HTTP communication
 let http_client = HttpA2AClient::new(A2AConfig {
@@ -593,7 +593,7 @@ agent.process("What do you know about my programming preferences?").await?;
 ### Custom Memory Operations
 
 ```rust
-use the-agency::memory::{MemoryStore, SqliteMemoryStore};
+use the_agency::memory::{MemoryStore, SqliteMemoryStore};
 
 // Direct memory access
 let mut store = SqliteMemoryStore::new(config.memory);
@@ -626,8 +626,8 @@ agent.process("What's my system information?").await?;
 ### Adding Custom Tools
 
 ```rust
-use the-agency::tools::BuiltinTools;
-use the-agency::mcp::{ToolResult, ToolContent};
+use the_agency::tools::BuiltinTools;
+use the_agency::mcp::{ToolResult, ToolContent};
 
 // Custom tools can be added by extending the BuiltinTools struct
 // or by implementing MCP servers
@@ -797,7 +797,7 @@ let final_report = format!(
 ### Custom Workflow Steps
 
 ```rust
-use the-agency::workflow::{WorkflowStep, WorkflowDecision, WorkflowContext};
+use the_agency::workflow::{WorkflowStep, WorkflowDecision, WorkflowContext};
 use async_trait::async_trait;
 
 struct CustomStep;
@@ -823,7 +823,7 @@ let workflow = WorkflowEngine::new()
 ### Custom Memory Store
 
 ```rust
-use the-agency::memory::{MemoryStore, MemoryEntry, SearchResult};
+use the_agency::memory::{MemoryStore, MemoryEntry, SearchResult};
 
 struct CustomMemoryStore {
     // Your implementation
@@ -841,7 +841,7 @@ impl MemoryStore for CustomMemoryStore {
 ### Custom LLM Client
 
 ```rust
-use the-agency::llm::{LlmClient, Message, GenerationResponse, EmbeddingResponse};
+use the_agency::llm::{LlmClient, Message, GenerationResponse, EmbeddingResponse};
 
 struct CustomLlmClient;
 

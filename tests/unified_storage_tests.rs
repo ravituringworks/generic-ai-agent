@@ -1,6 +1,6 @@
 //! Comprehensive unit tests for the unified storage system
 
-use the-agency::*;
+use the_agency::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
