@@ -1,0 +1,185 @@
+# Complex Collaborative Workspace Configuration
+# Multi-agent robotics project with specialized models per agent role
+
+[llm]
+# Default Ollama server URL
+ollama_url = "http://localhost:11434"
+
+# Default model (fallback)
+text_model = "gpt-oss:120b-cloud"
+
+# Default maximum tokens for generation
+max_tokens = 1024
+
+# Default temperature for generation
+temperature = 0.7
+
+# Request timeout in seconds
+timeout = 60
+
+# Enable streaming responses
+stream = false
+
+[memory]
+# Vector store type
+store_type = "sqlite"
+
+# Database file path (will be overridden per workspace)
+database_url = "sqlite:workspace.db"
+
+# Embedding dimension (must match embedding model)
+embedding_dimension = 768
+
+# Enable persistent storage
+persistent = true
+
+[agent]
+# Enable memory retrieval
+use_memory = false
+
+# Enable tool calling
+use_tools = false
+
+# Enable verbose logging
+verbose = false
+
+[workflow]
+# Enable workflow suspend/resume functionality
+enable_suspend_resume = false
+
+# Agent-specific model configurations
+# Each agent gets a specialized model optimized for their tasks
+
+[agents.simulation_engineer]
+name = "SimulationEngineer_Alice"
+role = "SimulationEngineer"
+model = "gpt-oss:120b-cloud"
+max_tokens = 1024
+timeout = 60
+description = "Python code specialist for robotics simulation"
+
+[agents.scaling_engineer]
+name = "ScalingEngineer_Bob"
+role = "ScalingEngineer"
+model = "gpt-oss:120b-cloud"
+max_tokens = 1024
+timeout = 60
+description = "Distributed systems & optimization reasoning"
+
+[agents.config_specialist]
+name = "ConfigSpecialist_Dana"
+role = "ConfigurationSpecialist"
+model = "deepseek-v3.1:671b-cloud"
+max_tokens = 1024
+timeout = 60
+description = "URDF/XML configuration specialist"
+
+[agents.coordinator]
+name = "Coordinator_Charlie"
+role = "ProjectCoordinator"
+model = "gpt-oss:120b-cloud"
+max_tokens = 1024
+timeout = 60
+description = "Integration reasoning & comprehensive documentation"
+
+# Workspace configuration
+
+[workspace]
+name = "humanoid_manipulation_system"
+base_dir = "examples/robotics_workspace_complex"
+
+# Project information
+
+[project]
+name = "Complete Humanoid Robot Manipulation System"
+description = "Multi-phase robotics project demonstrating complex agent coordination"
+phases = 4
+total_tasks = 8
+
+# Task configuration by phase
+
+[[tasks]]
+phase = 1
+description = "Create 3D robot simulation environment with physics engine"
+assigned_to = "SimulationEngineer_Alice"
+priority = "Critical"
+dependencies = []
+
+[[tasks]]
+phase = 1
+description = "Generate URDF model for humanoid robot with gripper"
+assigned_to = "ConfigSpecialist_Dana"
+priority = "Critical"
+dependencies = []
+
+[[tasks]]
+phase = 1
+description = "Create performance profiling and benchmarking framework"
+assigned_to = "ScalingEngineer_Bob"
+priority = "High"
+dependencies = []
+
+[[tasks]]
+phase = 2
+description = "Implement inverse kinematics controller for manipulation tasks"
+assigned_to = "SimulationEngineer_Alice"
+priority = "High"
+dependencies = ["task_1_1", "task_1_2"]
+
+[[tasks]]
+phase = 2
+description = "Optimize simulation performance with vectorization and parallel processing"
+assigned_to = "ScalingEngineer_Bob"
+priority = "High"
+dependencies = ["task_1_1", "task_1_3"]
+
+[[tasks]]
+phase = 3
+description = "Build distributed training pipeline for reinforcement learning"
+assigned_to = "ScalingEngineer_Bob"
+priority = "High"
+dependencies = ["task_2_1", "task_2_2"]
+
+[[tasks]]
+phase = 3
+description = "Create comprehensive benchmark suite for training and inference performance"
+assigned_to = "ScalingEngineer_Bob"
+priority = "Medium"
+dependencies = ["task_2_1", "task_2_2"]
+
+[[tasks]]
+phase = 4
+description = "Generate comprehensive project report with integration guide"
+assigned_to = "Coordinator_Charlie"
+priority = "Medium"
+dependencies = ["task_1_1", "task_1_2", "task_1_3", "task_2_1", "task_2_2", "task_3_1", "task_3_2"]
+
+# Model presets for easy switching
+
+[model_presets.all_gpt_oss]
+description = "All agents use gpt-oss:120b-cloud for consistent reasoning"
+simulation_engineer = "gpt-oss:120b-cloud"
+scaling_engineer = "gpt-oss:120b-cloud"
+config_specialist = "gpt-oss:120b-cloud"
+coordinator = "gpt-oss:120b-cloud"
+
+[model_presets.all_deepseek]
+description = "All agents use deepseek for balanced performance"
+simulation_engineer = "deepseek-v3.1:671b-cloud"
+scaling_engineer = "deepseek-v3.1:671b-cloud"
+config_specialist = "deepseek-v3.1:671b-cloud"
+coordinator = "deepseek-v3.1:671b-cloud"
+
+[model_presets.specialized]
+description = "Current configuration with specialized models per role"
+simulation_engineer = "gpt-oss:120b-cloud"
+scaling_engineer = "gpt-oss:120b-cloud"
+config_specialist = "deepseek-v3.1:671b-cloud"
+coordinator = "gpt-oss:120b-cloud"
+
+[model_presets.fast]
+description = "Fast cloud models for quick iteration"
+simulation_engineer = "gpt-oss:20b-cloud"
+scaling_engineer = "gpt-oss:20b-cloud"
+config_specialist = "glm-4.6:cloud"
+coordinator = "glm-4.6:cloud"

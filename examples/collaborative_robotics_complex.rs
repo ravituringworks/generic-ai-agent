@@ -416,9 +416,11 @@ async fn main() -> Result<()> {
 
     println!("\\n📁 Workspace created: {}", workspace.directory.display());
 
-    // Load base configuration
-    let base_config =
-        AgentConfig::from_file("config.toml").unwrap_or_else(|_| AgentConfig::default());
+    // Load configuration from dedicated file
+    let config_path = "examples/collaborative_workspace_config.toml";
+    let base_config = AgentConfig::from_file(config_path).unwrap_or_else(|_| {
+        AgentConfig::from_file("config.toml").unwrap_or_else(|_| AgentConfig::default())
+    });
 
     // Shared settings for all agents
     let db_path = workspace.directory.join("workspace.db");
@@ -427,25 +429,34 @@ async fn main() -> Result<()> {
     }
 
     // Configure specialized models for each agent role
-    println!("\\n🤖 Configuring specialized models for each agent...");
+    println!(
+        "\\n🤖 Configuring specialized models (from {})...",
+        config_path
+    );
 
     // SimulationEngineer - Code generation specialist
     let mut config_sim = base_config.clone();
-    config_sim.llm.text_model = "qwen2.5-coder:3b".to_string();
+    config_sim.llm.text_model = "gpt-oss:120b-cloud".to_string();
     config_sim.llm.max_tokens = 1024;
     config_sim.llm.timeout = 60;
     config_sim.agent.use_memory = false;
     config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • SimulationEngineer → qwen2.5-coder:3b (Python code specialist)");
+    println!(
+        "  • SimulationEngineer → {} (cloud)",
+        config_sim.llm.text_model
+    );
 
-    // ScalingEngineer - Performance & distributed systems (needs strong reasoning)
+    // ScalingEngineer - Performance & distributed systems
     let mut config_scaling = base_config.clone();
     config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
     config_scaling.llm.max_tokens = 1024;
     config_scaling.llm.timeout = 60;
     config_scaling.agent.use_memory = false;
     config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • ScalingEngineer → gpt-oss:120b-cloud (Distributed systems & reasoning)");
+    println!(
+        "  • ScalingEngineer → {} (cloud)",
+        config_scaling.llm.text_model
+    );
 
     // ConfigSpecialist - URDF/XML configuration
     let mut config_config = base_config.clone();
@@ -454,16 +465,19 @@ async fn main() -> Result<()> {
     config_config.llm.timeout = 60;
     config_config.agent.use_memory = false;
     config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • ConfigSpecialist → deepseek-v3.1:671b-cloud (Configuration specialist)");
+    println!(
+        "  • ConfigSpecialist → {} (cloud)",
+        config_config.llm.text_model
+    );
 
-    // Coordinator - Documentation & reporting (needs integration reasoning)
+    // Coordinator - Documentation & reporting
     let mut config_coord = base_config.clone();
     config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
     config_coord.llm.max_tokens = 1024;
     config_coord.llm.timeout = 60;
     config_coord.agent.use_memory = false;
     config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • Coordinator → gpt-oss:120b-cloud (Integration & documentation)");
+    println!("  • Coordinator → {} (cloud)", config_coord.llm.text_model);
 
     // Create collaborative agents with specialized models
     println!("\\n👥 Initializing specialized agents...");
