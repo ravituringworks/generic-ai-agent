@@ -6,7 +6,7 @@
 A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 - **🧠 Ollama** - Local LLM inference for text generation and embeddings
-- **💾 Vector Store** - Semantic memory and knowledge retrieval 
+- **💾 Vector Store** - Semantic memory and knowledge retrieval
 - **🛠️ MCP Client** - Model Context Protocol for calling external tools
 - **⚡ Workflow Engine** - Orchestrates reasoning, memory, and tool usage
 - **🌐 A2A Communication** - Agent-to-Agent communication for multi-agent systems
@@ -16,6 +16,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 ## ✨ Features
 
 ### Core Capabilities
+
 - **Memory System**: Persistent vector-based memory with semantic search
 - **Document RAG**: PDF processing with table extraction and semantic indexing
 - **Tool Integration**: Call any MCP-compatible tools and built-in functions
@@ -26,6 +27,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 - **Comprehensive Testing**: Unit tests, BDD tests, and integration examples
 
 ### Advanced Features
+
 - **🌐 Agent-to-Agent Communication**: Multi-protocol support (HTTP, WebSocket, Redis, RabbitMQ)
 - **🔍 Service Discovery**: Capability-based agent discovery and health monitoring
 - **🔒 Security**: Authentication, encryption, rate limiting, and access control
@@ -39,11 +41,13 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 ### Prerequisites
 
 1. **Install Rust** (1.75 or later):
+
    ```bash
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 
 2. **Install and run Ollama**:
+
    ```bash
    # Install Ollama
    curl -fsSL https://ollama.ai/install.sh | sh
@@ -54,6 +58,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
    ```
 
 3. **Clone and build**:
+
    ```bash
    git clone https://github.com/ravituringworks/the-agency.git
    cd the-agency
@@ -236,6 +241,7 @@ cargo run --example pdf_rag_with_tables --features pdf
 ```
 
 This example demonstrates:
+
 - **Real PDF Text Extraction**: Uses `pdf-extract` library to parse actual PDF files
 - **Table Detection & Parsing**: Identifies and structures tables from PDF content
 - **Semantic Indexing**: Creates embeddings for sections, tables, and abstracts
@@ -243,6 +249,7 @@ This example demonstrates:
 - **Interactive Q&A**: Ask questions about the document with context-aware answers
 
 Features include:
+
 - Automatic section detection and parsing
 - Table structure recognition with headers and data rows
 - Abstract and reference extraction
@@ -257,6 +264,7 @@ cargo run --bin agent-example
 ```
 
 This starts an interactive chat session with:
+
 - Real-time conversation
 - Memory demonstrations
 - Tool usage examples
@@ -266,15 +274,15 @@ This starts an interactive chat session with:
 
 ### Core Components
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│    Agent        │    │  Workflow Engine │    │   LLM Client    │
-│                 │────│                  │────│                 │
+```text
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────-┐
+│    Agent        │    │  Workflow Engine │    │   LLM Client     │
+│                 │────│                  │────│                  │
 │ • Orchestration │    │ • Step execution │    │ • Text generation│
 │ • Configuration │    │ • Decision logic │    │ • Embeddings     │
 │ • State mgmt    │    │ • Tool calling   │    │ • Model mgmt     │
 │ • A2A mgmt      │    │ • Multi-agent    │    │ • Load balancing │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+└─────────────────┘    └──────────────────┘    └─────────────────-┘
          │                        │                        │
          │                        │                        │
          ▼                        ▼                        ▼
@@ -288,13 +296,13 @@ This starts an interactive chat session with:
                                    │
                                    ▼
                      ┌─────────────────────────────┐
-                     │    A2A Communication     │
-                     │                           │
-                     │ • Multi-protocol support  │
-                     │ • Service discovery      │
-                     │ • Agent coordination     │
-                     │ • Security & auth        │
-                     │ • Load balancing         │
+                     │    A2A Communication        │
+                     │                             │
+                     │ • Multi-protocol support    │
+                     │ • Service discovery         │
+                     │ • Agent coordination        │
+                     │ • Security & auth           │
+                     │ • Load balancing            │
                      └─────────────────────────────┘
 ```
 
@@ -846,7 +854,6 @@ impl LlmClient for CustomLlmClient {
 }
 ```
 
-
 ## 🤝 Contributing
 
 **We welcome contributions!** Before contributing, please:
@@ -872,6 +879,7 @@ cargo clippy
 ```
 
 Areas we're especially looking for help:
+
 - Document RAG enhancements
 - Performance optimizations  
 - Real-world integration examples
@@ -894,11 +902,13 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 ## 📞 Support & Contact
 
 ### 📬 Primary Contact
+
 - **Maintainer**: Ravindra Boddipalli
 - **Email**: [rboddipalli@turingworks.com](mailto:rboddipalli@turingworks.com)
 - **Company**: [Turing Works](https://turingworks.com)
 
 ### 📚 Documentation & Resources
+
 - 📜 [API Documentation](https://docs.rs/the-agency)
 - 🌐 [A2A Communication Guide](docs/A2A_COMMUNICATION.md)
 - 🔄 [State Management Guide](docs/PAUSE_EXECUTION.md)
@@ -908,6 +918,7 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 - 📄 [Document RAG Examples](examples/pdf_rag_with_tables.rs)
 
 ### 🐛 Issues & Discussions
+
 - 🐛 [Report Issues](https://github.com/ravituringworks/the-agency/issues)
 - 💬 [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)
 - 🚀 [Feature Requests](https://github.com/ravituringworks/the-agency/issues/new?template=feature_request.md)

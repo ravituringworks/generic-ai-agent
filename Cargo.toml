@@ -1,5 +1,5 @@
 [package]
-name = "the-agency"
+name = "the_agency"
 version = "0.2.0"
 edition = "2021"
 authors = ["Ravindra Boddipalli <rboddipalli@turingworks.com>"]
@@ -7,7 +7,7 @@ description = "A comprehensive AI agent framework with Ollama LLM, vector memory
 license = "MIT"
 repository = "https://github.com/ravituringworks/the-agency"
 homepage = "https://github.com/ravituringworks/the-agency"
-documentation = "https://docs.rs/the-agency"
+documentation = "https://docs.rs/the_agency"
 readme = "README.md"
 keywords = ["ai", "agent", "llm", "ollama", "rag", "pdf", "multiagent"]
 categories = ["science", "text-processing", "web-programming", "asynchronous"]
