@@ -416,51 +416,83 @@ async fn main() -> Result<()> {
 
     println!("\\n📁 Workspace created: {}", workspace.directory.display());
 
-    // Load configuration
-    let mut config =
+    // Load base configuration
+    let base_config =
         AgentConfig::from_file("config.toml").unwrap_or_else(|_| AgentConfig::default());
 
-    // Use cloud model for faster generation
-    config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
-    config.llm.max_tokens = 1024;
-    config.llm.timeout = 60;
-    config.agent.use_memory = false;
-
-    // Use workspace-specific database
+    // Shared settings for all agents
     let db_path = workspace.directory.join("workspace.db");
     if let Some(parent) = db_path.parent() {
         fs::create_dir_all(parent)?;
     }
-    config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
-    // Create collaborative agents
+    // Configure specialized models for each agent role
+    println!("\\n🤖 Configuring specialized models for each agent...");
+
+    // SimulationEngineer - Code generation specialist
+    let mut config_sim = base_config.clone();
+    config_sim.llm.text_model = "qwen3-coder:480b-cloud".to_string();
+    config_sim.llm.max_tokens = 1024;
+    config_sim.llm.timeout = 60;
+    config_sim.agent.use_memory = false;
+    config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+    println!("  • SimulationEngineer → qwen3-coder:480b-cloud (Python code specialist)");
+
+    // ScalingEngineer - Performance & distributed systems
+    let mut config_scaling = base_config.clone();
+    config_scaling.llm.text_model = "qwen3-coder:480b-cloud".to_string();
+    config_scaling.llm.max_tokens = 1024;
+    config_scaling.llm.timeout = 60;
+    config_scaling.agent.use_memory = false;
+    config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+    println!("  • ScalingEngineer → qwen3-coder:480b-cloud (Optimization specialist)");
+
+    // ConfigSpecialist - URDF/XML configuration
+    let mut config_config = base_config.clone();
+    config_config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
+    config_config.llm.max_tokens = 1024;
+    config_config.llm.timeout = 60;
+    config_config.agent.use_memory = false;
+    config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+    println!("  • ConfigSpecialist → deepseek-v3.1:671b-cloud (Configuration specialist)");
+
+    // Coordinator - Documentation & reporting
+    let mut config_coord = base_config.clone();
+    config_coord.llm.text_model = "glm-4.6:cloud".to_string();
+    config_coord.llm.max_tokens = 1024;
+    config_coord.llm.timeout = 60;
+    config_coord.agent.use_memory = false;
+    config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+    println!("  • Coordinator → glm-4.6:cloud (Documentation specialist)");
+
+    // Create collaborative agents with specialized models
     println!("\\n👥 Initializing specialized agents...");
 
     let mut sim_engineer = CollaborativeAgent::new(
         "SimulationEngineer_Alice".to_string(),
         AgentRole::SimulationEngineer,
-        config.clone(),
+        config_sim,
     )
     .await?;
 
     let mut scaling_engineer = CollaborativeAgent::new(
         "ScalingEngineer_Bob".to_string(),
         AgentRole::ScalingEngineer,
-        config.clone(),
+        config_scaling,
     )
     .await?;
 
     let mut config_specialist = CollaborativeAgent::new(
         "ConfigSpecialist_Dana".to_string(),
         AgentRole::ConfigurationSpecialist,
-        config.clone(),
+        config_config,
     )
     .await?;
 
     let mut coordinator = CollaborativeAgent::new(
         "Coordinator_Charlie".to_string(),
         AgentRole::ProjectCoordinator,
-        config.clone(),
+        config_coord,
     )
     .await?;
 
