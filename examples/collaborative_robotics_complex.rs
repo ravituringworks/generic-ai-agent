@@ -19,6 +19,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use the_agency::{Agent, AgentBuilder, AgentConfig};
@@ -403,6 +404,72 @@ impl CollaborativeAgent {
     }
 }
 
+/// Model preset configuration
+#[derive(Debug, Clone, Deserialize)]
+struct ModelPreset {
+    description: String,
+    #[serde(default = "default_max_tokens")]
+    max_tokens: u32,
+    #[serde(default = "default_timeout")]
+    timeout: u64,
+    simulation_engineer: String,
+    scaling_engineer: String,
+    config_specialist: String,
+    coordinator: String,
+}
+
+fn default_max_tokens() -> u32 {
+    1024
+}
+
+fn default_timeout() -> u64 {
+    60
+}
+
+/// Configuration wrapper for loading TOML with presets
+#[derive(Debug, Clone, Deserialize)]
+struct TomlConfig {
+    #[serde(default)]
+    model_presets: HashMap<String, ModelPreset>,
+}
+
+/// Apply model preset to agent configurations
+fn apply_model_preset(
+    base_config: &AgentConfig,
+    preset: &ModelPreset,
+    db_path: &Path,
+) -> (AgentConfig, AgentConfig, AgentConfig, AgentConfig) {
+    let mut config_sim = base_config.clone();
+    config_sim.llm.text_model = preset.simulation_engineer.clone();
+    config_sim.llm.max_tokens = preset.max_tokens;
+    config_sim.llm.timeout = preset.timeout;
+    config_sim.agent.use_memory = false;
+    config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+    let mut config_scaling = base_config.clone();
+    config_scaling.llm.text_model = preset.scaling_engineer.clone();
+    config_scaling.llm.max_tokens = preset.max_tokens;
+    config_scaling.llm.timeout = preset.timeout;
+    config_scaling.agent.use_memory = false;
+    config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+    let mut config_config = base_config.clone();
+    config_config.llm.text_model = preset.config_specialist.clone();
+    config_config.llm.max_tokens = preset.max_tokens;
+    config_config.llm.timeout = preset.timeout;
+    config_config.agent.use_memory = false;
+    config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+    let mut config_coord = base_config.clone();
+    config_coord.llm.text_model = preset.coordinator.clone();
+    config_coord.llm.max_tokens = preset.max_tokens;
+    config_coord.llm.timeout = preset.timeout;
+    config_coord.agent.use_memory = false;
+    config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+    (config_sim, config_scaling, config_config, config_coord)
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -418,8 +485,21 @@ async fn main() -> Result<()> {
 
     // Load configuration from dedicated file
     let config_path = "examples/collaborative_workspace_config.toml";
+    
+    // Load base agent config
     let base_config = AgentConfig::from_file(config_path).unwrap_or_else(|_| {
         AgentConfig::from_file("config.toml").unwrap_or_else(|_| AgentConfig::default())
+    });
+    
+    // Load model presets separately
+    let config_content = fs::read_to_string(config_path).unwrap_or_else(|_| {
+        fs::read_to_string("config.toml").unwrap_or_default()
+    });
+    let toml_config: TomlConfig = toml::from_str(&config_content).unwrap_or_else(|e| {
+        eprintln!("Warning: Failed to parse model presets: {}", e);
+        TomlConfig {
+            model_presets: HashMap::new(),
+        }
     });
 
     // Shared settings for all agents
@@ -428,56 +508,77 @@ async fn main() -> Result<()> {
         fs::create_dir_all(parent)?;
     }
 
-    // Configure specialized models for each agent role
-    println!(
-        "\\n🤖 Configuring specialized models (from {})...",
-        config_path
-    );
+    // Check for MODEL_PRESET environment variable or CLI argument
+    let preset_name = env::var("MODEL_PRESET").unwrap_or_else(|_| {
+        env::args()
+            .nth(1)
+            .unwrap_or_else(|| "specialized".to_string())
+    });
 
-    // SimulationEngineer - Code generation specialist
-    let mut config_sim = base_config.clone();
-    config_sim.llm.text_model = "gpt-oss:120b-cloud".to_string();
-    config_sim.llm.max_tokens = 1024;
-    config_sim.llm.timeout = 60;
-    config_sim.agent.use_memory = false;
-    config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!(
-        "  • SimulationEngineer → {} (cloud)",
-        config_sim.llm.text_model
-    );
+    // Apply model preset if available
+    let (config_sim, config_scaling, config_config, config_coord) = 
+        if let Some(preset) = toml_config.model_presets.get(&preset_name) {
+            println!(
+                "\\n🎨 Applying model preset: '{}'",
+                preset_name
+            );
+            println!("   Description: {}", preset.description);
+            println!("   From config: {}", config_path);
+            
+            let configs = apply_model_preset(&base_config, preset, &db_path);
+            
+            println!("\\n🤖 Agent model assignments:");
+            println!("  • SimulationEngineer → {}", configs.0.llm.text_model);
+            println!("  • ScalingEngineer → {}", configs.1.llm.text_model);
+            println!("  • ConfigSpecialist → {}", configs.2.llm.text_model);
+            println!("  • Coordinator → {}", configs.3.llm.text_model);
+            
+            configs
+        } else {
+            // Fallback to hardcoded defaults if preset not found
+            println!(
+                "\\n⚠️  Preset '{}' not found, using default 'specialized' configuration",
+                preset_name
+            );
+            println!("   Available presets: {:?}", toml_config.model_presets.keys().collect::<Vec<_>>());
+            println!("   From config: {}", config_path);
+            
+            let mut config_sim = base_config.clone();
+            config_sim.llm.text_model = "gpt-oss:120b-cloud".to_string();
+            config_sim.llm.max_tokens = 1024;
+            config_sim.llm.timeout = 60;
+            config_sim.agent.use_memory = false;
+            config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
-    // ScalingEngineer - Performance & distributed systems
-    let mut config_scaling = base_config.clone();
-    config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
-    config_scaling.llm.max_tokens = 1024;
-    config_scaling.llm.timeout = 60;
-    config_scaling.agent.use_memory = false;
-    config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!(
-        "  • ScalingEngineer → {} (cloud)",
-        config_scaling.llm.text_model
-    );
+            let mut config_scaling = base_config.clone();
+            config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
+            config_scaling.llm.max_tokens = 1024;
+            config_scaling.llm.timeout = 60;
+            config_scaling.agent.use_memory = false;
+            config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
-    // ConfigSpecialist - URDF/XML configuration
-    let mut config_config = base_config.clone();
-    config_config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
-    config_config.llm.max_tokens = 1024;
-    config_config.llm.timeout = 60;
-    config_config.agent.use_memory = false;
-    config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!(
-        "  • ConfigSpecialist → {} (cloud)",
-        config_config.llm.text_model
-    );
+            let mut config_config = base_config.clone();
+            config_config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
+            config_config.llm.max_tokens = 1024;
+            config_config.llm.timeout = 60;
+            config_config.agent.use_memory = false;
+            config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
-    // Coordinator - Documentation & reporting
-    let mut config_coord = base_config.clone();
-    config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
-    config_coord.llm.max_tokens = 1024;
-    config_coord.llm.timeout = 60;
-    config_coord.agent.use_memory = false;
-    config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-    println!("  • Coordinator → {} (cloud)", config_coord.llm.text_model);
+            let mut config_coord = base_config.clone();
+            config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
+            config_coord.llm.max_tokens = 1024;
+            config_coord.llm.timeout = 60;
+            config_coord.agent.use_memory = false;
+            config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+            
+            println!("\\n🤖 Agent model assignments:");
+            println!("  • SimulationEngineer → {}", config_sim.llm.text_model);
+            println!("  • ScalingEngineer → {}", config_scaling.llm.text_model);
+            println!("  • ConfigSpecialist → {}", config_config.llm.text_model);
+            println!("  • Coordinator → {}", config_coord.llm.text_model);
+            
+            (config_sim, config_scaling, config_config, config_coord)
+        };
 
     // Create collaborative agents with specialized models
     println!("\\n👥 Initializing specialized agents...");

@@ -158,6 +158,8 @@ dependencies = ["task_1_1", "task_1_2", "task_1_3", "task_2_1", "task_2_2", "tas
 
 [model_presets.all_gpt_oss]
 description = "All agents use gpt-oss:120b-cloud for consistent reasoning"
+max_tokens = 1024
+timeout = 60
 simulation_engineer = "gpt-oss:120b-cloud"
 scaling_engineer = "gpt-oss:120b-cloud"
 config_specialist = "gpt-oss:120b-cloud"
@@ -165,6 +167,8 @@ coordinator = "gpt-oss:120b-cloud"
 
 [model_presets.all_deepseek]
 description = "All agents use deepseek for balanced performance"
+max_tokens = 1024
+timeout = 60
 simulation_engineer = "deepseek-v3.1:671b-cloud"
 scaling_engineer = "deepseek-v3.1:671b-cloud"
 config_specialist = "deepseek-v3.1:671b-cloud"
@@ -172,6 +176,8 @@ coordinator = "deepseek-v3.1:671b-cloud"
 
 [model_presets.specialized]
 description = "Current configuration with specialized models per role"
+max_tokens = 1024
+timeout = 60
 simulation_engineer = "gpt-oss:120b-cloud"
 scaling_engineer = "gpt-oss:120b-cloud"
 config_specialist = "deepseek-v3.1:671b-cloud"
@@ -179,6 +185,8 @@ coordinator = "gpt-oss:120b-cloud"
 
 [model_presets.fast]
 description = "Fast cloud models for quick iteration"
+max_tokens = 512
+timeout = 30
 simulation_engineer = "gpt-oss:20b-cloud"
 scaling_engineer = "gpt-oss:20b-cloud"
 config_specialist = "glm-4.6:cloud"
