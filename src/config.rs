@@ -147,9 +147,6 @@ pub struct WorkflowConfig {
     /// Enable workflow suspend/resume functionality
     pub enable_suspend_resume: bool,
     
-    /// Snapshot storage directory
-    pub snapshot_storage_dir: Option<String>,
-    
     /// Enable automatic checkpointing
     pub auto_checkpoint: bool,
     
@@ -195,7 +192,6 @@ impl Default for WorkflowConfig {
     fn default() -> Self {
         Self {
             enable_suspend_resume: false,
-            snapshot_storage_dir: Some("./.agency/snapshots".to_string()),
             auto_checkpoint: false,
             checkpoint_interval: 5,
             max_snapshots: 10,

@@ -6,6 +6,7 @@ use crate::mcp::{ToolCall, ToolResult};
 use crate::memory::SearchResult;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use sqlx::Row;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -634,6 +635,230 @@ pub trait SnapshotStorage: Send + Sync {
     
     /// Clean up old snapshots (older than specified duration)
     async fn cleanup_old_snapshots(&self, older_than: chrono::Duration) -> Result<usize>;
+}
+
+/// SQLite-based snapshot storage implementation
+#[derive(Debug, Clone)]
+pub struct SqliteSnapshotStorage {
+    pool: Option<sqlx::SqlitePool>,
+    database_url: String,
+}
+
+impl SqliteSnapshotStorage {
+    pub fn new(database_url: String) -> Self {
+        Self {
+            pool: None,
+            database_url,
+        }
+    }
+    
+    pub async fn initialize(&mut self) -> Result<()> {
+        let pool = sqlx::SqlitePool::connect(&self.database_url).await
+            .map_err(|e| AgentError::Workflow(format!("Failed to connect to database: {}", e)))?;
+        
+        // Create snapshots table
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS workflow_snapshots (
+                id TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL,
+                context_json TEXT NOT NULL,
+                current_step INTEGER NOT NULL,
+                suspend_reason TEXT NOT NULL,
+                metadata_json TEXT NOT NULL,
+                step_state_json TEXT NOT NULL
+            )
+            "#
+        )
+        .execute(&pool)
+        .await
+        .map_err(|e| AgentError::Workflow(format!("Failed to create snapshots table: {}", e)))?;
+        
+        // Create index on created_at for efficient cleanup
+        sqlx::query(
+            "CREATE INDEX IF NOT EXISTS idx_snapshots_created_at ON workflow_snapshots(created_at)"
+        )
+        .execute(&pool)
+        .await
+        .map_err(|e| AgentError::Workflow(format!("Failed to create index: {}", e)))?;
+        
+        self.pool = Some(pool);
+        info!("Initialized SQLite snapshot storage at: {}", self.database_url);
+        Ok(())
+    }
+    
+    fn pool(&self) -> Result<&sqlx::SqlitePool> {
+        self.pool.as_ref()
+            .ok_or_else(|| AgentError::Workflow("Snapshot storage not initialized".to_string()))
+    }
+}
+
+#[async_trait]
+impl SnapshotStorage for SqliteSnapshotStorage {
+    async fn store_snapshot(&self, snapshot: &WorkflowSnapshot) -> Result<()> {
+        let pool = self.pool()?;
+        
+        let context_json = serde_json::to_string(&snapshot.context)
+            .map_err(|e| AgentError::Workflow(format!("Failed to serialize context: {}", e)))?;
+        
+        let suspend_reason_json = serde_json::to_string(&snapshot.suspend_reason)
+            .map_err(|e| AgentError::Workflow(format!("Failed to serialize suspend reason: {}", e)))?;
+        
+        let metadata_json = serde_json::to_string(&snapshot.metadata)
+            .map_err(|e| AgentError::Workflow(format!("Failed to serialize metadata: {}", e)))?;
+        
+        let step_state_json = serde_json::to_string(&snapshot.step_state)
+            .map_err(|e| AgentError::Workflow(format!("Failed to serialize step state: {}", e)))?;
+        
+        sqlx::query(
+            r#"
+            INSERT INTO workflow_snapshots 
+            (id, created_at, context_json, current_step, suspend_reason, metadata_json, step_state_json)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            ON CONFLICT(id) DO UPDATE SET
+                created_at = excluded.created_at,
+                context_json = excluded.context_json,
+                current_step = excluded.current_step,
+                suspend_reason = excluded.suspend_reason,
+                metadata_json = excluded.metadata_json,
+                step_state_json = excluded.step_state_json
+            "#
+        )
+        .bind(snapshot.id.to_string())
+        .bind(snapshot.created_at.to_rfc3339())
+        .bind(context_json)
+        .bind(snapshot.current_step as i64)
+        .bind(suspend_reason_json)
+        .bind(metadata_json)
+        .bind(step_state_json)
+        .execute(pool)
+        .await
+        .map_err(|e| AgentError::Workflow(format!("Failed to store snapshot: {}", e)))?;
+        
+        debug!("Stored workflow snapshot in database: {}", snapshot.id);
+        Ok(())
+    }
+    
+    async fn get_snapshot(&self, id: Uuid) -> Result<Option<WorkflowSnapshot>> {
+        let pool = self.pool()?;
+        
+        let row = sqlx::query(
+            "SELECT id, created_at, context_json, current_step, suspend_reason, metadata_json, step_state_json FROM workflow_snapshots WHERE id = ?1"
+        )
+        .bind(id.to_string())
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| AgentError::Workflow(format!("Failed to fetch snapshot: {}", e)))?;
+        
+        if let Some(row) = row {
+            let created_at_str: String = row.get("created_at");
+            let context_json: String = row.get("context_json");
+            let current_step: i64 = row.get("current_step");
+            let suspend_reason_json: String = row.get("suspend_reason");
+            let metadata_json: String = row.get("metadata_json");
+            let step_state_json: String = row.get("step_state_json");
+            
+            let context = serde_json::from_str(&context_json)
+                .map_err(|e| AgentError::Workflow(format!("Failed to deserialize context: {}", e)))?;
+            
+            let suspend_reason = serde_json::from_str(&suspend_reason_json)
+                .map_err(|e| AgentError::Workflow(format!("Failed to deserialize suspend reason: {}", e)))?;
+            
+            let metadata = serde_json::from_str(&metadata_json)
+                .map_err(|e| AgentError::Workflow(format!("Failed to deserialize metadata: {}", e)))?;
+            
+            let step_state = serde_json::from_str(&step_state_json)
+                .map_err(|e| AgentError::Workflow(format!("Failed to deserialize step state: {}", e)))?;
+            
+            let created_at = DateTime::parse_from_rfc3339(&created_at_str)
+                .map_err(|e| AgentError::Workflow(format!("Failed to parse created_at: {}", e)))?
+                .with_timezone(&Utc);
+            
+            Ok(Some(WorkflowSnapshot {
+                id,
+                created_at,
+                context,
+                current_step: current_step as usize,
+                suspend_reason,
+                metadata,
+                step_state,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+    
+    async fn list_snapshots(&self, filter: Option<HashMap<String, String>>) -> Result<Vec<WorkflowSnapshot>> {
+        let pool = self.pool()?;
+        
+        let rows = sqlx::query(
+            "SELECT id FROM workflow_snapshots ORDER BY created_at DESC"
+        )
+        .fetch_all(pool)
+        .await
+        .map_err(|e| AgentError::Workflow(format!("Failed to list snapshots: {}", e)))?;
+        
+        let mut snapshots = Vec::new();
+        
+        for row in rows {
+            let id_str: String = row.get("id");
+            if let Ok(id) = Uuid::parse_str(&id_str) {
+                if let Ok(Some(snapshot)) = self.get_snapshot(id).await {
+                    // Apply filter if provided
+                    if let Some(ref filter_map) = filter {
+                        let mut matches = true;
+                        for (key, value) in filter_map {
+                            if snapshot.metadata.get(key) != Some(value) {
+                                matches = false;
+                                break;
+                            }
+                        }
+                        if matches {
+                            snapshots.push(snapshot);
+                        }
+                    } else {
+                        snapshots.push(snapshot);
+                    }
+                }
+            }
+        }
+        
+        Ok(snapshots)
+    }
+    
+    async fn delete_snapshot(&self, id: Uuid) -> Result<bool> {
+        let pool = self.pool()?;
+        
+        let result = sqlx::query(
+            "DELETE FROM workflow_snapshots WHERE id = ?1"
+        )
+        .bind(id.to_string())
+        .execute(pool)
+        .await
+        .map_err(|e| AgentError::Workflow(format!("Failed to delete snapshot: {}", e)))?;
+        
+        Ok(result.rows_affected() > 0)
+    }
+    
+    async fn cleanup_old_snapshots(&self, older_than: chrono::Duration) -> Result<usize> {
+        let pool = self.pool()?;
+        let cutoff = Utc::now() - older_than;
+        
+        let result = sqlx::query(
+            "DELETE FROM workflow_snapshots WHERE created_at < ?1"
+        )
+        .bind(cutoff.to_rfc3339())
+        .execute(pool)
+        .await
+        .map_err(|e| AgentError::Workflow(format!("Failed to cleanup snapshots: {}", e)))?;
+        
+        let deleted_count = result.rows_affected() as usize;
+        if deleted_count > 0 {
+            info!("Cleaned up {} old workflow snapshots", deleted_count);
+        }
+        
+        Ok(deleted_count)
+    }
 }
 
 /// File-based snapshot storage implementation

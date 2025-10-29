@@ -93,11 +93,16 @@ impl Agent {
         // Initialize workflow engine with configuration
         let mut workflow = WorkflowEngine::default();
         
-        // Configure snapshot storage if directory is provided
-        if let Some(ref snapshot_dir) = config.workflow.snapshot_storage_dir {
-            use crate::workflow::FileSnapshotStorage;
-            let storage = Box::new(FileSnapshotStorage::new(snapshot_dir));
-            workflow = workflow.with_snapshot_storage(storage);
+        // Configure SQLite snapshot storage using the same database as memory
+        let database_url = config.memory.database_url.clone()
+            .unwrap_or_else(|| "sqlite:.agency/agent.db".to_string());
+        
+        use crate::workflow::SqliteSnapshotStorage;
+        let mut storage = SqliteSnapshotStorage::new(database_url);
+        if let Err(e) = storage.initialize().await {
+            warn!("Failed to initialize workflow snapshot storage: {}", e);
+        } else {
+            workflow = workflow.with_snapshot_storage(Box::new(storage));
         }
         
         // Apply workflow suspend configuration

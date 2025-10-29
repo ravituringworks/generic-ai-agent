@@ -134,10 +134,8 @@ verbose = false
 # Set to true to enable pausing and resuming workflows
 enable_suspend_resume = false
 
-# Snapshot storage directory (where workflow states are saved)
-# This is always configured but only used if enable_suspend_resume = true
-# or when workflows explicitly request suspension
-snapshot_storage_dir = "./.agency/snapshots"
+# Note: Workflow snapshots are stored in the same SQLite database as memory
+# (configured in [memory] section). No separate storage needed.
 
 # Enable automatic checkpointing
 # If true, workflow state is automatically saved at regular intervals
