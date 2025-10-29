@@ -5,6 +5,7 @@ The Generic AI Agent framework provides comprehensive pause execution functional
 ## Overview
 
 The pause execution system provides four main capabilities:
+
 - **`sleep(duration_ms)`**: Pause for a set number of milliseconds
 - **`sleepUntil(timestamp)`**: Pause until a specific timestamp  
 - **`waitForEvent(event_id, timeout_ms)`**: Pause until an external event is received
@@ -50,7 +51,8 @@ pub struct EventBus {
 }
 ```
 
-#### Key Methods:
+#### Key Methods
+
 - `send_event(event)` - Send event to all subscribers
 - `subscribe(event_type)` - Subscribe to specific event type
 - `wait_for_event(event_id, timeout_ms)` - Wait for specific event with optional timeout
@@ -143,13 +145,15 @@ context.metadata.insert("needs_approval".to_string(), "true".to_string());
 ## Pause Types and Workflow Steps
 
 ### 1. SleepStep
+
 Unconditionally pauses for a specified duration:
 
 ```rust
 let sleep_step = SleepStep::new(5000); // 5 seconds
 ```
 
-### 2. SleepUntilStep  
+### 2. SleepUntilStep
+
 Pauses until a specific timestamp:
 
 ```rust
@@ -158,6 +162,7 @@ let sleep_until_step = SleepUntilStep::new(wake_time);
 ```
 
 ### 3. WaitForEventStep
+
 Pauses until an event is received:
 
 ```rust
@@ -168,6 +173,7 @@ let event_step = WaitForEventStep::new(
 ```
 
 ### 4. ConditionalPauseStep
+
 Conditionally pauses based on workflow context:
 
 ```rust
@@ -482,6 +488,7 @@ cargo run --example pause_execution_example
 ```
 
 This example demonstrates:
+
 - All four pause methods (`sleep`, `sleepUntil`, `waitForEvent`, `sendEvent`)
 - Event bus operations and patterns
 - Workflow integration and state management

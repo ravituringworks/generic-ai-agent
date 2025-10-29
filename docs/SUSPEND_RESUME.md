@@ -14,6 +14,7 @@ The Generic AI Agent framework provides comprehensive suspend and resume functio
 ## Common Use Cases
 
 ### 1. Human Approval Workflows
+
 ```rust
 use the_agency::workflow::{HumanApprovalStep, WorkflowEngine};
 
@@ -33,6 +34,7 @@ let resumed = engine.resume_from_snapshot(snapshot_id).await?;
 ```
 
 ### 2. Rate-Limited API Calls
+
 ```rust
 use the_agency::workflow::RateLimitedApiStep;
 
@@ -47,6 +49,7 @@ let engine = WorkflowEngine::new()
 ```
 
 ### 3. External Resource Availability
+
 ```rust
 use the_agency::workflow::EnhancedMemoryRetrievalStep;
 

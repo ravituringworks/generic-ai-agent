@@ -30,6 +30,7 @@ The A2A communication system extends the capabilities of individual AI agents by
 ## Key Features
 
 ### 🌐 Multi-Protocol Support
+
 - **HTTP REST APIs** - Standard web-based communication
 - **WebSockets** - Real-time bidirectional communication
 - **Message Queues** - Redis, RabbitMQ for reliable async messaging
@@ -37,18 +38,21 @@ The A2A communication system extends the capabilities of individual AI agents by
 - **In-Memory** - Testing and development
 
 ### 🔍 Service Discovery
+
 - **Capability-Based Discovery** - Find agents by their services
 - **Health Monitoring** - Automatic heartbeat and status tracking
 - **Load Balancing** - Distribute requests across available agents
 - **Circuit Breakers** - Fault tolerance and recovery
 
 ### 📨 Message Patterns
+
 - **Request-Response** - Synchronous communication
 - **Publish-Subscribe** - Event-driven messaging  
 - **Broadcasting** - One-to-many communication
 - **Queuing** - Reliable message delivery
 
 ### 🔒 Security & Reliability
+
 - **Authentication** - API keys and certificates
 - **Encryption** - TLS/SSL support
 - **Rate Limiting** - Prevent abuse and overload
@@ -56,9 +60,9 @@ The A2A communication system extends the capabilities of individual AI agents by
 
 ## Architecture
 
-```
+```text
 ┌─────────────────┐    A2A Messages     ┌─────────────────┐
-│   Agent A       │◄──────────────────►│   Agent B       │
+│   Agent A       │◄─────────────────-─►│   Agent B       │
 │                 │                     │                 │
 │  ┌───────────┐  │                     │  ┌───────────┐  │
 │  │    LLM    │  │                     │  │    LLM    │  │
@@ -72,12 +76,12 @@ The A2A communication system extends the capabilities of individual AI agents by
 │  └───────────┘  │                     │  └───────────┘  │
 └─────────────────┘                     └─────────────────┘
         │                                        │
-        └────────────────┐              ┌───────┘
+        └────────────────┐              ┌──────-─┘
                          │              │
                     ┌────▼──────────────▼────┐
                     │  Service Discovery     │
-                    │     Registry          │
-                    └───────────────────────┘
+                    │     Registry           │
+                    └──────────────────────-─┘
 ```
 
 ## Getting Started

@@ -17,6 +17,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 ### Core Capabilities
 
+- **Task-Based LLM**: Configure different models for different task types (code, creative, math, etc.)
 - **Memory System**: Persistent vector-based memory with semantic search
 - **Document RAG**: PDF processing with table extraction and semantic indexing
 - **Tool Integration**: Call any MCP-compatible tools and built-in functions

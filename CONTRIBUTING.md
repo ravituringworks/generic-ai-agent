@@ -10,6 +10,7 @@ Thank you for your interest in contributing to the Generic AI Agent framework! W
 - **Subject**: `Generic AI Agent Contribution - [Brief Description]`
 
 This helps us:
+
 - Understand your contribution goals
 - Provide guidance and context
 - Avoid duplicate efforts
@@ -19,6 +20,7 @@ This helps us:
 ## 🤝 Ways to Contribute
 
 ### Code Contributions
+
 - Bug fixes and improvements
 - New features and capabilities
 - Performance optimizations
@@ -26,6 +28,7 @@ This helps us:
 - Test coverage enhancements
 
 ### Documentation
+
 - API documentation
 - Usage examples and tutorials
 - Architecture documentation
@@ -33,12 +36,14 @@ This helps us:
 - Community guides
 
 ### Examples and Demos
+
 - Real-world use cases
 - Integration examples
 - Advanced feature demonstrations
 - Educational content
 
 ### Testing and Quality Assurance
+
 - Bug reports with reproduction steps
 - Performance testing
 - Security audits
@@ -55,11 +60,12 @@ This helps us:
    - Timeline and milestones
 
 3. **Development Setup**:
+
    ```bash
-   git clone https://github.com/ravituringworks/the-agency.git
-   cd the-agency
-   cargo build
-   cargo test
+      git clone https://github.com/ravituringworks/the-agency.git
+      cd the-agency
+      cargo build
+      cargo test
    ```
 
 4. **Development Guidelines**:
@@ -78,6 +84,7 @@ This helps us:
 ## 📋 Development Standards
 
 ### Code Quality
+
 - **Rust Best Practices**: Follow idiomatic Rust patterns
 - **Error Handling**: Use comprehensive error types with context
 - **Documentation**: Document all public APIs with examples
@@ -85,6 +92,7 @@ This helps us:
 - **Performance**: Consider performance implications of changes
 
 ### Code Style
+
 - Use `cargo fmt` for formatting
 - Run `cargo clippy` for linting
 - Follow existing naming conventions
@@ -92,12 +100,14 @@ This helps us:
 - Include inline comments for complex logic
 
 ### Testing Requirements
+
 - Unit tests for new functionality
 - Integration tests for system interactions
 - Examples demonstrating usage
 - All tests must pass on CI/CD
 
 ### Documentation Standards
+
 - Update API documentation for public interfaces
 - Include usage examples in doc comments
 - Update README.md for significant features
@@ -107,6 +117,7 @@ This helps us:
 ## 🏗️ Architecture Guidelines
 
 ### Design Principles
+
 - **Modularity**: Keep components loosely coupled
 - **Extensibility**: Design for future enhancements
 - **Performance**: Consider async/await patterns
@@ -114,6 +125,7 @@ This helps us:
 - **Maintainability**: Write clear, testable code
 
 ### Key Components
+
 - **Agent Framework**: Core orchestration logic
 - **Memory System**: Vector storage and retrieval
 - **LLM Integration**: Model communication and management
@@ -175,16 +187,19 @@ All contributions go through code review:
 ## 📞 Communication and Support
 
 ### Primary Contact
+
 - **Maintainer**: Ravindra Boddipalli
 - **Email**: [rboddipalli@turingworks.com](mailto:rboddipalli@turingworks.com)
 - **Company**: [Turing Works](https://turingworks.com)
 
 ### Response Times
+
 - **Initial Response**: Within 48 hours
 - **Code Review**: Within 1 week for standard PRs
 - **Complex Features**: Timeline discussed individually
 
 ### Communication Guidelines
+
 - Be respectful and constructive
 - Provide clear, detailed information
 - Be patient with review processes
@@ -224,6 +239,7 @@ Areas where we're especially looking for contributions:
 ## 🙏 Recognition
 
 Contributors will be:
+
 - Added to project contributors list
 - Credited in release notes for significant contributions
 - Invited to participate in project planning discussions

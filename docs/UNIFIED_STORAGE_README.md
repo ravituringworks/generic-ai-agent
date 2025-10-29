@@ -13,42 +13,47 @@ The Unified Storage System provides a comprehensive, single interface for managi
 
 ### Core Components
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    StorageManager                           │
-│                 (Coordination Layer)                       │
+│                 (Coordination Layer)                        │
 ├─────────────────────────────────────────────────────────────┤
-│                 UnifiedStorage Trait                       │
-│                  (Interface Layer)                         │
+│                 UnifiedStorage Trait                        │
+│                  (Interface Layer)                          │
 ├─────────────────────────────────────────────────────────────┤
-│  SQLiteStorage  │  PostgreSQLStorage  │  MongoDBStorage    │
-│     Backend     │       Backend       │      Backend      │
+│  SQLiteStorage  │  PostgreSQLStorage  │  MongoDBStorage     │
+│     Backend     │       Backend       │      Backend        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Features
 
 #### 🔧 **Unified Interface**
+
 - Single API for all storage operations
 - Consistent error handling and retry logic
 - Resource-scoped data isolation via `ResourceId`
 
 #### 🔄 **Multiple Backend Support**
+
 - SQLite implementation (production-ready)
 - PostgreSQL and MongoDB interfaces (extensible)
 - Pluggable backend architecture
 
 #### 🏢 **Multi-tenancy**
+
 - `ResourceId` namespace isolation
 - Per-resource data scoping
 - Cross-tenant data protection
 
 #### 📊 **Retention Management**
+
 - Configurable retention policies per data type
 - Automated cleanup and archival
 - Storage size monitoring
 
 #### 🔍 **Observability**
+
 - Built-in performance metrics
 - Storage statistics and monitoring
 - Query tracing and profiling
@@ -56,6 +61,7 @@ The Unified Storage System provides a comprehensive, single interface for managi
 ## Data Models
 
 ### Suspended Workflows
+
 ```rust
 pub struct SuspendedWorkflow {
     pub workflow_id: String,
@@ -69,7 +75,8 @@ pub struct SuspendedWorkflow {
 }
 ```
 
-### Memory Management
+### Memory Data Models
+
 ```rust
 pub struct MemoryThread {
     pub thread_id: String,
@@ -90,6 +97,7 @@ pub struct MemoryMessage {
 ```
 
 ### Trace Management
+
 ```rust
 pub struct TraceData {
     pub trace_id: String,
@@ -103,7 +111,8 @@ pub struct TraceData {
 }
 ```
 
-### Evaluation Management
+### Evaluation Dataset Operations
+
 ```rust
 pub struct EvalDataset {
     pub dataset_id: String,
@@ -475,6 +484,7 @@ cargo run --example unified_storage_system
 ```
 
 The demo showcases:
+
 - Workflow suspension and resumption
 - Conversation thread management
 - Trace collection and querying

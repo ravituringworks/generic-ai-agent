@@ -49,6 +49,33 @@ pub struct LlmConfig {
     
     /// Enable streaming responses
     pub stream: bool,
+    
+    /// Task-specific model configurations
+    #[serde(default)]
+    pub task_models: HashMap<String, TaskModelConfig>,
+}
+
+/// Task-specific model configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskModelConfig {
+    /// Model name for this task
+    pub model: String,
+    
+    /// Maximum tokens for this task
+    #[serde(default)]
+    pub max_tokens: Option<u32>,
+    
+    /// Temperature for this task
+    #[serde(default)]
+    pub temperature: Option<f32>,
+    
+    /// Custom system prompt for this task
+    #[serde(default)]
+    pub system_prompt: Option<String>,
+    
+    /// Task description/keywords for matching
+    #[serde(default)]
+    pub keywords: Vec<String>,
 }
 
 /// Memory and vector store configuration
@@ -201,7 +228,47 @@ impl Default for LlmConfig {
             temperature: 0.7,
             timeout: 30,
             stream: false,
+            task_models: HashMap::new(),
         }
+    }
+}
+
+impl LlmConfig {
+    /// Get the appropriate model configuration for a given task
+    pub fn get_task_model(&self, task: &str) -> TaskModelConfig {
+        // Try to find a matching task model by exact name
+        if let Some(task_config) = self.task_models.get(task) {
+            return task_config.clone();
+        }
+        
+        // Try to find a matching task model by keywords
+        let task_lower = task.to_lowercase();
+        for (_, config) in &self.task_models {
+            for keyword in &config.keywords {
+                if task_lower.contains(&keyword.to_lowercase()) {
+                    return config.clone();
+                }
+            }
+        }
+        
+        // Return default configuration
+        TaskModelConfig {
+            model: self.text_model.clone(),
+            max_tokens: Some(self.max_tokens),
+            temperature: Some(self.temperature),
+            system_prompt: None,
+            keywords: vec![],
+        }
+    }
+    
+    /// Add a task-specific model configuration
+    pub fn add_task_model(&mut self, task_name: String, config: TaskModelConfig) {
+        self.task_models.insert(task_name, config);
+    }
+    
+    /// Remove a task-specific model configuration
+    pub fn remove_task_model(&mut self, task_name: &str) -> Option<TaskModelConfig> {
+        self.task_models.remove(task_name)
     }
 }
 

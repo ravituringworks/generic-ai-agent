@@ -1,0 +1,178 @@
+# The Agency - Example Configuration File
+# This file demonstrates how to configure task-specific LLM models
+
+[llm]
+# Default Ollama server URL
+ollama_url = "http://localhost:11434"
+
+# Default model for text generation
+text_model = "llama3.2"
+
+# Model for embeddings
+embedding_model = "nomic-embed-text"
+
+# Default maximum tokens for generation
+max_tokens = 4096
+
+# Default temperature for generation
+temperature = 0.7
+
+# Request timeout in seconds
+timeout = 30
+
+# Enable streaming responses
+stream = false
+
+# Task-specific model configurations
+# Each task can use a different model with custom settings
+
+[llm.task_models.code_generation]
+model = "qwen2.5-coder:7b"
+max_tokens = 8192
+temperature = 0.2
+keywords = ["code", "program", "function", "class", "debug", "refactor", "implement"]
+system_prompt = "You are an expert software engineer. Write clean, efficient, and well-documented code."
+
+[llm.task_models.creative_writing]
+model = "llama3.2:8b"
+max_tokens = 4096
+temperature = 0.9
+keywords = ["story", "poem", "creative", "write", "narrative", "fiction"]
+system_prompt = "You are a creative writer with a talent for storytelling. Be imaginative and engaging."
+
+[llm.task_models.data_analysis]
+model = "qwen2.5:7b"
+max_tokens = 4096
+temperature = 0.3
+keywords = ["analyze", "data", "statistics", "graph", "chart", "report", "insights"]
+system_prompt = "You are a data analyst. Provide clear, accurate insights based on data."
+
+[llm.task_models.math_problem]
+model = "qwen2.5:7b"
+max_tokens = 2048
+temperature = 0.1
+keywords = ["calculate", "math", "solve", "equation", "formula", "compute"]
+system_prompt = "You are a mathematics expert. Solve problems step-by-step with clear explanations."
+
+[llm.task_models.translation]
+model = "aya:8b"
+max_tokens = 4096
+temperature = 0.3
+keywords = ["translate", "translation", "language"]
+system_prompt = "You are a professional translator. Provide accurate translations while preserving context and tone."
+
+[llm.task_models.summarization]
+model = "llama3.2:3b"
+max_tokens = 1024
+temperature = 0.4
+keywords = ["summarize", "summary", "brief", "overview", "tldr"]
+system_prompt = "You are a summarization expert. Provide concise, accurate summaries of content."
+
+[memory]
+# Vector store type
+store_type = "sqlite"
+
+# Database file path
+database_url = "sqlite:memory.db"
+
+# Embedding dimension (must match embedding model)
+embedding_dimension = 768
+
+# Maximum number of search results
+max_search_results = 10
+
+# Similarity threshold for retrieval
+similarity_threshold = 0.7
+
+# Enable persistent storage
+persistent = true
+
+[mcp]
+# Default timeout for tool calls (seconds)
+default_timeout = 30
+
+# Maximum concurrent tool calls
+max_concurrent_calls = 5
+
+# Enable tool call caching
+enable_caching = true
+
+# MCP server configurations
+# Add your custom MCP servers here
+# [mcp.servers.example_server]
+# transport = "http"
+# url = "http://localhost:8000"
+# enabled = true
+# timeout = 30
+
+[agent]
+# Agent's name/identity
+name = "The Agency AI Assistant"
+
+# System prompt for the agent
+system_prompt = """You are a helpful AI assistant with access to various tools and a memory system. \
+Use your capabilities to assist users effectively. When appropriate, select the best tool or \
+specialized model for the task at hand."""
+
+# Maximum conversation history length
+max_history_length = 20
+
+# Enable memory retrieval
+use_memory = true
+
+# Enable tool calling
+use_tools = true
+
+# Maximum thinking steps for complex queries
+max_thinking_steps = 5
+
+# Enable verbose logging
+verbose = false
+
+[workflow]
+# Enable workflow suspend/resume functionality
+enable_suspend_resume = false
+
+# Snapshot storage directory
+snapshot_storage_dir = "./snapshots"
+
+# Enable automatic checkpointing
+auto_checkpoint = false
+
+# Checkpoint interval (in steps)
+checkpoint_interval = 5
+
+# Maximum number of snapshots to keep
+max_snapshots = 10
+
+# Snapshot retention period in days
+snapshot_retention_days = 7
+
+# Enable workflow step debugging
+debug_steps = false
+
+[a2a]
+# Agent ID configuration
+[a2a.agent_id]
+network = "default"
+name = "assistant"
+
+# Discovery service configuration
+[a2a.discovery]
+enabled = false
+registry_url = "http://localhost:8500"
+heartbeat_interval_secs = 30
+health_check_interval_secs = 60
+
+# Communication protocol settings
+[a2a.protocol]
+type = "http"
+port = 8080
+host = "0.0.0.0"
+
+# Security settings
+[a2a.security]
+enable_auth = false
+enable_encryption = false
+enable_rate_limiting = true
+rate_limit_requests_per_minute = 60
