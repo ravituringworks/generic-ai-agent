@@ -30,6 +30,7 @@ pub mod agent;
 pub mod cache;
 pub mod config;
 pub mod error;
+pub mod knowledge;
 pub mod llm;
 pub mod mcp;
 pub mod memory;
@@ -47,6 +48,10 @@ pub use agent::{Agent, AgentBuilder};
 pub use cache::{CacheStats, LlmCache, LlmCacheConfig};
 pub use config::{AgentConfig, LlmConfig, McpConfig, MemoryConfig};
 pub use error::{AgentError, Result};
+pub use knowledge::{
+    ConsolidatedKnowledge, ContentChunker, DocumentFormat, IngestionConfig, IngestionResult,
+    KnowledgeChunk, KnowledgeConsolidator, KnowledgeSource,
+};
 pub use mcp::{McpClient, McpTool, ToolCall, ToolResult};
 pub use memory::{MemoryStore, VectorStore};
 pub use unified_storage::{

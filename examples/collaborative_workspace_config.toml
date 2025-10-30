@@ -58,14 +58,28 @@ enable_suspend_resume = false
 
 # Learning configuration
 [learning]
-# Maximum best practices to store per role
-max_best_practices_per_role = 100
+# Soft limit for best practices (triggers consolidation)
+soft_limit_best_practices = 100
+
+# Hard limit for best practices (triggers pruning)
+hard_limit_best_practices = 500
 
 # Maximum failure lessons to store per role
 max_failure_lessons_per_role = 50
 
 # Knowledge relevance threshold for retrieval (0.0 - 1.0)
 knowledge_relevance_threshold = 0.7
+
+# Enable automatic consolidation
+enable_auto_consolidation = true
+
+# Similarity threshold for consolidation (0.0 - 1.0)
+consolidation_similarity_threshold = 0.85
+
+# Retention policies
+min_reuse_count_to_keep = 2
+min_quality_score_to_keep = 0.7
+max_age_days_if_unused = 90
 
 # Enable performance metric tracking
 track_metrics = true
@@ -81,6 +95,25 @@ reflection_depth = "detailed"
 
 # Number of relevant memories to retrieve for context
 memory_retrieval_count = 5
+
+# External knowledge sources
+[learning.external_sources]
+enable_web_learning = false
+enable_document_ingestion = true
+max_crawl_depth = 2
+max_pages_per_domain = 50
+chunk_size = 1000
+chunk_overlap = 200
+min_content_quality_score = 0.6
+allowed_domains = [
+    "docs.rs",
+    "rust-lang.org",
+    "github.com"
+]
+trusted_sources = [
+    "docs.rs",
+    "rust-lang.org"
+]
 
 # Evaluation configuration
 [evaluation]
