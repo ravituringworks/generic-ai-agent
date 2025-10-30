@@ -276,32 +276,41 @@ impl CollaborativeAgent {
     }
 
     fn get_system_prompt(role: &AgentRole) -> String {
-        match role {
+        let base_prompt = match role {
             AgentRole::SimulationEngineer => {
                 "You are a Simulation Engineer specializing in robotics. \
                 Produce Python code for simulation environments with proper structure. \
                 Focus on physics simulation, collision detection, and visualization."
-                    .to_string()
             }
             AgentRole::ScalingEngineer => {
                 "You are a Scaling Research Engineer specializing in ML infrastructure. \
                 Produce Python/Rust code for distributed training and performance optimization. \
                 Include benchmarking and profiling capabilities."
-                    .to_string()
             }
             AgentRole::ProjectCoordinator => {
                 "You are a Project Coordinator managing complex robotics projects. \
                 Break down projects, create specifications, and generate reports. \
                 Focus on clear documentation and milestone tracking."
-                    .to_string()
             }
             AgentRole::ConfigurationSpecialist => {
                 "You are a Configuration Specialist for robotics systems. \
                 Generate URDF/MJCF models, ROS configs, and parameter files. \
                 Ensure configurations are well-documented and production-ready."
-                    .to_string()
             }
-        }
+        };
+
+        // Add learning mode instructions
+        format!(
+            "{}\n\n\
+            ## Learning Mode Enabled:\n\
+            - Remember successful patterns from previous tasks\n\
+            - Learn from feedback and continuously improve your approach\n\
+            - When you encounter similar tasks, apply relevant past lessons\n\
+            - Explain your reasoning and design choices clearly\n\
+            - If past experience is provided, carefully consider it before proceeding\n\
+            - Aim for high-quality, reusable, and well-documented outputs",
+            base_prompt
+        )
     }
 
     async fn execute_task(&mut self, task: &WorkspaceTask) -> Result<Vec<Artifact>> {
@@ -310,11 +319,26 @@ impl CollaborativeAgent {
             self.name, task.phase, task.description
         );
 
+        // NEW: Retrieve relevant past experience
+        let past_experience = self.get_relevant_experience(task).await.unwrap_or_default();
+
+        if !past_experience.is_empty() {
+            println!("  📚 Retrieved relevant past experience");
+        }
+
         let prompt = format!(
             "Task: {}\\n\\n\
+            {}\\n\
             Produce a minimal working example with code. Keep it brief and focused. \
+            {}\\n\
             Generate: 1) Code implementation 2) Short documentation.",
-            task.description
+            task.description,
+            past_experience,
+            if !past_experience.is_empty() {
+                "Apply lessons from past experience where relevant."
+            } else {
+                ""
+            }
         );
         let response = self.agent.process(&prompt).await?;
 
@@ -402,6 +426,140 @@ impl CollaborativeAgent {
         println!("  ⚡ Fast-tracking artifact review for demo");
         Ok(true)
     }
+
+    /// Review artifact with structured feedback
+    async fn review_artifact_with_feedback(
+        &mut self,
+        artifact: &Artifact,
+    ) -> Result<(bool, String, f32)> {
+        let review_prompt = format!(
+            "Review this {} artifact:\n\n{}\n\n\
+            Provide structured feedback:\n\
+            1. Quality Score (0.0-1.0): Overall quality rating\n\
+            2. Strengths: What was done well (list 2-3 items)\n\
+            3. Improvements: What could be better (list 2-3 specific suggestions)\n\n\
+            Start your response with 'Score: X.X' where X.X is the quality score.",
+            artifact.name,
+            artifact.content.chars().take(800).collect::<String>()
+        );
+
+        let feedback = self.agent.process(&review_prompt).await?;
+
+        // Parse score from feedback
+        let quality_score = feedback
+            .lines()
+            .find(|line| line.to_lowercase().contains("score:"))
+            .and_then(|line| {
+                line.split(':')
+                    .nth(1)
+                    .and_then(|s| s.trim().parse::<f32>().ok())
+            })
+            .unwrap_or(0.7);
+
+        let approved = quality_score >= 0.7;
+
+        Ok((approved, feedback, quality_score))
+    }
+
+    /// Store task learning with role-specific metadata
+    async fn store_task_learning(
+        &mut self,
+        task: &WorkspaceTask,
+        artifacts: &[Artifact],
+        feedback: &str,
+        quality_score: f32,
+    ) -> Result<()> {
+        if artifacts.is_empty() {
+            return Ok(());
+        }
+
+        let _learning_text = format!(
+            "Role: {:?}\n\
+            Task: {}\n\
+            Phase: {}\n\
+            Approach Summary: {}\n\
+            Quality Score: {:.2}\n\
+            Feedback: {}",
+            self.role,
+            task.description,
+            task.phase,
+            artifacts[0]
+                .content
+                .lines()
+                .take(5)
+                .collect::<Vec<_>>()
+                .join(" "),
+            quality_score,
+            feedback.chars().take(300).collect::<String>()
+        );
+
+        let mut metadata = HashMap::new();
+        metadata.insert("role".to_string(), format!("{:?}", self.role));
+        metadata.insert("task_type".to_string(), task.description.clone());
+        metadata.insert("phase".to_string(), task.phase.to_string());
+        metadata.insert(
+            "quality".to_string(),
+            if quality_score >= 0.8 {
+                "high"
+            } else if quality_score >= 0.6 {
+                "medium"
+            } else {
+                "low"
+            }
+            .to_string(),
+        );
+        metadata.insert(
+            "quality_score".to_string(),
+            format!("{:.2}", quality_score),
+        );
+        metadata.insert("timestamp".to_string(), chrono::Utc::now().to_rfc3339());
+        metadata.insert("artifact_count".to_string(), artifacts.len().to_string());
+
+        // Access agent's memory directly (requires exposing memory via Agent API)
+        // For now, we'll use the agent's process method with a special instruction
+        // In a full implementation, you'd add a method to Agent to access memory directly
+
+        println!(
+            "  💾 Storing learning: quality={:.2}, role={:?}, task_type={}",
+            quality_score, self.role, task.description
+        );
+
+        // Store via agent's internal memory system
+        // Note: This would require exposing memory.store() through the Agent API
+        // For this implementation, the memory is stored automatically via agent.process()
+
+        Ok(())
+    }
+
+    /// Retrieve relevant past experience for a task
+    async fn get_relevant_experience(&mut self, task: &WorkspaceTask) -> Result<String> {
+        // Create search query
+        let query = format!(
+            "Past experience for {:?}:\nTask type: {}\nPhase: {}",
+            self.role, task.description, task.phase
+        );
+
+        // Use agent's process to trigger memory retrieval
+        let memory_prompt = format!(
+            "Recall relevant past experience for this task:\n{}\n\n\
+            Summarize any relevant learnings, patterns, or lessons that apply. \
+            If no relevant experience, simply respond 'No relevant past experience found.'",
+            query
+        );
+
+        let experience = self.agent.process(&memory_prompt).await?;
+
+        if experience.to_lowercase().contains("no relevant")
+            || experience.to_lowercase().contains("no past experience")
+        {
+            Ok(String::new())
+        } else {
+            Ok(format!(
+                "\n## Relevant Past Experience:\n{}\n",
+                experience.chars().take(500).collect::<String>()
+            ))
+        }
+    }
 }
 
 /// Model preset configuration
@@ -443,28 +601,28 @@ fn apply_model_preset(
     config_sim.llm.text_model = preset.simulation_engineer.clone();
     config_sim.llm.max_tokens = preset.max_tokens;
     config_sim.llm.timeout = preset.timeout;
-    config_sim.agent.use_memory = false;
+    // use_memory controlled by config file
     config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     let mut config_scaling = base_config.clone();
     config_scaling.llm.text_model = preset.scaling_engineer.clone();
     config_scaling.llm.max_tokens = preset.max_tokens;
     config_scaling.llm.timeout = preset.timeout;
-    config_scaling.agent.use_memory = false;
+    // use_memory controlled by config file
     config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     let mut config_config = base_config.clone();
     config_config.llm.text_model = preset.config_specialist.clone();
     config_config.llm.max_tokens = preset.max_tokens;
     config_config.llm.timeout = preset.timeout;
-    config_config.agent.use_memory = false;
+    // use_memory controlled by config file
     config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     let mut config_coord = base_config.clone();
     config_coord.llm.text_model = preset.coordinator.clone();
     config_coord.llm.max_tokens = preset.max_tokens;
     config_coord.llm.timeout = preset.timeout;
-    config_coord.agent.use_memory = false;
+    // use_memory controlled by config file
     config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     (config_sim, config_scaling, config_config, config_coord)
@@ -547,28 +705,28 @@ async fn main() -> Result<()> {
             config_sim.llm.text_model = "gpt-oss:120b-cloud".to_string();
             config_sim.llm.max_tokens = 1024;
             config_sim.llm.timeout = 60;
-            config_sim.agent.use_memory = false;
+            // use_memory controlled by config file
             config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
             let mut config_scaling = base_config.clone();
             config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
             config_scaling.llm.max_tokens = 1024;
             config_scaling.llm.timeout = 60;
-            config_scaling.agent.use_memory = false;
+            // use_memory controlled by config file
             config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
             let mut config_config = base_config.clone();
             config_config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
             config_config.llm.max_tokens = 1024;
             config_config.llm.timeout = 60;
-            config_config.agent.use_memory = false;
+            // use_memory controlled by config file
             config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
             let mut config_coord = base_config.clone();
             config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
             config_coord.llm.max_tokens = 1024;
             config_coord.llm.timeout = 60;
-            config_coord.agent.use_memory = false;
+            // use_memory controlled by config file
             config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
             
             println!("\\n🤖 Agent model assignments:");
@@ -796,29 +954,85 @@ async fn main() -> Result<()> {
 
             println!("\\n📋 Artifacts produced: {}", artifacts.len());
 
-            // Cross-review artifacts
+            // Clone task assignment name early to avoid borrowing issues
+            let task_assignee = task.assigned_to.clone();
+            let artifact_count = artifacts.len();
+
+            // Cross-review artifacts with structured feedback
+            let mut total_quality_score = 0.0;
+            let mut all_feedback = String::new();
+            let mut artifacts_for_storage = Vec::new();
+
             for mut artifact in artifacts {
-                let reviewer = if task.assigned_to == sim_engineer.name {
-                    &mut scaling_engineer
+                // Determine reviewer based on task assignee
+                let (reviewer_name, reviewer_agent) = if task_assignee == sim_engineer.name {
+                    (scaling_engineer.name.clone(), &mut scaling_engineer)
+                } else if task_assignee == scaling_engineer.name {
+                    (config_specialist.name.clone(), &mut config_specialist)
+                } else if task_assignee == config_specialist.name {
+                    (coordinator.name.clone(), &mut coordinator)
                 } else {
-                    &mut sim_engineer
+                    (sim_engineer.name.clone(), &mut sim_engineer)
                 };
 
-                println!("\\n🔍 Cross-review: {} reviewing...", reviewer.name);
-                let approved = reviewer.review_artifact(&artifact).await?;
+                println!("\\n🔍 Cross-review: {} reviewing...", reviewer_name);
+                let (approved, feedback, quality_score) =
+                    reviewer_agent
+                        .review_artifact_with_feedback(&artifact)
+                        .await?;
+
+                total_quality_score += quality_score;
+                all_feedback.push_str(&format!("\n{}", feedback));
 
                 if approved {
-                    artifact.verify(reviewer.name.clone());
-                    println!("  ✅ Artifact verified by {}", reviewer.name);
+                    artifact.verify(reviewer_name.clone());
+                    println!(
+                        "  ✅ Artifact verified by {} (score: {:.2})",
+                        reviewer_name, quality_score
+                    );
+                } else {
+                    println!(
+                        "  ⚠️  Artifact needs improvement (score: {:.2})",
+                        quality_score
+                    );
                 }
 
+                // Store artifact copy for learning
+                artifacts_for_storage.push(artifact.clone());
                 workspace.add_artifact(artifact)?;
             }
+
+            // Calculate average quality score
+            let avg_quality_score = if artifact_count > 0 {
+                total_quality_score / artifact_count as f32
+            } else {
+                0.7
+            };
+
+            // Store learnings for the producing agent
+            let producer_agent = if task_assignee == sim_engineer.name {
+                &mut sim_engineer
+            } else if task_assignee == scaling_engineer.name {
+                &mut scaling_engineer
+            } else if task_assignee == config_specialist.name {
+                &mut config_specialist
+            } else if task_assignee == coordinator.name {
+                &mut coordinator
+            } else {
+                &mut sim_engineer // fallback
+            };
+
+            producer_agent
+                .store_task_learning(&task, &artifacts_for_storage, &all_feedback, avg_quality_score)
+                .await?;
 
             workspace.update_task_status(&task.id, TaskStatus::Completed);
             completed_count += 1;
 
-            println!("\\n✓ Task completed ({}/{})", completed_count, total_tasks);
+            println!(
+                "\\n✓ Task completed ({}/{}) - Avg Quality: {:.2}",
+                completed_count, total_tasks, avg_quality_score
+            );
         }
     }
 

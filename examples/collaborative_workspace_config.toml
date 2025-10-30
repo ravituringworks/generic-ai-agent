@@ -35,7 +35,7 @@ persistent = true
 
 [agent]
 # Enable memory retrieval
-use_memory = false
+use_memory = true
 
 # Enable tool calling
 use_tools = false
@@ -43,9 +43,58 @@ use_tools = false
 # Enable verbose logging
 verbose = false
 
+# Enable reflection after tasks
+enable_reflection = true
+
+# Enable option evaluation before execution
+enable_option_evaluation = false
+
+# Minimum quality score to extract best practice (0.0 - 1.0)
+min_quality_for_best_practice = 0.8
+
 [workflow]
 # Enable workflow suspend/resume functionality
 enable_suspend_resume = false
+
+# Learning configuration
+[learning]
+# Maximum best practices to store per role
+max_best_practices_per_role = 100
+
+# Maximum failure lessons to store per role
+max_failure_lessons_per_role = 50
+
+# Knowledge relevance threshold for retrieval (0.0 - 1.0)
+knowledge_relevance_threshold = 0.7
+
+# Enable performance metric tracking
+track_metrics = true
+
+# Metric tracking window in days
+metric_window_days = 30
+
+# Enable reflection after every task
+reflection_after_every_task = true
+
+# Reflection depth: "basic", "detailed", or "comprehensive"
+reflection_depth = "detailed"
+
+# Number of relevant memories to retrieve for context
+memory_retrieval_count = 5
+
+# Evaluation configuration
+[evaluation]
+# Enable cross-agent peer review
+enable_cross_review = true
+
+# Minimum review score to approve artifact (0.0 - 1.0)
+min_review_score = 0.7
+
+# Enable self-evaluation
+enable_self_evaluation = true
+
+# Enable structured feedback (scores + comments)
+enable_structured_feedback = true
 
 # Agent-specific model configurations
 # Each agent gets a specialized model optimized for their tasks

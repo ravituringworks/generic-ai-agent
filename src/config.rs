@@ -25,6 +25,14 @@ pub struct AgentConfig {
 
     /// Workflow configuration
     pub workflow: WorkflowConfig,
+
+    /// Learning configuration
+    #[serde(default)]
+    pub learning: LearningConfig,
+
+    /// Evaluation configuration
+    #[serde(default)]
+    pub evaluation: EvaluationConfig,
 }
 
 /// Language model configuration
@@ -191,6 +199,136 @@ pub struct AgentBehaviorConfig {
 
     /// Enable verbose logging
     pub verbose: bool,
+
+    /// Enable reflection after tasks
+    #[serde(default)]
+    pub enable_reflection: bool,
+
+    /// Enable option evaluation before execution
+    #[serde(default)]
+    pub enable_option_evaluation: bool,
+
+    /// Minimum quality score to extract best practice
+    #[serde(default = "default_min_quality_threshold")]
+    pub min_quality_for_best_practice: f32,
+}
+
+fn default_min_quality_threshold() -> f32 {
+    0.8
+}
+
+/// Learning configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LearningConfig {
+    /// Maximum best practices to store per role
+    #[serde(default = "default_max_best_practices")]
+    pub max_best_practices_per_role: usize,
+
+    /// Maximum failure lessons to store per role
+    #[serde(default = "default_max_failure_lessons")]
+    pub max_failure_lessons_per_role: usize,
+
+    /// Knowledge relevance threshold for retrieval
+    #[serde(default = "default_knowledge_threshold")]
+    pub knowledge_relevance_threshold: f32,
+
+    /// Enable performance metric tracking
+    #[serde(default = "default_true")]
+    pub track_metrics: bool,
+
+    /// Metric tracking window in days
+    #[serde(default = "default_metric_window")]
+    pub metric_window_days: i64,
+
+    /// Enable reflection after every task
+    #[serde(default = "default_true")]
+    pub reflection_after_every_task: bool,
+
+    /// Reflection depth level
+    #[serde(default = "default_reflection_depth")]
+    pub reflection_depth: String,
+
+    /// Number of relevant memories to retrieve
+    #[serde(default = "default_memory_retrieval_count")]
+    pub memory_retrieval_count: usize,
+}
+
+fn default_max_best_practices() -> usize {
+    100
+}
+
+fn default_max_failure_lessons() -> usize {
+    50
+}
+
+fn default_knowledge_threshold() -> f32 {
+    0.7
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_metric_window() -> i64 {
+    30
+}
+
+fn default_reflection_depth() -> String {
+    "detailed".to_string()
+}
+
+fn default_memory_retrieval_count() -> usize {
+    5
+}
+
+/// Evaluation configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvaluationConfig {
+    /// Enable cross-agent peer review
+    #[serde(default = "default_true")]
+    pub enable_cross_review: bool,
+
+    /// Minimum review score to approve artifact
+    #[serde(default = "default_min_review_score")]
+    pub min_review_score: f32,
+
+    /// Enable self-evaluation
+    #[serde(default = "default_true")]
+    pub enable_self_evaluation: bool,
+
+    /// Enable structured feedback (scores + comments)
+    #[serde(default = "default_true")]
+    pub enable_structured_feedback: bool,
+}
+
+fn default_min_review_score() -> f32 {
+    0.7
+}
+
+impl Default for LearningConfig {
+    fn default() -> Self {
+        Self {
+            max_best_practices_per_role: default_max_best_practices(),
+            max_failure_lessons_per_role: default_max_failure_lessons(),
+            knowledge_relevance_threshold: default_knowledge_threshold(),
+            track_metrics: true,
+            metric_window_days: default_metric_window(),
+            reflection_after_every_task: true,
+            reflection_depth: default_reflection_depth(),
+            memory_retrieval_count: default_memory_retrieval_count(),
+        }
+    }
+}
+
+impl Default for EvaluationConfig {
+    fn default() -> Self {
+        Self {
+            enable_cross_review: true,
+            min_review_score: default_min_review_score(),
+            enable_self_evaluation: true,
+            enable_structured_feedback: true,
+        }
+    }
 }
 
 impl Default for WorkflowConfig {
@@ -215,6 +353,8 @@ impl Default for AgentConfig {
             a2a: A2AConfig::default(),
             agent: AgentBehaviorConfig::default(),
             workflow: WorkflowConfig::default(),
+            learning: LearningConfig::default(),
+            evaluation: EvaluationConfig::default(),
         }
     }
 }
@@ -308,6 +448,9 @@ impl Default for AgentBehaviorConfig {
             use_tools: true,
             max_thinking_steps: 5,
             verbose: false,
+            enable_reflection: false,
+            enable_option_evaluation: false,
+            min_quality_for_best_practice: default_min_quality_threshold(),
         }
     }
 }
