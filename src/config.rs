@@ -220,9 +220,13 @@ fn default_min_quality_threshold() -> f32 {
 /// Learning configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LearningConfig {
-    /// Maximum best practices to store per role
+    /// Soft limit for best practices (triggers consolidation)
     #[serde(default = "default_max_best_practices")]
-    pub max_best_practices_per_role: usize,
+    pub soft_limit_best_practices: usize,
+
+    /// Hard limit for best practices (triggers pruning)
+    #[serde(default = "default_hard_limit_best_practices")]
+    pub hard_limit_best_practices: usize,
 
     /// Maximum failure lessons to store per role
     #[serde(default = "default_max_failure_lessons")]
@@ -231,6 +235,26 @@ pub struct LearningConfig {
     /// Knowledge relevance threshold for retrieval
     #[serde(default = "default_knowledge_threshold")]
     pub knowledge_relevance_threshold: f32,
+
+    /// Enable automatic consolidation
+    #[serde(default = "default_true")]
+    pub enable_auto_consolidation: bool,
+
+    /// Similarity threshold for consolidation (0.0-1.0)
+    #[serde(default = "default_consolidation_threshold")]
+    pub consolidation_similarity_threshold: f32,
+
+    /// Minimum reuse count to keep practice
+    #[serde(default = "default_min_reuse_count")]
+    pub min_reuse_count_to_keep: u32,
+
+    /// Minimum quality score to keep practice
+    #[serde(default = "default_knowledge_threshold")]
+    pub min_quality_score_to_keep: f32,
+
+    /// Max age in days for unused practices
+    #[serde(default = "default_max_age_days")]
+    pub max_age_days_if_unused: i64,
 
     /// Enable performance metric tracking
     #[serde(default = "default_true")]
@@ -251,10 +275,18 @@ pub struct LearningConfig {
     /// Number of relevant memories to retrieve
     #[serde(default = "default_memory_retrieval_count")]
     pub memory_retrieval_count: usize,
+
+    /// External knowledge sources configuration
+    #[serde(default)]
+    pub external_sources: ExternalSourcesConfig,
 }
 
 fn default_max_best_practices() -> usize {
     100
+}
+
+fn default_hard_limit_best_practices() -> usize {
+    500
 }
 
 fn default_max_failure_lessons() -> usize {
@@ -263,6 +295,18 @@ fn default_max_failure_lessons() -> usize {
 
 fn default_knowledge_threshold() -> f32 {
     0.7
+}
+
+fn default_consolidation_threshold() -> f32 {
+    0.85
+}
+
+fn default_min_reuse_count() -> u32 {
+    2
+}
+
+fn default_max_age_days() -> i64 {
+    90
 }
 
 fn default_true() -> bool {
@@ -279,6 +323,82 @@ fn default_reflection_depth() -> String {
 
 fn default_memory_retrieval_count() -> usize {
     5
+}
+
+/// External knowledge sources configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalSourcesConfig {
+    /// Enable web-based learning
+    #[serde(default)]
+    pub enable_web_learning: bool,
+
+    /// Enable document ingestion
+    #[serde(default)]
+    pub enable_document_ingestion: bool,
+
+    /// Max crawl depth for web scraping
+    #[serde(default = "default_crawl_depth")]
+    pub max_crawl_depth: u32,
+
+    /// Max pages per domain
+    #[serde(default = "default_max_pages")]
+    pub max_pages_per_domain: usize,
+
+    /// Chunk size for text splitting
+    #[serde(default = "default_chunk_size")]
+    pub chunk_size: usize,
+
+    /// Chunk overlap for context preservation
+    #[serde(default = "default_chunk_overlap")]
+    pub chunk_overlap: usize,
+
+    /// Minimum content quality score
+    #[serde(default = "default_min_quality")]
+    pub min_content_quality_score: f32,
+
+    /// Allowed domains for web scraping
+    #[serde(default)]
+    pub allowed_domains: Vec<String>,
+
+    /// Trusted sources for credibility boost
+    #[serde(default)]
+    pub trusted_sources: Vec<String>,
+}
+
+fn default_crawl_depth() -> u32 {
+    2
+}
+
+fn default_max_pages() -> usize {
+    50
+}
+
+fn default_chunk_size() -> usize {
+    1000
+}
+
+fn default_chunk_overlap() -> usize {
+    200
+}
+
+fn default_min_quality() -> f32 {
+    0.6
+}
+
+impl Default for ExternalSourcesConfig {
+    fn default() -> Self {
+        Self {
+            enable_web_learning: false,
+            enable_document_ingestion: false,
+            max_crawl_depth: default_crawl_depth(),
+            max_pages_per_domain: default_max_pages(),
+            chunk_size: default_chunk_size(),
+            chunk_overlap: default_chunk_overlap(),
+            min_content_quality_score: default_min_quality(),
+            allowed_domains: vec![],
+            trusted_sources: vec![],
+        }
+    }
 }
 
 /// Evaluation configuration
@@ -308,14 +428,21 @@ fn default_min_review_score() -> f32 {
 impl Default for LearningConfig {
     fn default() -> Self {
         Self {
-            max_best_practices_per_role: default_max_best_practices(),
+            soft_limit_best_practices: default_max_best_practices(),
+            hard_limit_best_practices: default_hard_limit_best_practices(),
             max_failure_lessons_per_role: default_max_failure_lessons(),
             knowledge_relevance_threshold: default_knowledge_threshold(),
+            enable_auto_consolidation: true,
+            consolidation_similarity_threshold: default_consolidation_threshold(),
+            min_reuse_count_to_keep: default_min_reuse_count(),
+            min_quality_score_to_keep: default_knowledge_threshold(),
+            max_age_days_if_unused: default_max_age_days(),
             track_metrics: true,
             metric_window_days: default_metric_window(),
             reflection_after_every_task: true,
             reflection_depth: default_reflection_depth(),
             memory_retrieval_count: default_memory_retrieval_count(),
+            external_sources: ExternalSourcesConfig::default(),
         }
     }
 }
