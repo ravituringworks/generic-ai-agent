@@ -49,8 +49,9 @@ pub use cache::{CacheStats, LlmCache, LlmCacheConfig};
 pub use config::{AgentConfig, LlmConfig, McpConfig, MemoryConfig};
 pub use error::{AgentError, Result};
 pub use knowledge::{
-    ConsolidatedKnowledge, ContentChunker, DocumentFormat, IngestionConfig, IngestionResult,
-    KnowledgeChunk, KnowledgeConsolidator, KnowledgeSource,
+    AdaptiveKnowledgeManager, ConsolidatedKnowledge, ContentChunker, DocumentFormat,
+    IngestionConfig, IngestionResult, KnowledgeChunk, KnowledgeConsolidator, KnowledgeSource,
+    KnowledgeStats, ManagementResult,
 };
 pub use mcp::{McpClient, McpTool, ToolCall, ToolResult};
 pub use memory::{MemoryStore, VectorStore};

@@ -8,8 +8,10 @@
 
 pub mod chunker;
 pub mod consolidator;
+pub mod manager;
 pub mod types;
 
 pub use chunker::ContentChunker;
 pub use consolidator::KnowledgeConsolidator;
+pub use manager::{AdaptiveKnowledgeManager, KnowledgeStats, ManagementResult};
 pub use types::*;
