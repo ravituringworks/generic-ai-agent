@@ -8,8 +8,11 @@ ollama_url = "http://localhost:11434"
 # Default model (fallback)
 text_model = "gpt-oss:120b-cloud"
 
+# Embedding model for memory storage
+embedding_model = "nomic-embed-text"
+
 # Default maximum tokens for generation
-max_tokens = 1024
+max_tokens = 4096
 
 # Default temperature for generation
 temperature = 0.7
@@ -34,8 +37,8 @@ embedding_dimension = 768
 persistent = true
 
 [agent]
-# Enable memory retrieval
-use_memory = true
+# Enable memory retrieval (disabled to avoid embedding API issues)
+use_memory = false
 
 # Enable tool calling
 use_tools = false
@@ -240,8 +243,8 @@ dependencies = ["task_1_1", "task_1_2", "task_1_3", "task_2_1", "task_2_2", "tas
 
 [model_presets.all_gpt_oss]
 description = "All agents use gpt-oss:120b-cloud for consistent reasoning"
-max_tokens = 1024
-timeout = 60
+max_tokens = 4096
+timeout = 120
 simulation_engineer = "gpt-oss:120b-cloud"
 scaling_engineer = "gpt-oss:120b-cloud"
 config_specialist = "gpt-oss:120b-cloud"
@@ -249,8 +252,8 @@ coordinator = "gpt-oss:120b-cloud"
 
 [model_presets.all_deepseek]
 description = "All agents use deepseek for balanced performance"
-max_tokens = 1024
-timeout = 60
+max_tokens = 4096
+timeout = 120
 simulation_engineer = "deepseek-v3.1:671b-cloud"
 scaling_engineer = "deepseek-v3.1:671b-cloud"
 config_specialist = "deepseek-v3.1:671b-cloud"
@@ -258,8 +261,8 @@ coordinator = "deepseek-v3.1:671b-cloud"
 
 [model_presets.specialized]
 description = "Current configuration with specialized models per role"
-max_tokens = 1024
-timeout = 60
+max_tokens = 4096
+timeout = 120
 simulation_engineer = "gpt-oss:120b-cloud"
 scaling_engineer = "gpt-oss:120b-cloud"
 config_specialist = "deepseek-v3.1:671b-cloud"

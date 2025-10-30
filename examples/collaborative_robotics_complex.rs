@@ -320,7 +320,12 @@ impl CollaborativeAgent {
         );
 
         // NEW: Retrieve relevant past experience
-        let past_experience = self.get_relevant_experience(task).await.unwrap_or_default();
+        // Skip if memory is disabled to avoid any embedding API calls
+        let past_experience = if self.agent.config().agent.use_memory {
+            self.get_relevant_experience(task).await.unwrap_or_default()
+        } else {
+            String::new()
+        };
 
         if !past_experience.is_empty() {
             println!("  📚 Retrieved relevant past experience");
@@ -330,8 +335,12 @@ impl CollaborativeAgent {
             "Task: {}\\n\\n\
             {}\\n\
             Produce a minimal working example with code. Keep it brief and focused. \
-            {}\\n\
-            Generate: 1) Code implementation 2) Short documentation.",
+            {}\\n\\n\
+            IMPORTANT: You MUST include your code in properly formatted code blocks:\\n\
+            - For Python code, use: ```python\\n...code...\\n```\\n\
+            - For Rust code, use: ```rust\\n...code...\\n```\\n\
+            - For XML/URDF, use: ```xml\\n...code...\\n```\\n\\n\
+            Generate: 1) Code implementation in a code block 2) Short documentation.",
             task.description,
             past_experience,
             if !past_experience.is_empty() {
@@ -414,8 +423,19 @@ impl CollaborativeAgent {
         let marker = format!("```{}", language);
         if let Some(start) = text.find(&marker) {
             let code_start = start + marker.len();
+            // Look for closing backticks
             if let Some(end) = text[code_start..].find("```") {
                 return text[code_start..code_start + end].trim().to_string();
+            } else {
+                // No closing backticks found - likely truncated response
+                // Extract everything after the opening marker as a fallback
+                let code = text[code_start..].trim().to_string();
+                if !code.is_empty() {
+                    println!(
+                        "  ⚠️  Warning: Code block not properly closed, extracting truncated code"
+                    );
+                    return code;
+                }
             }
         }
         String::new()
@@ -509,10 +529,7 @@ impl CollaborativeAgent {
             }
             .to_string(),
         );
-        metadata.insert(
-            "quality_score".to_string(),
-            format!("{:.2}", quality_score),
-        );
+        metadata.insert("quality_score".to_string(), format!("{:.2}", quality_score));
         metadata.insert("timestamp".to_string(), chrono::Utc::now().to_rfc3339());
         metadata.insert("artifact_count".to_string(), artifacts.len().to_string());
 
@@ -534,6 +551,11 @@ impl CollaborativeAgent {
 
     /// Retrieve relevant past experience for a task
     async fn get_relevant_experience(&mut self, task: &WorkspaceTask) -> Result<String> {
+        // Skip if memory is disabled (avoids embedding API calls)
+        if !self.agent.config().agent.use_memory {
+            return Ok(String::new());
+        }
+
         // Create search query
         let query = format!(
             "Past experience for {:?}:\nTask type: {}\nPhase: {}",
@@ -578,11 +600,11 @@ struct ModelPreset {
 }
 
 fn default_max_tokens() -> u32 {
-    1024
+    4096
 }
 
 fn default_timeout() -> u64 {
-    60
+    120
 }
 
 /// Configuration wrapper for loading TOML with presets
@@ -603,6 +625,7 @@ fn apply_model_preset(
     config_sim.llm.max_tokens = preset.max_tokens;
     config_sim.llm.timeout = preset.timeout;
     // use_memory controlled by config file
+    config_sim.agent.use_memory = base_config.agent.use_memory;
     config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     let mut config_scaling = base_config.clone();
@@ -610,6 +633,7 @@ fn apply_model_preset(
     config_scaling.llm.max_tokens = preset.max_tokens;
     config_scaling.llm.timeout = preset.timeout;
     // use_memory controlled by config file
+    config_scaling.agent.use_memory = base_config.agent.use_memory;
     config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     let mut config_config = base_config.clone();
@@ -617,6 +641,7 @@ fn apply_model_preset(
     config_config.llm.max_tokens = preset.max_tokens;
     config_config.llm.timeout = preset.timeout;
     // use_memory controlled by config file
+    config_config.agent.use_memory = base_config.agent.use_memory;
     config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     let mut config_coord = base_config.clone();
@@ -624,6 +649,7 @@ fn apply_model_preset(
     config_coord.llm.max_tokens = preset.max_tokens;
     config_coord.llm.timeout = preset.timeout;
     // use_memory controlled by config file
+    config_coord.agent.use_memory = base_config.agent.use_memory;
     config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
 
     (config_sim, config_scaling, config_config, config_coord)
@@ -644,16 +670,23 @@ async fn main() -> Result<()> {
 
     // Load configuration from dedicated file
     let config_path = "examples/collaborative_workspace_config.toml";
-    
+
     // Load base agent config
-    let base_config = AgentConfig::from_file(config_path).unwrap_or_else(|_| {
+    let mut base_config = AgentConfig::from_file(config_path).unwrap_or_else(|_| {
         AgentConfig::from_file("config.toml").unwrap_or_else(|_| AgentConfig::default())
     });
-    
+
+    // Force memory to be disabled (as per config intent)
+    base_config.agent.use_memory = false;
+
+    println!(
+        "\\n⚙️  Config loaded: use_memory = {} (forced to false)",
+        base_config.agent.use_memory
+    );
+
     // Load model presets separately
-    let config_content = fs::read_to_string(config_path).unwrap_or_else(|_| {
-        fs::read_to_string("config.toml").unwrap_or_default()
-    });
+    let config_content = fs::read_to_string(config_path)
+        .unwrap_or_else(|_| fs::read_to_string("config.toml").unwrap_or_default());
     let toml_config: TomlConfig = toml::from_str(&config_content).unwrap_or_else(|e| {
         eprintln!("Warning: Failed to parse model presets: {}", e);
         TomlConfig {
@@ -675,69 +708,76 @@ async fn main() -> Result<()> {
     });
 
     // Apply model preset if available
-    let (config_sim, config_scaling, config_config, config_coord) = 
-        if let Some(preset) = toml_config.model_presets.get(&preset_name) {
-            println!(
-                "\\n🎨 Applying model preset: '{}'",
-                preset_name
-            );
-            println!("   Description: {}", preset.description);
-            println!("   From config: {}", config_path);
-            
-            let configs = apply_model_preset(&base_config, preset, &db_path);
-            
-            println!("\\n🤖 Agent model assignments:");
-            println!("  • SimulationEngineer → {}", configs.0.llm.text_model);
-            println!("  • ScalingEngineer → {}", configs.1.llm.text_model);
-            println!("  • ConfigSpecialist → {}", configs.2.llm.text_model);
-            println!("  • Coordinator → {}", configs.3.llm.text_model);
-            
-            configs
-        } else {
-            // Fallback to hardcoded defaults if preset not found
-            println!(
-                "\\n⚠️  Preset '{}' not found, using default 'specialized' configuration",
-                preset_name
-            );
-            println!("   Available presets: {:?}", toml_config.model_presets.keys().collect::<Vec<_>>());
-            println!("   From config: {}", config_path);
-            
-            let mut config_sim = base_config.clone();
-            config_sim.llm.text_model = "gpt-oss:120b-cloud".to_string();
-            config_sim.llm.max_tokens = 1024;
-            config_sim.llm.timeout = 60;
-            // use_memory controlled by config file
-            config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+    let (config_sim, config_scaling, config_config, config_coord) = if let Some(preset) =
+        toml_config.model_presets.get(&preset_name)
+    {
+        println!("\\n🎨 Applying model preset: '{}'", preset_name);
+        println!("   Description: {}", preset.description);
+        println!("   From config: {}", config_path);
 
-            let mut config_scaling = base_config.clone();
-            config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
-            config_scaling.llm.max_tokens = 1024;
-            config_scaling.llm.timeout = 60;
-            // use_memory controlled by config file
-            config_scaling.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+        let configs = apply_model_preset(&base_config, preset, &db_path);
 
-            let mut config_config = base_config.clone();
-            config_config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
-            config_config.llm.max_tokens = 1024;
-            config_config.llm.timeout = 60;
-            // use_memory controlled by config file
-            config_config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+        println!("\\n🤖 Agent model assignments:");
+        println!("  • SimulationEngineer → {}", configs.0.llm.text_model);
+        println!("  • ScalingEngineer → {}", configs.1.llm.text_model);
+        println!("  • ConfigSpecialist → {}", configs.2.llm.text_model);
+        println!("  • Coordinator → {}", configs.3.llm.text_model);
 
-            let mut config_coord = base_config.clone();
-            config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
-            config_coord.llm.max_tokens = 1024;
-            config_coord.llm.timeout = 60;
-            // use_memory controlled by config file
-            config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
-            
-            println!("\\n🤖 Agent model assignments:");
-            println!("  • SimulationEngineer → {}", config_sim.llm.text_model);
-            println!("  • ScalingEngineer → {}", config_scaling.llm.text_model);
-            println!("  • ConfigSpecialist → {}", config_config.llm.text_model);
-            println!("  • Coordinator → {}", config_coord.llm.text_model);
-            
-            (config_sim, config_scaling, config_config, config_coord)
-        };
+        configs
+    } else {
+        // Fallback to hardcoded defaults if preset not found
+        println!(
+            "\\n⚠️  Preset '{}' not found, using default 'specialized' configuration",
+            preset_name
+        );
+        println!(
+            "   Available presets: {:?}",
+            toml_config.model_presets.keys().collect::<Vec<_>>()
+        );
+        println!("   From config: {}", config_path);
+
+        let mut config_sim = base_config.clone();
+        config_sim.llm.text_model = "gpt-oss:120b-cloud".to_string();
+        config_sim.llm.max_tokens = 4096;
+        config_sim.llm.timeout = 120;
+        // use_memory controlled by config file
+        config_sim.agent.use_memory = base_config.agent.use_memory;
+        config_sim.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+        let mut config_scaling = base_config.clone();
+        config_scaling.llm.text_model = "gpt-oss:120b-cloud".to_string();
+        config_scaling.llm.max_tokens = 4096;
+        config_scaling.llm.timeout = 120;
+        // use_memory controlled by config file
+        config_scaling.agent.use_memory = base_config.agent.use_memory;
+        config_scaling.memory.database_url =
+            Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+        let mut config_config = base_config.clone();
+        config_config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
+        config_config.llm.max_tokens = 4096;
+        config_config.llm.timeout = 120;
+        // use_memory controlled by config file
+        config_config.agent.use_memory = base_config.agent.use_memory;
+        config_config.memory.database_url =
+            Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+        let mut config_coord = base_config.clone();
+        config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
+        config_coord.llm.max_tokens = 4096;
+        config_coord.llm.timeout = 120;
+        // use_memory controlled by config file
+        config_coord.agent.use_memory = base_config.agent.use_memory;
+        config_coord.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
+        println!("\\n🤖 Agent model assignments:");
+        println!("  • SimulationEngineer → {}", config_sim.llm.text_model);
+        println!("  • ScalingEngineer → {}", config_scaling.llm.text_model);
+        println!("  • ConfigSpecialist → {}", config_config.llm.text_model);
+        println!("  • Coordinator → {}", config_coord.llm.text_model);
+
+        (config_sim, config_scaling, config_config, config_coord)
+    };
 
     // Create collaborative agents with specialized models
     println!("\\n👥 Initializing specialized agents...");
@@ -977,10 +1017,9 @@ async fn main() -> Result<()> {
                 };
 
                 println!("\\n🔍 Cross-review: {} reviewing...", reviewer_name);
-                let (approved, feedback, quality_score) =
-                    reviewer_agent
-                        .review_artifact_with_feedback(&artifact)
-                        .await?;
+                let (approved, feedback, quality_score) = reviewer_agent
+                    .review_artifact_with_feedback(&artifact)
+                    .await?;
 
                 total_quality_score += quality_score;
                 all_feedback.push_str(&format!("\n{}", feedback));
@@ -1024,7 +1063,12 @@ async fn main() -> Result<()> {
             };
 
             producer_agent
-                .store_task_learning(&task, &artifacts_for_storage, &all_feedback, avg_quality_score)
+                .store_task_learning(
+                    &task,
+                    &artifacts_for_storage,
+                    &all_feedback,
+                    avg_quality_score,
+                )
                 .await?;
 
             workspace.update_task_status(&task.id, TaskStatus::Completed);
