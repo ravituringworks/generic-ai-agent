@@ -12,7 +12,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use the_agency::{Agent, AgentBuilder, AgentConfig};
+use the_agency::{
+    knowledge::{ContentChunker, FetchedContent},
+    Agent, AgentBuilder, AgentConfig,
+};
 use uuid::Uuid;
 
 /// Artifact types that agents can produce
@@ -142,6 +145,16 @@ impl Workspace {
 
     fn register_agent(&mut self, agent_name: String, role: AgentRole) {
         self.agents.insert(agent_name, role);
+    }
+
+    fn add_knowledge(&mut self, source: String, content: String) -> Result<()> {
+        let knowledge_path = self.directory.join("knowledge").join(&source);
+        if let Some(parent) = knowledge_path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::write(knowledge_path, content)?;
+        println!("  📚 Knowledge stored: {}", source);
+        Ok(())
     }
 
     fn add_artifact(&mut self, artifact: Artifact) -> Result<()> {
@@ -400,6 +413,51 @@ async fn main() -> Result<()> {
     println!("  ✓ {} registered", sim_engineer.name);
     println!("  ✓ {} registered", scaling_engineer.name);
     println!("  ✓ {} registered", coordinator.name);
+
+    // Demonstrate external knowledge learning (simulated)
+    println!("\n📚 External Knowledge Learning Demo");
+    println!("{}", "-".repeat(80));
+    println!("Note: This demo simulates web fetching. To use actual MCP browser tools,");
+    println!("      configure an MCP server with browser/fetch tools in config.toml");
+    
+    // Simulate fetched content (in production, this would use WebFetcher + MCP client)
+    let simulated_content = FetchedContent {
+        url: "https://docs.ros.org/en/humble/Tutorials.html".to_string(),
+        content: "# ROS 2 Best Practices\n\n\
+            When developing robot simulations:\n\
+            1. Use ROS 2 Humble for stability\n\
+            2. Implement proper lifecycle management\n\
+            3. Use composition for efficient node communication\n\
+            4. Test with continuous integration\n\
+            5. Document interfaces with REP standards".to_string(),
+        title: Some("ROS 2 Tutorials".to_string()),
+        metadata: serde_json::json!({
+            "author": "Open Robotics",
+            "topic": "robotics"
+        }),
+        content_type: "markdown".to_string(),
+        fetched_at: chrono::Utc::now().to_rfc3339(),
+    };
+    
+    println!("  🌐 Simulated fetch: {}", simulated_content.url);
+    
+    // Chunk the content for embedding
+    let chunker = ContentChunker::default();
+    let chunks = chunker.chunk_markdown(
+        &simulated_content.content,
+        simulated_content.url.clone(),
+        "markdown".to_string()
+    );
+    println!("  📦 Content chunked: {} chunks", chunks.len());
+    
+    // Store knowledge in workspace
+    workspace.add_knowledge(
+        "ros2_best_practices.md".to_string(),
+        simulated_content.content.clone()
+    )?;
+    
+    println!("  ✅ Knowledge integrated and ready for agent use");
+    println!("  💡 Agents can now learn from external sources during execution\n");
 
     // Project: Build a humanoid robot grasping system
     println!("\n🎯 Project: Humanoid Robot Grasping System");
