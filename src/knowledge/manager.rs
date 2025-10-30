@@ -4,7 +4,6 @@ use crate::config::LearningConfig;
 use crate::error::Result;
 use crate::memory::{MemoryEntry, MemoryStore};
 use chrono::{DateTime, Utc};
-use std::collections::HashMap;
 
 /// Manages knowledge lifecycle with adaptive limits
 pub struct AdaptiveKnowledgeManager {
@@ -295,6 +294,7 @@ impl KnowledgeStats {
 mod tests {
     use super::*;
     use crate::memory::MemoryEntry;
+    use std::collections::HashMap;
     use uuid::Uuid;
 
     fn create_test_entry(quality_score: f32, reuse_count: u32) -> MemoryEntry {

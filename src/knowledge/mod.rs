@@ -8,10 +8,12 @@
 
 pub mod chunker;
 pub mod consolidator;
+pub mod fetcher;
 pub mod manager;
 pub mod types;
 
 pub use chunker::ContentChunker;
 pub use consolidator::KnowledgeConsolidator;
+pub use fetcher::{extract_text_from_html, FetchedContent, FetcherConfig, WebFetcher};
 pub use manager::{AdaptiveKnowledgeManager, KnowledgeStats, ManagementResult};
 pub use types::*;
