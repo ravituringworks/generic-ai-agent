@@ -23,7 +23,7 @@ impl KnowledgeConsolidator {
         }
 
         let mut unique_chunks = Vec::new();
-        
+
         for chunk in chunks.drain(..) {
             // Check if this chunk is similar to any existing unique chunk
             let is_duplicate = unique_chunks.iter().any(|existing: &KnowledgeChunk| {
@@ -46,9 +46,9 @@ impl KnowledgeConsolidator {
 
     /// Calculate simple text similarity (Jaccard similarity on words)
     fn text_similarity(&self, text1: &str, text2: &str) -> f32 {
-        let words1: std::collections::HashSet<_> = 
+        let words1: std::collections::HashSet<_> =
             text1.split_whitespace().map(|w| w.to_lowercase()).collect();
-        let words2: std::collections::HashSet<_> = 
+        let words2: std::collections::HashSet<_> =
             text2.split_whitespace().map(|w| w.to_lowercase()).collect();
 
         if words1.is_empty() && words2.is_empty() {
@@ -128,8 +128,8 @@ impl KnowledgeConsolidator {
         };
 
         // Calculate confidence score based on quality and source count
-        let avg_quality: f32 = chunks.iter().map(|c| c.quality_score).sum::<f32>() 
-            / chunks.len() as f32;
+        let avg_quality: f32 =
+            chunks.iter().map(|c| c.quality_score).sum::<f32>() / chunks.len() as f32;
         let source_boost = (sources.len() as f32).min(5.0) / 5.0; // Max boost from 5 sources
         let confidence_score = (avg_quality * 0.7 + source_boost * 0.3).min(1.0);
 
@@ -179,30 +179,21 @@ mod tests {
     #[test]
     fn test_text_similarity() {
         let consolidator = KnowledgeConsolidator::default();
-        
-        let sim1 = consolidator.text_similarity(
-            "the quick brown fox",
-            "the quick brown fox"
-        );
+
+        let sim1 = consolidator.text_similarity("the quick brown fox", "the quick brown fox");
         assert_eq!(sim1, 1.0);
 
-        let sim2 = consolidator.text_similarity(
-            "the quick brown fox",
-            "completely different text"
-        );
+        let sim2 = consolidator.text_similarity("the quick brown fox", "completely different text");
         assert!(sim2 < 0.3);
 
-        let sim3 = consolidator.text_similarity(
-            "the quick brown fox",
-            "the quick brown dog"
-        );
+        let sim3 = consolidator.text_similarity("the quick brown fox", "the quick brown dog");
         assert!(sim3 > 0.5 && sim3 < 1.0);
     }
 
     #[test]
     fn test_rank_by_quality() {
         let consolidator = KnowledgeConsolidator::default();
-        
+
         let chunks = vec![
             KnowledgeChunk::new("text1".to_string(), "s1".to_string(), "t1".to_string())
                 .with_quality_score(0.5),
@@ -213,7 +204,7 @@ mod tests {
         ];
 
         let ranked = consolidator.rank_by_quality(chunks);
-        
+
         assert_eq!(ranked[0].quality_score, 0.9);
         assert_eq!(ranked[1].quality_score, 0.7);
         assert_eq!(ranked[2].quality_score, 0.5);
@@ -222,22 +213,24 @@ mod tests {
     #[test]
     fn test_synthesize() {
         let consolidator = KnowledgeConsolidator::default();
-        
+
         let chunks = vec![
             KnowledgeChunk::new(
                 "First key point about Rust".to_string(),
                 "source1".to_string(),
-                "web".to_string()
-            ).with_quality_score(0.8),
+                "web".to_string(),
+            )
+            .with_quality_score(0.8),
             KnowledgeChunk::new(
                 "Second key point about Rust".to_string(),
                 "source2".to_string(),
-                "web".to_string()
-            ).with_quality_score(0.9),
+                "web".to_string(),
+            )
+            .with_quality_score(0.9),
         ];
 
         let result = consolidator.synthesize("Rust Programming", chunks).unwrap();
-        
+
         assert_eq!(result.topic, "Rust Programming");
         assert_eq!(result.sources.len(), 2);
         assert_eq!(result.key_points.len(), 2);

@@ -419,7 +419,7 @@ async fn main() -> Result<()> {
     println!("{}", "-".repeat(80));
     println!("Note: This demo simulates web fetching. To use actual MCP browser tools,");
     println!("      configure an MCP server with browser/fetch tools in config.toml");
-    
+
     // Simulate fetched content (in production, this would use WebFetcher + MCP client)
     let simulated_content = FetchedContent {
         url: "https://docs.ros.org/en/humble/Tutorials.html".to_string(),
@@ -429,7 +429,8 @@ async fn main() -> Result<()> {
             2. Implement proper lifecycle management\n\
             3. Use composition for efficient node communication\n\
             4. Test with continuous integration\n\
-            5. Document interfaces with REP standards".to_string(),
+            5. Document interfaces with REP standards"
+            .to_string(),
         title: Some("ROS 2 Tutorials".to_string()),
         metadata: serde_json::json!({
             "author": "Open Robotics",
@@ -438,24 +439,24 @@ async fn main() -> Result<()> {
         content_type: "markdown".to_string(),
         fetched_at: chrono::Utc::now().to_rfc3339(),
     };
-    
+
     println!("  🌐 Simulated fetch: {}", simulated_content.url);
-    
+
     // Chunk the content for embedding
     let chunker = ContentChunker::default();
     let chunks = chunker.chunk_markdown(
         &simulated_content.content,
         simulated_content.url.clone(),
-        "markdown".to_string()
+        "markdown".to_string(),
     );
     println!("  📦 Content chunked: {} chunks", chunks.len());
-    
+
     // Store knowledge in workspace
     workspace.add_knowledge(
         "ros2_best_practices.md".to_string(),
-        simulated_content.content.clone()
+        simulated_content.content.clone(),
     )?;
-    
+
     println!("  ✅ Knowledge integrated and ready for agent use");
     println!("  💡 Agents can now learn from external sources during execution\n");
 

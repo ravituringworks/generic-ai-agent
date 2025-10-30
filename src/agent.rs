@@ -344,6 +344,12 @@ impl Agent {
 
     /// Store conversation in memory
     async fn store_conversation_memory(&self, user_input: &str, response: &str) -> Result<()> {
+        // Skip if memory is disabled
+        if !self.config.agent.use_memory {
+            debug!("Memory disabled, skipping conversation storage");
+            return Ok(());
+        }
+
         debug!("Storing conversation in memory");
 
         let conversation_text = format!("User: {}\nAssistant: {}", user_input, response);
@@ -528,6 +534,11 @@ impl Agent {
     /// Check if A2A communication is enabled
     pub fn has_a2a(&self) -> bool {
         self.a2a.is_some()
+    }
+
+    /// Get agent configuration (read-only access)
+    pub fn config(&self) -> &AgentConfig {
+        &self.config
     }
 }
 

@@ -68,15 +68,10 @@ impl AdaptiveKnowledgeManager {
     ) -> Result<usize> {
         // Get all memories for this role
         let all_memories = store.list(None).await?;
-        
+
         let role_memories: Vec<_> = all_memories
             .into_iter()
-            .filter(|m| {
-                m.metadata
-                    .get("role")
-                    .map(|r| r == role)
-                    .unwrap_or(false)
-            })
+            .filter(|m| m.metadata.get("role").map(|r| r == role).unwrap_or(false))
             .collect();
 
         if role_memories.is_empty() {
@@ -179,12 +174,12 @@ impl AdaptiveKnowledgeManager {
         if let Some(timestamp) = entry.metadata.get("timestamp") {
             if let Ok(created) = DateTime::parse_from_rfc3339(timestamp) {
                 let age = (Utc::now() - created.with_timezone(&Utc)).num_days();
-                
+
                 // If recently created, give it a chance
                 if age < 7 {
                     return true;
                 }
-                
+
                 // If old and unused, can be pruned
                 if age > self.config.max_age_days_if_unused && reuse_count == 0 {
                     return false;
@@ -203,19 +198,14 @@ impl AdaptiveKnowledgeManager {
         store: &Box<dyn MemoryStore>,
     ) -> Result<KnowledgeStats> {
         let all_memories = store.list(None).await?;
-        
+
         let role_memories: Vec<_> = all_memories
             .into_iter()
-            .filter(|m| {
-                m.metadata
-                    .get("role")
-                    .map(|r| r == role)
-                    .unwrap_or(false)
-            })
+            .filter(|m| m.metadata.get("role").map(|r| r == role).unwrap_or(false))
             .collect();
 
         let total_count = role_memories.len();
-        
+
         let high_quality_count = role_memories
             .iter()
             .filter(|m| {
@@ -334,10 +324,16 @@ mod tests {
         let manager = AdaptiveKnowledgeManager::new(config);
 
         let high_reuse = create_test_entry(0.5, 10);
-        assert!(manager.should_keep(&high_reuse), "High reuse should be kept");
+        assert!(
+            manager.should_keep(&high_reuse),
+            "High reuse should be kept"
+        );
 
         let high_quality = create_test_entry(0.9, 0);
-        assert!(manager.should_keep(&high_quality), "High quality should be kept");
+        assert!(
+            manager.should_keep(&high_quality),
+            "High quality should be kept"
+        );
 
         let low_everything = create_test_entry(0.3, 0);
         // Still true because recently created

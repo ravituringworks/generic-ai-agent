@@ -65,11 +65,7 @@ impl WebFetcher {
     }
 
     /// Fetch content from a URL using MCP client
-    pub async fn fetch_url(
-        &self,
-        mcp_client: &McpClient,
-        url: &str,
-    ) -> Result<FetchedContent> {
+    pub async fn fetch_url(&self, mcp_client: &McpClient, url: &str) -> Result<FetchedContent> {
         info!("Fetching content from URL: {}", url);
 
         // First try to use a browser automation tool if available
@@ -83,8 +79,10 @@ impl WebFetcher {
         }
 
         Err(crate::error::McpError::ToolNotFound(
-            "No suitable fetch tool available (fetch, http_get, curl, browser_navigate)".to_string(),
-        ).into())
+            "No suitable fetch tool available (fetch, http_get, curl, browser_navigate)"
+                .to_string(),
+        )
+        .into())
     }
 
     /// Try to fetch using browser automation tool (e.g., puppeteer, playwright)
@@ -161,11 +159,7 @@ impl WebFetcher {
     }
 
     /// Parse browser automation result
-    fn parse_browser_result(
-        &self,
-        url: &str,
-        content: Vec<ToolContent>,
-    ) -> Result<FetchedContent> {
+    fn parse_browser_result(&self, url: &str, content: Vec<ToolContent>) -> Result<FetchedContent> {
         let mut text_content = String::new();
         let mut title = None;
         let mut metadata = serde_json::json!({});
@@ -189,7 +183,9 @@ impl WebFetcher {
                         text_content = text;
                     }
                 }
-                ToolContent::Resource { text: Some(text), .. } => {
+                ToolContent::Resource {
+                    text: Some(text), ..
+                } => {
                     text_content.push_str(&text);
                 }
                 _ => {}
@@ -225,7 +221,9 @@ impl WebFetcher {
                 ToolContent::Text { text } => {
                     text_content.push_str(&text);
                 }
-                ToolContent::Resource { text: Some(text), .. } => {
+                ToolContent::Resource {
+                    text: Some(text), ..
+                } => {
                     text_content.push_str(&text);
                 }
                 _ => {}
