@@ -421,6 +421,7 @@ impl CollaborativeAgent {
         String::new()
     }
 
+    #[allow(dead_code)]
     async fn review_artifact(&mut self, _artifact: &Artifact) -> Result<bool> {
         // Fast auto-approval for demo - skip LLM review
         println!("  ⚡ Fast-tracking artifact review for demo");
