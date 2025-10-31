@@ -111,7 +111,7 @@ This helps us:
 - Update API documentation for public interfaces
 - Include usage examples in doc comments
 - Update README.md for significant features
-- Add entries to CHANGELOG.md
+- Add entries to docs/CHANGELOG.md
 - Update relevant documentation files
 
 ## 🏗️ Architecture Guidelines

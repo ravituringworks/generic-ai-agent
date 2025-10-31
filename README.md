@@ -1045,7 +1045,7 @@ impl LlmClient for CustomLlmClient {
 **We welcome contributions!** Before contributing, please:
 
 1. **Contact us first**: Email [rboddipalli@turingworks.com](mailto:rboddipalli@turingworks.com) to discuss your ideas
-2. **Read the guide**: See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines
+2. **Read the guide**: See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed guidelines
 3. **Follow the process**: We'll help you through the development and review process
 
 ### Quick Start for Contributors

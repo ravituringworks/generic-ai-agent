@@ -89,7 +89,7 @@ async fn main() -> anyhow::Result<()> {
 
     println!("Example completed!");
     println!("\nTo explore more:");
-    println!("  - Check DEPLOYMENT.md for full API documentation");
+    println!("  - Check docs/DEPLOYMENT.md for full API documentation");
     println!("  - See examples/saga_workflow.rs for saga pattern code");
     println!("  - Review src/saga.rs for implementation details");
 

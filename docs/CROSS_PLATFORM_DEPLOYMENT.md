@@ -673,7 +673,7 @@ connection_timeout = 30
 
 ## Support
 
-- 📚 [Main Documentation](README.md)
+- 📚 [Main Documentation](../README.md)
 - 🚀 [API Documentation](DEPLOYMENT.md)
 - 🔄 [Saga Pattern Guide](API_IMPLEMENTATION.md)
 - 🐛 [Report Issues](https://github.com/ravituringworks/the-agency/issues)

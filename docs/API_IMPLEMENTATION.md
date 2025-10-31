@@ -117,7 +117,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 
 ### 5. Documentation
 
-**DEPLOYMENT.md**: Complete deployment guide covering:
+**docs/DEPLOYMENT.md**: Complete deployment guide covering:
 - Quick start instructions
 - API endpoint documentation with curl examples
 - macOS service installation and management

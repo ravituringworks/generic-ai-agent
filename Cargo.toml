@@ -16,9 +16,7 @@ include = [
     "examples/**/*", 
     "docs/**/*",
     "README.md",
-    "LICENSE",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md"
+    "LICENSE"
 ]
 
 [dependencies]
