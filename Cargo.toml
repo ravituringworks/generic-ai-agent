@@ -46,7 +46,7 @@ sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono"
 
 # Logging
 tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Error handling
 anyhow = "1"
@@ -78,10 +78,29 @@ tokio-tungstenite = "0.28"
 # Async trait
 async-trait = "0.1"
 
+# HTTP server for REST API
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+hyper = { version = "1", features = ["full"] }
+
+# OpenAPI/Swagger documentation
+utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "8", features = ["axum"] }
+
+# Daemon/service functionality
+daemonize = "0.5"
+
+# Regular expressions
+regex = "1"
+
+# Windows service support
+[target.'cfg(windows)'.dependencies]
+windows-service = "0.7"
+
 # PDF processing and document analysis (optional for RAG examples)
 pdf-extract = { version = "0.10", optional = true }
 lopdf = { version = "0.38", optional = true }
-regex = "1"
 table-extract = { version = "0.2", optional = true }
 
 [dev-dependencies]
@@ -114,6 +133,14 @@ pdf = ["pdf-extract", "lopdf", "table-extract"]
 [[bin]]
 name = "agent-example"
 path = "src/bin/example.rs"
+
+[[bin]]
+name = "agency-daemon"
+path = "src/bin/agency-daemon.rs"
+
+[[bin]]
+name = "agency-service"
+path = "src/bin/agency-service.rs"
 
 [lib]
 name = "the_agency"

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Agency API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@latest/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@latest/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@latest/favicon-16x16.png" sizes="16x16" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .topbar {
+            background-color: #2c3e50 !important;
+        }
+        .topbar-wrapper img {
+            content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50"><text x="10" y="35" fill="white" font-size="24" font-family="Arial, sans-serif">The Agency</text></svg>');
+        }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    
+    <script src="https://unpkg.com/swagger-ui-dist@latest/swagger-ui-bundle.js" charset="UTF-8"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@latest/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
+    <script>
+        window.onload = function() {
+            // Get the API URL from query param or use default
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiUrl = urlParams.get('url') || 'http://127.0.0.1:8080/api-docs/openapi.json';
+            
+            // Build Swagger UI
+            const ui = SwaggerUIBundle({
+                url: apiUrl,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                defaultModelsExpandDepth: 1,
+                defaultModelExpandDepth: 1,
+                docExpansion: "list",
+                filter: true,
+                showRequestHeaders: true,
+                tryItOutEnabled: true,
+                displayRequestDuration: true,
+                persistAuthorization: true,
+                onComplete: function() {
+                    console.log('Swagger UI loaded successfully');
+                    console.log('API URL:', apiUrl);
+                },
+                onFailure: function(error) {
+                    console.error('Failed to load API spec:', error);
+                    alert('Failed to load API specification from: ' + apiUrl + '\n\nMake sure the Agency daemon is running on http://127.0.0.1:8080\n\nError: ' + error);
+                }
+            });
+            
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>

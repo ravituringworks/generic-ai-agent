@@ -271,6 +271,191 @@ This starts an interactive chat session with:
 - Tool usage examples
 - Statistics monitoring
 
+## 🌐 REST API & Daemon
+
+The Agency can run as a background daemon with a REST API for integration with other applications.
+
+### Starting the Daemon
+
+```bash
+# Build the daemon
+cargo build --release --bin agency-daemon
+
+# Run the daemon
+./target/release/agency-daemon
+
+# Or in development mode
+cargo run --bin agency-daemon
+```
+
+The daemon starts an HTTP server on `http://127.0.0.1:8080` with full OpenAPI documentation.
+
+### API Examples
+
+Run the interactive examples script to see the API in action:
+
+```bash
+# Run all examples (curl, Python, JavaScript)
+./scripts/run-api-examples.sh
+
+# Run specific language examples
+./scripts/run-api-examples.sh --curl
+./scripts/run-api-examples.sh --python
+./scripts/run-api-examples.sh --javascript
+
+# Keep daemon running after examples
+./scripts/run-api-examples.sh --keep-running
+```
+
+#### cURL Examples
+
+```bash
+# Health check
+curl http://127.0.0.1:8080/health
+
+# Process a message
+curl -X POST http://127.0.0.1:8080/api/v1/agent/process \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is Rust?", "max_steps": 5}'
+
+# Create a workflow
+curl -X POST http://127.0.0.1:8080/api/v1/workflows \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workflow_id": "my-workflow",
+    "initial_message": "Process this task",
+    "max_steps": 20
+  }'
+
+# List workflow snapshots
+curl http://127.0.0.1:8080/api/v1/workflows/snapshots
+```
+
+#### Python Example
+
+```python
+import requests
+
+class AgencyClient:
+    def __init__(self, base_url="http://127.0.0.1:8080"):
+        self.base_url = base_url
+    
+    def process(self, message, max_steps=None):
+        data = {"message": message}
+        if max_steps:
+            data["max_steps"] = max_steps
+        response = requests.post(
+            f"{self.base_url}/api/v1/agent/process",
+            json=data
+        )
+        return response.json()
+
+# Usage
+client = AgencyClient()
+result = client.process("Tell me about Python")
+print(result["response"])
+```
+
+#### JavaScript/Node.js Example
+
+```javascript
+class AgencyClient {
+    constructor(baseUrl = 'http://127.0.0.1:8080') {
+        this.baseUrl = baseUrl;
+    }
+    
+    async process(message, maxSteps = null) {
+        const body = { message };
+        if (maxSteps) body.max_steps = maxSteps;
+        
+        const response = await fetch(
+            `${this.baseUrl}/api/v1/agent/process`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            }
+        );
+        return response.json();
+    }
+}
+
+// Usage
+const client = new AgencyClient();
+const result = await client.process('Tell me about JavaScript');
+console.log(result.response);
+```
+
+### API Documentation
+
+View the interactive Swagger UI documentation:
+
+```bash
+# Open the local Swagger UI
+open docs/swagger-ui.html
+
+# Or access the OpenAPI spec directly
+curl http://127.0.0.1:8080/api-docs/openapi.json
+```
+
+See [API Documentation](docs/API_DOCUMENTATION.md) for complete API reference.
+
+### System Service Installation
+
+Run The Agency as a system service on Linux or Windows:
+
+**Linux (systemd)**:
+```bash
+# Install as systemd service
+sudo ./scripts/install-linux.sh
+
+# Manage the service
+sudo systemctl start the-agency
+sudo systemctl status the-agency
+sudo systemctl stop the-agency
+```
+
+**Windows Service**:
+```powershell
+# Install as Windows service (Run as Administrator)
+.\scripts\install-windows.ps1 -Install
+
+# Start the service
+Start-Service "The Agency"
+
+# Check status
+Get-Service "The Agency"
+
+# Uninstall
+.\scripts\install-windows.ps1 -Uninstall
+```
+
+**Docker**:
+```bash
+# Build image
+docker build -t the-agency .
+
+# Run container
+docker run -d -p 8080:8080 \
+  -v $(pwd)/data:/app/data \
+  --name the-agency \
+  the-agency
+```
+
+**Kubernetes**:
+```bash
+# Deploy to Kubernetes
+./scripts/deploy-k8s.sh
+
+# Check deployment
+kubectl -n the-agency get pods
+
+# Access via ingress
+curl https://the-agency.example.com/health
+```
+
+See [Deployment Guide](docs/DEPLOYMENT.md) for detailed deployment instructions.
+
 ## 🏗️ Architecture
 
 ### Core Components

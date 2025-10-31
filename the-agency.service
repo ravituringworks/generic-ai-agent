@@ -1,0 +1,41 @@
+[Unit]
+Description=The Agency - AI Agent Platform Service
+Documentation=https://github.com/ravituringworks/the-agency
+After=network.target
+
+[Service]
+Type=simple
+User=agency
+Group=agency
+WorkingDirectory=/opt/the-agency
+
+# Path to the binary
+ExecStart=/usr/local/bin/agency-daemon --config /etc/the-agency/config.toml --host 127.0.0.1 --port 8080
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+
+# Resource limits
+LimitNOFILE=4096
+MemoryLimit=2G
+CPUQuota=200%
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/the-agency /var/log/the-agency
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=the-agency
+
+# Environment
+Environment="RUST_LOG=info,the_agency=debug"
+Environment="RUST_BACKTRACE=1"
+
+[Install]
+WantedBy=multi-user.target

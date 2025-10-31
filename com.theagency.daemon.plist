@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Service Label -->
+    <key>Label</key>
+    <string>com.theagency.daemon</string>
+    
+    <!-- Program to run -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/agency-daemon</string>
+        <string>--config</string>
+        <string>/usr/local/etc/agency/config.toml</string>
+        <string>--host</string>
+        <string>127.0.0.1</string>
+        <string>--port</string>
+        <string>8080</string>
+    </array>
+    
+    <!-- Run on load -->
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <!-- Keep the daemon alive (restart if it crashes) -->
+    <key>KeepAlive</key>
+    <true/>
+    
+    <!-- Standard output log -->
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/agency/stdout.log</string>
+    
+    <!-- Standard error log -->
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/agency/stderr.log</string>
+    
+    <!-- Working directory -->
+    <key>WorkingDirectory</key>
+    <string>/usr/local/var/lib/agency</string>
+    
+    <!-- User to run as (optional - omit to run as root) -->
+    <!-- <key>UserName</key>
+    <string>_agency</string> -->
+    
+    <!-- Group to run as (optional) -->
+    <!-- <key>GroupName</key>
+    <string>_agency</string> -->
+    
+    <!-- Environment variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>RUST_LOG</key>
+        <string>info,the_agency=debug</string>
+    </dict>
+    
+    <!-- Soft resource limits -->
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>4096</integer>
+    </dict>
+    
+    <!-- Throttle interval (seconds to wait before restarting after crash) -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    
+    <!-- Nice value (priority) - lower values = higher priority -->
+    <key>Nice</key>
+    <integer>0</integer>
+</dict>
+</plist>

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: the-agency-config
+  namespace: the-agency
+data:
+  config.toml: |
+    [agent]
+    name = "The Agency"
+    system_prompt = "You are a helpful AI assistant."
+    max_turns = 10
+    
+    [llm]
+    model = "llama3.2:latest"
+    ollama_url = "http://ollama-service:11434"
+    temperature = 0.7
+    max_tokens = 2000
+    context_window = 4096
+    
+    [memory]
+    database_url = "sqlite:/var/lib/the-agency/memory.db"
+    embedding_model = "nomic-embed-text"
+    embedding_dimension = 768
+    max_results = 5
+    similarity_threshold = 0.7
+    
+    [mcp]
+    server_url = "http://localhost:3000"
+    timeout_seconds = 30
+    max_retries = 3
+    
+    [a2a]
+    enabled = false
+    agent_id = "default-agent"
+    discovery_url = "http://localhost:8001"
+    listen_address = "0.0.0.0:8001"

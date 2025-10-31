@@ -65,3 +65,6 @@ Icon
 # Generated workspace artifacts (except README)
 examples/robotics_workspace/humanoid_robot_project/
 examples/robotics_workspace_complex/
+
+# Data directory
+data/

@@ -27,6 +27,7 @@
 
 pub mod a2a;
 pub mod agent;
+pub mod api;
 pub mod cache;
 pub mod config;
 pub mod error;
@@ -34,6 +35,7 @@ pub mod knowledge;
 pub mod llm;
 pub mod mcp;
 pub mod memory;
+pub mod saga;
 pub mod tools;
 pub mod unified_storage;
 pub mod workflow;
@@ -55,6 +57,9 @@ pub use knowledge::{
 };
 pub use mcp::{McpClient, McpTool, ToolCall, ToolResult};
 pub use memory::{MemoryStore, VectorStore};
+pub use saga::{
+    SagaContext, SagaOrchestrator, SagaResult, SagaStep, SagaStepState, SagaWorkflowStep,
+};
 pub use unified_storage::{
     CleanupStats, EvalDataset, EvalScore, InMemoryUnifiedStorage, MemoryMessage, MemoryThread,
     MessageRole, ResourceId, ResumeCondition, RetentionPolicy, StorageManager, StorageStats,

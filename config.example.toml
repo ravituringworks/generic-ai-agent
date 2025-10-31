@@ -35,7 +35,7 @@ max_entries = 1000
 ttl_seconds = 3600
 
 # SQLite database path for cache
-db_path = "cache.db"
+db_path = "data/cache.db"
 
 # Minimum temperature threshold for caching
 # Only cache deterministic queries (low temperature)
@@ -91,7 +91,7 @@ system_prompt = "You are a summarization expert. Provide concise, accurate summa
 store_type = "sqlite"
 
 # Database file path
-database_url = "sqlite:memory.db"
+database_url = "sqlite://data/memory.db"
 
 # Embedding dimension (must match embedding model)
 embedding_dimension = 768
