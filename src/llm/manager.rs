@@ -294,6 +294,6 @@ mod tests {
         let manager = ProviderManager::new_ollama(config);
 
         // This will fail if Ollama is not running, which is expected
-        if let Ok(_) = manager.list_models().await {}
+        let _ = manager.list_models().await;
     }
 }

@@ -7,7 +7,7 @@ use the_agency::llm::provider::{LlmProvider, ProviderConfig, ProviderType};
 use the_agency::llm::providers::{
     AzureOpenAIProvider, GroqProvider, OpenAIProvider, TogetherProvider,
 };
-use the_agency::llm::{user_message, Message};
+use the_agency::llm::user_message;
 
 #[tokio::main]
 async fn main() -> Result<()> {
