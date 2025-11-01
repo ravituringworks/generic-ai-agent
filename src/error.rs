@@ -68,6 +68,12 @@ pub enum LlmError {
 
     #[error("Timeout: operation took too long")]
     Timeout,
+
+    #[error("All providers failed")]
+    AllProvidersFailed,
+
+    #[error("Unknown error: {0}")]
+    Unknown(String),
 }
 
 /// Errors related to memory/vector store operations

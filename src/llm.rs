@@ -1,5 +1,7 @@
 //! Language model integration using Ollama
 
+pub mod manager;
+
 use crate::cache::LlmCache;
 use crate::config::LlmConfig;
 use crate::error::{LlmError, Result};
