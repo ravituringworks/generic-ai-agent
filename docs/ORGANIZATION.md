@@ -211,7 +211,7 @@ daemon.stop().await?;
 Run the organization example:
 
 ```bash
-cargo run --example onex_organization_example
+cargo run --example robotech_industries_organization_example
 ```
 
 This demonstrates:
