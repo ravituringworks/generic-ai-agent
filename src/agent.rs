@@ -533,6 +533,51 @@ impl Agent {
     pub fn config(&self) -> &AgentConfig {
         &self.config
     }
+
+    /// Store knowledge entry directly in agent's memory
+    /// Used by organizational learning systems to persist learnings
+    pub async fn store_knowledge(
+        &mut self,
+        entry: crate::memory::MemoryEntry,
+    ) -> Result<uuid::Uuid> {
+        // Generate embedding if not provided
+        let embedding = if entry.embedding.is_empty() {
+            // Generate embedding using the LLM manager
+            match self.llm.embed(&entry.content).await {
+                Ok(emb_response) => emb_response.embedding,
+                Err(e) => {
+                    warn!("Failed to generate embedding for knowledge entry: {}. Storing with zero vector.", e);
+                    // Return a zero vector of the correct dimension as fallback
+                    vec![0.0; self.config.memory.embedding_dimension]
+                }
+            }
+        } else {
+            entry.embedding
+        };
+
+        let mut memory = self.memory.write().await;
+        memory.store(entry.content, embedding, entry.metadata).await
+    }
+
+    /// Query agent's memory for similar entries
+    pub async fn query_memory(
+        &self,
+        query_embedding: Vec<f32>,
+        limit: usize,
+        threshold: f32,
+    ) -> Result<Vec<crate::memory::SearchResult>> {
+        let memory = self.memory.read().await;
+        memory.search(query_embedding, limit, threshold).await
+    }
+
+    /// List all memories (for organizational knowledge queries)
+    pub async fn list_memories(
+        &self,
+        limit: Option<usize>,
+    ) -> Result<Vec<crate::memory::MemoryEntry>> {
+        let memory = self.memory.read().await;
+        memory.list(limit).await
+    }
 }
 
 /// Agent statistics

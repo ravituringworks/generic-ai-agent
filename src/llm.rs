@@ -1,5 +1,6 @@
 //! Language model integration using Ollama
 
+pub mod connection_pool;
 pub mod manager;
 pub mod provider;
 pub mod providers;

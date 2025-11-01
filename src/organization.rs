@@ -4,7 +4,9 @@
 //! across collaborative workspaces. Designed for complex engineering organizations
 //! in robotics and advanced technology sectors.
 
+pub mod a2a_local;
 pub mod coordinator;
+pub mod knowledge_helpers;
 pub mod prompts;
 
 use crate::error::Result;
@@ -545,11 +547,7 @@ impl Organization {
         workspace_id
     }
 
-    pub fn assign_agent_to_workspace(
-        &mut self,
-        agent_id: &str,
-        workspace_id: &str,
-    ) -> Result<()> {
+    pub fn assign_agent_to_workspace(&mut self, agent_id: &str, workspace_id: &str) -> Result<()> {
         if let Some(agent) = self.agents.get_mut(agent_id) {
             agent.join_workspace(workspace_id.to_string());
         }
@@ -603,10 +601,7 @@ mod tests {
             OrganizationRole::ResearchEngineerScaling,
         );
         assert_eq!(agent.name, "Alice");
-        assert_eq!(
-            agent.role.category(),
-            RoleCategory::ResearchAI
-        );
+        assert_eq!(agent.role.category(), RoleCategory::ResearchAI);
         assert_eq!(agent.status, AgentStatus::Available);
     }
 

@@ -237,7 +237,10 @@ async fn main() -> Result<()> {
         .await?;
 
     info!("");
-    info!("✅ Simulation workspace: {} tasks completed", sim_results.len());
+    info!(
+        "✅ Simulation workspace: {} tasks completed",
+        sim_results.len()
+    );
 
     // Production workspace project
     info!("");
@@ -249,7 +252,10 @@ async fn main() -> Result<()> {
         .await?;
 
     info!("");
-    info!("✅ Production workspace: {} tasks completed", prod_results.len());
+    info!(
+        "✅ Production workspace: {} tasks completed",
+        prod_results.len()
+    );
 
     // Display final organization state
     info!("");
