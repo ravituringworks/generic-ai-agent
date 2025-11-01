@@ -471,13 +471,17 @@ async fn spawn_agents(
         config.memory.database_url = Some(":memory:".to_string()); // Use in-memory SQLite
         config.memory.persistent = false; // Don't persist for demo
 
+        // Disable workflow suspend/resume to prevent infinite loops
+        config.workflow.enable_suspend_resume = false;
+
         // Use role-specific system prompt that includes organizational learning
         let system_prompt = agent.role.system_prompt();
 
         // TEMPORARILY DISABLED: Memory/embedding causing random port issues
         // This bypasses the Ollama embedding EOF errors on random ports
         config.agent.use_memory = false; // Disabled until Ollama embedding issue resolved
-        config.agent.use_tools = true;
+        config.agent.use_tools = false; // Simplified for demo
+        config.agent.max_thinking_steps = 1; // Bypass workflow complexity
         config.agent.system_prompt = system_prompt;
 
         coordinator.spawn_agent(agent_id.clone(), config).await?;

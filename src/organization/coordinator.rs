@@ -159,7 +159,7 @@ impl AgentCoordinator {
             from_agent: "coordinator".to_string(),
         };
 
-        self.send_message(agent_id, message).await;
+        let _ = self.send_message(agent_id, message).await;
 
         info!("Task assigned: {} -> {}", task_id, agent_id);
         Ok(())

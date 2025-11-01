@@ -81,6 +81,7 @@ impl LocalA2AClient {
     }
 
     /// Process incoming message through handlers
+    #[allow(dead_code)]
     async fn process_message(&self, message: A2AMessage) -> Result<Option<MessagePayload>> {
         let handlers = self.message_handlers.read().await;
 
