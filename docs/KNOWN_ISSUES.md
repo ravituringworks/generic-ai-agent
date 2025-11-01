@@ -194,7 +194,33 @@ Ok(emb_response) => emb_response.embedding
 - Memory usage patterns
 - Connection pool sizing
 
-## Workarounds for Users
+## Current Workaround (Implemented)
+
+### Memory Disabled in Demo
+**Status**: ✅ IMPLEMENTED
+
+To bypass the random port embedding issues, the demo currently runs with memory disabled:
+
+```rust
+// In robotech_industries_organization_example.rs
+config.agent.use_memory = false; // Disabled until Ollama embedding issue resolved
+```
+
+**Impact**:
+- ✅ Demo runs without EOF errors
+- ✅ All agents spawn successfully  
+- ✅ Multi-agent coordination works
+- ✅ Task execution completes
+- ⚠️ Knowledge management features not active
+- ⚠️ Organizational learning disabled
+
+**When to Re-enable**:
+Once the random port Ollama embedding issue is resolved, change:
+```rust
+config.agent.use_memory = true;
+```
+
+## Alternative Workarounds for Users
 
 ### Option 1: Sequential Execution
 Modify demo to spawn and execute agents sequentially:

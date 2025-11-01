@@ -474,14 +474,15 @@ async fn spawn_agents(
         // Use role-specific system prompt that includes organizational learning
         let system_prompt = agent.role.system_prompt();
 
-        // Enable memory and tools for organizational learning
-        config.agent.use_memory = true;
+        // TEMPORARILY DISABLED: Memory/embedding causing random port issues
+        // This bypasses the Ollama embedding EOF errors on random ports
+        config.agent.use_memory = false; // Disabled until Ollama embedding issue resolved
         config.agent.use_tools = true;
         config.agent.system_prompt = system_prompt;
 
         coordinator.spawn_agent(agent_id.clone(), config).await?;
         info!(
-            "  ✓ Spawned: {} ({}) with learning capabilities",
+            "  ✓ Spawned: {} ({})",
             agent.name,
             format!("{:?}", agent.role)
         );
