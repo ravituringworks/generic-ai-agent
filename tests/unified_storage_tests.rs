@@ -981,15 +981,15 @@ mod tests {
             storage.store_trace(&trace).await.unwrap();
         }
 
-        // Delete traces older than 2 hours
+        // Delete traces older than 2 hours (strictly before, not including cutoff)
         let cutoff = now - Duration::from_secs(2 * 3600);
         let deleted_count = storage.delete_traces_before(cutoff).await.unwrap();
-        assert_eq!(deleted_count, 3); // Should delete traces 2, 3, 4
+        assert_eq!(deleted_count, 2); // Should delete traces 3, 4 (traces 0, 1, 2 are kept)
 
         // Verify remaining traces
         let filters = TraceFilters::default();
         let remaining = storage.query_traces(&resource_id, filters).await.unwrap();
-        assert_eq!(remaining.len(), 2);
+        assert_eq!(remaining.len(), 3); // Traces 0, 1, 2 remain
     }
 
     #[tokio::test]

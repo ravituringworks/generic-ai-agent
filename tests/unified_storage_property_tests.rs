@@ -286,14 +286,21 @@ proptest! {
         rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
+            // Build final state map: trace_id -> last trace with that id
+            // This simulates what happens in storage (last write wins)
+            let mut final_traces: HashMap<String, &TraceData> = HashMap::new();
+            for trace in &traces {
+                final_traces.insert(trace.trace_id.clone(), trace);
+            }
+
             // Store all traces
             for trace in &traces {
                 storage.store_trace(trace).await.unwrap();
             }
 
-            // Group traces by resource for verification
+            // Group final traces by resource_id
             let mut resource_groups: HashMap<ResourceId, Vec<&TraceData>> = HashMap::new();
-            for trace in &traces {
+            for trace in final_traces.values() {
                 resource_groups.entry(trace.resource_id.clone())
                     .or_default()
                     .push(trace);
@@ -322,14 +329,21 @@ proptest! {
         rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
+            // Build final state map: trace_id -> last trace with that id
+            // This simulates what happens in storage (last write wins)
+            let mut final_traces: HashMap<String, &TraceData> = HashMap::new();
+            for trace in &traces {
+                final_traces.insert(trace.trace_id.clone(), trace);
+            }
+
             // Store all traces
             for trace in &traces {
                 storage.store_trace(trace).await.unwrap();
             }
 
-            // Get unique combinations of resource and component
+            // Group final traces by (resource_id, component)
             let mut resource_component_groups: HashMap<(ResourceId, String), Vec<&TraceData>> = HashMap::new();
-            for trace in &traces {
+            for trace in final_traces.values() {
                 let key = (trace.resource_id.clone(), trace.component.clone());
                 resource_component_groups.entry(key)
                     .or_default()
@@ -400,11 +414,17 @@ proptest! {
         rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
-            // Store all data
+            // Store all workflows (count unique workflow_ids)
+            let mut workflow_ids = std::collections::HashSet::new();
             for workflow in &workflows {
+                workflow_ids.insert(workflow.workflow_id.clone());
                 storage.store_suspended_workflow(workflow).await.unwrap();
             }
+
+            // Store all traces (count unique trace_ids)
+            let mut trace_ids = std::collections::HashSet::new();
             for trace in &traces {
+                trace_ids.insert(trace.trace_id.clone());
                 storage.store_trace(trace).await.unwrap();
             }
 
@@ -418,9 +438,9 @@ proptest! {
             // Get statistics
             let stats = storage.get_storage_stats().await.unwrap();
 
-            // Verify statistics accuracy
-            prop_assert_eq!(stats.suspended_workflows, workflows.len());
-            prop_assert_eq!(stats.traces, traces.len());
+            // Verify statistics accuracy (using unique counts since duplicates overwrite)
+            prop_assert_eq!(stats.suspended_workflows, workflow_ids.len());
+            prop_assert_eq!(stats.traces, trace_ids.len());
             prop_assert_eq!(stats.eval_runs, run_ids.len());
             prop_assert_eq!(stats.eval_scores, scores.len());
             Ok(())
@@ -477,6 +497,13 @@ proptest! {
         rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
+            // Build final state map: workflow_id -> last workflow with that id
+            // This simulates what happens in storage (last write wins)
+            let mut final_workflows: HashMap<String, &SuspendedWorkflow> = HashMap::new();
+            for workflow in &workflows {
+                final_workflows.insert(workflow.workflow_id.clone(), workflow);
+            }
+
             // Spawn concurrent storage operations
             let mut handles = vec![];
             for workflow in workflows.clone() {
@@ -496,21 +523,23 @@ proptest! {
                 prop_assert!(result.unwrap().is_ok());
             }
 
-            // Verify all workflows were stored
-            let mut total_stored = 0;
-            let resource_groups: std::collections::HashMap<_, _> = workflows.iter()
-                .fold(std::collections::HashMap::new(), |mut acc, w| {
-                    acc.entry(w.resource_id.clone()).or_insert_with(Vec::new).push(w);
-                    acc
-                });
+            // Group final workflows by resource_id
+            let mut resource_groups: HashMap<ResourceId, Vec<&SuspendedWorkflow>> = HashMap::new();
+            for workflow in final_workflows.values() {
+                resource_groups.entry(workflow.resource_id.clone())
+                    .or_insert_with(Vec::new)
+                    .push(workflow);
+            }
 
+            // Verify all unique workflows were stored
+            let mut total_stored = 0;
             for (resource_id, expected_workflows) in resource_groups {
                 let retrieved = storage.list_suspended_workflows(&resource_id).await.unwrap();
                 prop_assert_eq!(retrieved.len(), expected_workflows.len());
                 total_stored += retrieved.len();
             }
 
-            prop_assert_eq!(total_stored, workflows.len());
+            prop_assert_eq!(total_stored, final_workflows.len());
             Ok(())
         }).unwrap();
     }
@@ -524,28 +553,43 @@ proptest! {
         rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
             let now = SystemTime::now();
-            let cutoff_time = now + Duration::from_secs(3600); // 1 hour from now
+            let cutoff_time = now - Duration::from_secs(3600); // 1 hour ago
+
+            // Make trace IDs unique by prefixing with "old_" or "new_"
+            let mut old_traces_with_unique_ids = old_traces.clone();
+            for (idx, trace) in old_traces_with_unique_ids.iter_mut().enumerate() {
+                trace.trace_id = format!("old_{}_{}", idx, trace.trace_id);
+                trace.start_time = now - Duration::from_secs(7200); // 2 hours ago (before cutoff)
+            }
+
+            let mut new_traces_with_unique_ids = new_traces.clone();
+            for (idx, trace) in new_traces_with_unique_ids.iter_mut().enumerate() {
+                trace.trace_id = format!("new_{}_{}", idx, trace.trace_id);
+                trace.start_time = now - Duration::from_secs(1800); // 30 minutes ago (after cutoff)
+            }
 
             // Store old traces (before cutoff)
-            for mut trace in old_traces.clone() {
-                trace.start_time = now - Duration::from_secs(7200); // 2 hours ago
-                storage.store_trace(&trace).await.unwrap();
+            let mut old_trace_ids = std::collections::HashSet::new();
+            for trace in &old_traces_with_unique_ids {
+                old_trace_ids.insert(trace.trace_id.clone());
+                storage.store_trace(trace).await.unwrap();
             }
 
             // Store new traces (after cutoff)
-            for mut trace in new_traces.clone() {
-                trace.start_time = now + Duration::from_secs(1800); // 30 minutes from now
-                storage.store_trace(&trace).await.unwrap();
+            let mut new_trace_ids = std::collections::HashSet::new();
+            for trace in &new_traces_with_unique_ids {
+                new_trace_ids.insert(trace.trace_id.clone());
+                storage.store_trace(trace).await.unwrap();
             }
 
             // Delete traces before cutoff
             let deleted_count = storage.delete_traces_before(cutoff_time).await.unwrap();
 
-            // Should have deleted all old traces
-            prop_assert_eq!(deleted_count, old_traces.len());
+            // Should have deleted all old traces (count unique IDs since duplicates overwrite)
+            prop_assert_eq!(deleted_count, old_trace_ids.len());
 
             // Verify new traces still exist by checking total remaining traces
-            let resource_groups: std::collections::HashMap<_, _> = new_traces.iter()
+            let resource_groups: std::collections::HashMap<_, _> = new_traces_with_unique_ids.iter()
                 .fold(std::collections::HashMap::new(), |mut acc, t| {
                     acc.entry(t.resource_id.clone()).or_insert_with(Vec::new).push(t);
                     acc
@@ -557,7 +601,7 @@ proptest! {
                 total_remaining += retrieved.len();
             }
 
-            prop_assert_eq!(total_remaining, new_traces.len());
+            prop_assert_eq!(total_remaining, new_traces_with_unique_ids.len());
             Ok(())
         }).unwrap();
     }

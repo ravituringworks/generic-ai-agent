@@ -181,11 +181,17 @@ async fn test_location_tool_json_parsing() {
 #[cfg(test)]
 mod integration_tests {
     use super::*;
+    use tempfile::tempdir;
     use the_agency::{Agent, AgentConfig};
 
     #[tokio::test]
     async fn test_agent_can_use_datetime_tool() {
-        let config = AgentConfig::default();
+        let temp_dir = tempdir().unwrap();
+        let db_path = temp_dir.path().join("test_agent.db");
+
+        let mut config = AgentConfig::default();
+        config.memory.database_url = Some(format!("sqlite://{}?mode=rwc", db_path.display()));
+
         let agent = Agent::new(config).await.expect("Failed to create agent");
 
         // Get agent stats to verify tools are available

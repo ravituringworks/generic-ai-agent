@@ -14,7 +14,7 @@
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
 //!     let config = AgentConfig::default();
-//!     let agent = Agent::new(config).await?;
+//!     let mut agent = Agent::new(config).await?;
 //!     
 //!     let response = agent
 //!         .process("What's the weather like today?")
