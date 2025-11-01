@@ -24,22 +24,29 @@ demo-outputs/organization-YYYYMMDD-HHMMSS/
 ## 🎯 What You'll See
 
 ### Organization
-- **14 agents** across 11 specialized categories
-- **5 collaborative workspaces**
-- **8 coordinated tasks**
+- **27 agents** across 18 specialized categories
+- **8 collaborative workspaces**
+- **14 coordinated tasks**
 
 ### Agent Categories
 1. Research & AI
 2. Software Engineering
-3. Hardware Engineering
-4. Robotics Engineering
-5. Manufacturing & Production
-6. Supply Chain & Quality
-7. Infrastructure & IT
-8. Service & Support
-9. Security
+3. Security
+4. Hardware Engineering
+5. Robotics Engineering
+6. Manufacturing & Production
+7. Supply Chain & Quality
+8. Infrastructure & IT
+9. Service & Support
 10. Engineering Specializations
 11. Legal & Finance
+12. Executive Leadership
+13. Strategic & Business
+14. People & Culture
+15. Marketing & Communications
+16. Customer Success & Sales
+17. Operations & Facilities
+18. Design & UX
 
 ### Workspaces
 1. **AI & Autonomy Research** - 3 agents
@@ -47,6 +54,9 @@ demo-outputs/organization-YYYYMMDD-HHMMSS/
 3. **Hardware Integration** - 3 agents
 4. **Manufacturing Excellence** - 3 agents
 5. **Supply Chain & Analytics** - 2 agents
+6. **Executive Leadership** - 4 agents
+7. **Product Strategy** - 3 agents
+8. **Customer & Market Success** - 4 agents
 
 ## 💻 Run Examples Manually
 

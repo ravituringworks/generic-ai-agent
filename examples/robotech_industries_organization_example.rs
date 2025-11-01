@@ -34,7 +34,7 @@ async fn main() -> Result<()> {
     let mut org = create_organization().await?;
 
     println!("✅ Organization created: {}", org.name);
-    println!("   Total roles available: 60+");
+    println!("   Total roles available: 110+");
     println!("   Agent count: {}", org.agents.len());
     println!();
 
@@ -159,6 +159,83 @@ async fn create_organization() -> Result<Organization> {
     );
     org.add_agent(noah);
 
+    // Executive Leadership
+    let olivia = OrganizationAgent::new(
+        "Olivia Torres".to_string(),
+        OrganizationRole::ChiefExecutiveOfficer,
+    );
+    org.add_agent(olivia);
+
+    let paul = OrganizationAgent::new(
+        "Paul Chen".to_string(),
+        OrganizationRole::ChiefTechnologyOfficer,
+    );
+    org.add_agent(paul);
+
+    let quinn = OrganizationAgent::new(
+        "Quinn Rivera".to_string(),
+        OrganizationRole::VPEngineering,
+    );
+    org.add_agent(quinn);
+
+    // Product & Strategy
+    let rachel = OrganizationAgent::new(
+        "Rachel Kim".to_string(),
+        OrganizationRole::ChiefProductOfficer,
+    );
+    org.add_agent(rachel);
+
+    let sam = OrganizationAgent::new(
+        "Sam Johnson".to_string(),
+        OrganizationRole::PrincipalProductManager,
+    );
+    org.add_agent(sam);
+
+    let tina = OrganizationAgent::new(
+        "Tina Martinez".to_string(),
+        OrganizationRole::TechnicalProgramManager,
+    );
+    org.add_agent(tina);
+
+    // People & Culture
+    let uma = OrganizationAgent::new(
+        "Uma Patel".to_string(),
+        OrganizationRole::DirectorOfPeople,
+    );
+    org.add_agent(uma);
+
+    // Customer Success & Sales
+    let victor = OrganizationAgent::new(
+        "Victor Wong".to_string(),
+        OrganizationRole::VPSales,
+    );
+    org.add_agent(victor);
+
+    let wendy = OrganizationAgent::new(
+        "Wendy Anderson".to_string(),
+        OrganizationRole::CustomerSuccessManager,
+    );
+    org.add_agent(wendy);
+
+    let xavier = OrganizationAgent::new(
+        "Xavier Lopez".to_string(),
+        OrganizationRole::SolutionsArchitect,
+    );
+    org.add_agent(xavier);
+
+    // Marketing & Design
+    let yara = OrganizationAgent::new(
+        "Yara Hassan".to_string(),
+        OrganizationRole::ProductMarketingManager,
+    );
+    org.add_agent(yara);
+
+    let zack = OrganizationAgent::new(
+        "Zack Thompson".to_string(),
+        OrganizationRole::PrincipalProductDesigner,
+    );
+    org.add_agent(zack);
+
     Ok(org)
 }
 
@@ -256,6 +333,63 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
             .map(|(id, _)| id.clone());
         if let Some(id) = agent_id {
             org.assign_agent_to_workspace(&id, &sc_ws_id)?;
+        }
+    }
+
+    // Workspace 6: Executive Leadership
+    let executive_ws = CollaborativeWorkspace::new(
+        "Executive Leadership".to_string(),
+        "Strategic planning and organizational direction".to_string(),
+    );
+    let exec_ws_id = executive_ws.id.clone();
+    org.create_workspace(executive_ws);
+
+    // Assign executives
+    let agent_names = ["Olivia Torres", "Paul Chen", "Quinn Rivera", "Rachel Kim"];
+    for name in agent_names {
+        let agent_id = org.agents.iter()
+            .find(|(_, a)| a.name == name)
+            .map(|(id, _)| id.clone());
+        if let Some(id) = agent_id {
+            org.assign_agent_to_workspace(&id, &exec_ws_id)?;
+        }
+    }
+
+    // Workspace 7: Product Strategy
+    let product_ws = CollaborativeWorkspace::new(
+        "Product Strategy".to_string(),
+        "Product roadmap and market strategy development".to_string(),
+    );
+    let prod_ws_id = product_ws.id.clone();
+    org.create_workspace(product_ws);
+
+    // Assign product team
+    let agent_names = ["Sam Johnson", "Tina Martinez", "Zack Thompson"];
+    for name in agent_names {
+        let agent_id = org.agents.iter()
+            .find(|(_, a)| a.name == name)
+            .map(|(id, _)| id.clone());
+        if let Some(id) = agent_id {
+            org.assign_agent_to_workspace(&id, &prod_ws_id)?;
+        }
+    }
+
+    // Workspace 8: Customer & Market Success
+    let customer_ws = CollaborativeWorkspace::new(
+        "Customer & Market Success".to_string(),
+        "Customer success, sales, and market engagement".to_string(),
+    );
+    let cust_ws_id = customer_ws.id.clone();
+    org.create_workspace(customer_ws);
+
+    // Assign customer success and sales team
+    let agent_names = ["Victor Wong", "Wendy Anderson", "Xavier Lopez", "Yara Hassan"];
+    for name in agent_names {
+        let agent_id = org.agents.iter()
+            .find(|(_, a)| a.name == name)
+            .map(|(id, _)| id.clone());
+        if let Some(id) = agent_id {
+            org.assign_agent_to_workspace(&id, &cust_ws_id)?;
         }
     }
 
@@ -411,6 +545,99 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         .await?;
 
     println!("   ✅ Completed {} manufacturing tasks\n", mfg_results.len());
+
+    // Project 5: Executive Strategy
+    println!("📦 Project 5: Executive Leadership\n");
+
+    let exec_ws_id = org
+        .workspaces
+        .values()
+        .find(|w| w.name == "Executive Leadership")
+        .map(|w| w.id.clone())
+        .unwrap();
+
+    let task9 = WorkspaceTask::new(
+        "Develop Organizational Strategy".to_string(),
+        "Define 3-year strategic roadmap and organizational priorities".to_string(),
+        vec![get_agent_id("Olivia Torres")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let task10 = WorkspaceTask::new(
+        "Technology Vision & Roadmap".to_string(),
+        "Establish technical direction and innovation strategy".to_string(),
+        vec![get_agent_id("Paul Chen")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let exec_tasks = vec![task9, task10];
+    let exec_results = coordinator
+        .coordinate_workspace_project(&exec_ws_id, exec_tasks)
+        .await?;
+
+    println!("   ✅ Completed {} executive strategy tasks\n", exec_results.len());
+
+    // Project 6: Product Strategy
+    println!("📦 Project 6: Product Strategy\n");
+
+    let prod_ws_id = org
+        .workspaces
+        .values()
+        .find(|w| w.name == "Product Strategy")
+        .map(|w| w.id.clone())
+        .unwrap();
+
+    let task11 = WorkspaceTask::new(
+        "Product Roadmap Planning".to_string(),
+        "Define product features and timeline for next generation robots".to_string(),
+        vec![get_agent_id("Sam Johnson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let task12 = WorkspaceTask::new(
+        "Design System Development".to_string(),
+        "Create comprehensive design system for robot user experience".to_string(),
+        vec![get_agent_id("Zack Thompson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let prod_tasks = vec![task11, task12];
+    let prod_results = coordinator
+        .coordinate_workspace_project(&prod_ws_id, prod_tasks)
+        .await?;
+
+    println!("   ✅ Completed {} product strategy tasks\n", prod_results.len());
+
+    // Project 7: Customer Success
+    println!("📦 Project 7: Customer & Market Success\n");
+
+    let cust_ws_id = org
+        .workspaces
+        .values()
+        .find(|w| w.name == "Customer & Market Success")
+        .map(|w| w.id.clone())
+        .unwrap();
+
+    let task13 = WorkspaceTask::new(
+        "Enterprise Sales Strategy".to_string(),
+        "Develop enterprise go-to-market strategy and sales playbooks".to_string(),
+        vec![get_agent_id("Victor Wong")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let task14 = WorkspaceTask::new(
+        "Customer Success Framework".to_string(),
+        "Build customer onboarding and success framework".to_string(),
+        vec![get_agent_id("Wendy Anderson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let cust_tasks = vec![task13, task14];
+    let cust_results = coordinator
+        .coordinate_workspace_project(&cust_ws_id, cust_tasks)
+        .await?;
+
+    println!("   ✅ Completed {} customer success tasks\n", cust_results.len());
 
     Ok(())
 }

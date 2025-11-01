@@ -101,6 +101,61 @@ pub enum OrganizationRole {
     CounselEmploymentCompensation,
     CounselCommercialTrade,
     PayrollAccountant,
+
+    // Executive Leadership
+    ChiefExecutiveOfficer,
+    ChiefTechnologyOfficer,
+    ChiefOperatingOfficer,
+    ChiefFinancialOfficer,
+    ChiefProductOfficer,
+    VPEngineering,
+    VPOperations,
+    VPResearchDevelopment,
+
+    // Strategic & Business
+    ProductManager,
+    SeniorProductManager,
+    PrincipalProductManager,
+    TechnicalProgramManager,
+    EngineeringProgramManager,
+    StrategicPlanningManager,
+    BusinessDevelopmentManager,
+    PartnershipManager,
+
+    // People & Culture
+    DirectorOfPeople,
+    TalentAcquisitionManager,
+    SeniorRecruiter,
+    LearningDevelopmentManager,
+    OrganizationalDevelopmentSpecialist,
+
+    // Marketing & Communications
+    ChiefMarketingOfficer,
+    ProductMarketingManager,
+    TechnicalMarketingManager,
+    DeveloperAdvocate,
+    CommunicationsManager,
+    ContentStrategist,
+
+    // Customer Success & Sales
+    VPSales,
+    EnterpriseAccountExecutive,
+    SalesEngineer,
+    CustomerSuccessManager,
+    TechnicalAccountManager,
+    SolutionsArchitect,
+
+    // Operations & Facilities
+    DirectorOfOperations,
+    FacilitiesManager,
+    EnvironmentalHealthSafetyManager,
+    RiskManagementSpecialist,
+
+    // Design & User Experience
+    DesignDirector,
+    PrincipalProductDesigner,
+    UXResearcher,
+    IndustrialDesigner,
 }
 
 impl OrganizationRole {
@@ -184,6 +239,54 @@ impl OrganizationRole {
             Self::CounselEmploymentCompensation
             | Self::CounselCommercialTrade
             | Self::PayrollAccountant => RoleCategory::LegalFinance,
+
+            Self::ChiefExecutiveOfficer
+            | Self::ChiefTechnologyOfficer
+            | Self::ChiefOperatingOfficer
+            | Self::ChiefFinancialOfficer
+            | Self::ChiefProductOfficer
+            | Self::VPEngineering
+            | Self::VPOperations
+            | Self::VPResearchDevelopment => RoleCategory::ExecutiveLeadership,
+
+            Self::ProductManager
+            | Self::SeniorProductManager
+            | Self::PrincipalProductManager
+            | Self::TechnicalProgramManager
+            | Self::EngineeringProgramManager
+            | Self::StrategicPlanningManager
+            | Self::BusinessDevelopmentManager
+            | Self::PartnershipManager => RoleCategory::StrategicBusiness,
+
+            Self::DirectorOfPeople
+            | Self::TalentAcquisitionManager
+            | Self::SeniorRecruiter
+            | Self::LearningDevelopmentManager
+            | Self::OrganizationalDevelopmentSpecialist => RoleCategory::PeopleCulture,
+
+            Self::ChiefMarketingOfficer
+            | Self::ProductMarketingManager
+            | Self::TechnicalMarketingManager
+            | Self::DeveloperAdvocate
+            | Self::CommunicationsManager
+            | Self::ContentStrategist => RoleCategory::MarketingCommunications,
+
+            Self::VPSales
+            | Self::EnterpriseAccountExecutive
+            | Self::SalesEngineer
+            | Self::CustomerSuccessManager
+            | Self::TechnicalAccountManager
+            | Self::SolutionsArchitect => RoleCategory::CustomerSuccessSales,
+
+            Self::DirectorOfOperations
+            | Self::FacilitiesManager
+            | Self::EnvironmentalHealthSafetyManager
+            | Self::RiskManagementSpecialist => RoleCategory::OperationsFacilities,
+
+            Self::DesignDirector
+            | Self::PrincipalProductDesigner
+            | Self::UXResearcher
+            | Self::IndustrialDesigner => RoleCategory::DesignUX,
         }
     }
 
@@ -246,6 +349,13 @@ pub enum RoleCategory {
     ServiceSupport,
     Specializations,
     LegalFinance,
+    ExecutiveLeadership,
+    StrategicBusiness,
+    PeopleCulture,
+    MarketingCommunications,
+    CustomerSuccessSales,
+    OperationsFacilities,
+    DesignUX,
 }
 
 /// Represents an agent within the organization
