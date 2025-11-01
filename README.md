@@ -5,7 +5,7 @@
 
 A comprehensive, extensible AI agent framework built in Rust that integrates:
 
-- **🧠 Ollama** - Local LLM inference for text generation and embeddings
+- **🤖 Multi-Provider LLMs** - OpenAI, Anthropic, Google, Groq, Together AI, Azure OpenAI, Ollama
 - **💾 Vector Store** - Semantic memory and knowledge retrieval
 - **🛠️ MCP Client** - Model Context Protocol for calling external tools
 - **⚡ Workflow Engine** - Orchestrates reasoning, memory, and tool usage
@@ -17,6 +17,12 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 ### Core Capabilities
 
+- **Multi-Provider LLMs**: Support for 7+ LLM providers with automatic fallback
+  - Local: Ollama
+  - Cloud: OpenAI, Anthropic Claude, Google Gemini
+  - Fast: Groq (LPU acceleration)
+  - Enterprise: Azure OpenAI
+  - Open Source: Together AI (50+ models)
 - **Task-Based LLM**: Configure different models for different task types (code, creative, math, etc.)
 - **Memory System**: Persistent vector-based memory with semantic search
 - **Document RAG**: PDF processing with table extraction and semantic indexing
@@ -92,6 +98,60 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+### Multi-Provider LLM Support
+
+The Agency supports 7+ LLM providers with a unified interface:
+
+```rust
+use the_agency::llm::providers::{
+    OpenAIProvider, AnthropicProvider, GoogleProvider,
+    GroqProvider, TogetherProvider, AzureOpenAIProvider,
+};
+use the_agency::llm::{user_message, provider::LlmProvider};
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Use OpenAI
+    let openai = OpenAIProvider::from_env(
+        "gpt-4".to_string(),
+        Some("text-embedding-ada-002".to_string())
+    )?;
+    
+    let messages = vec![user_message("What is Rust?")];
+    let response = openai.generate(&messages).await?;
+    println!("OpenAI: {}", response.text);
+    
+    // Use Anthropic Claude
+    let claude = AnthropicProvider::from_env(
+        "claude-3-opus-20240229".to_string(),
+        None
+    )?;
+    let response = claude.generate(&messages).await?;
+    println!("Claude: {}", response.text);
+    
+    // Use Groq for fast inference
+    let groq = GroqProvider::from_env("llama3-70b-8192".to_string())?;
+    let response = groq.generate(&messages).await?;
+    println!("Groq: {}", response.text);
+    
+    Ok(())
+}
+```
+
+Configure with environment variables:
+
+```bash
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GOOGLE_API_KEY="..."
+export GROQ_API_KEY="gsk_..."
+export TOGETHER_API_KEY="..."
+export AZURE_OPENAI_API_KEY="..."
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com"
+```
+
+See `examples/multi_provider_usage.rs` for complete examples and `docs/MULTI_PROVIDER_ARCHITECTURE.md` for architecture details.
 
 ### Multi-Agent Communication
 
@@ -506,12 +566,21 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for detailed deployment instructions.
 ### Basic Configuration
 
 ```toml
+# LLM Provider Configuration (supports multiple providers)
 [llm]
 ollama_url = "http://localhost:11434"
 text_model = "llama3.2"
 embedding_model = "nomic-embed-text"
 max_tokens = 4096
 temperature = 0.7
+
+# Multi-Provider Fallback (optional)
+[llm.fallback]
+enabled = true
+strategy = "sequential"  # or "parallel"
+max_retries = 2
+retry_delay_ms = 1000
+priority = ["ollama", "groq", "openai", "anthropic"]
 
 [memory]
 database_url = "sqlite:memory.db"
@@ -1080,6 +1149,11 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 ## 🙏 Acknowledgments
 
 - [Ollama](https://ollama.ai/) - Local LLM inference
+- [OpenAI](https://openai.com/) - GPT models
+- [Anthropic](https://anthropic.com/) - Claude models
+- [Google AI](https://ai.google.dev/) - Gemini models
+- [Groq](https://groq.com/) - Fast LPU inference
+- [Together AI](https://together.ai/) - Open source model hosting
 - [MCP](https://modelcontextprotocol.io/) - Model Context Protocol
 - [SQLx](https://github.com/launchbadge/sqlx) - Async SQL toolkit
 - [Tokio](https://tokio.rs/) - Async runtime
@@ -1096,12 +1170,14 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 ### 📚 Documentation & Resources
 
 - 📜 [API Documentation](https://docs.rs/the-agency)
+- 🤖 [Multi-Provider LLM Architecture](docs/MULTI_PROVIDER_ARCHITECTURE.md)
 - 🌐 [A2A Communication Guide](docs/A2A_COMMUNICATION.md)
 - 🔄 [State Management Guide](docs/PAUSE_EXECUTION.md)
 - 🗄️ [Unified Storage Guide](docs/UNIFIED_STORAGE_README.md)
 - 📋 [API Reference](docs/API.md)
 - ⏯️ [Suspend/Resume Guide](docs/SUSPEND_RESUME.md)
 - 📄 [Document RAG Examples](examples/pdf_rag_with_tables.rs)
+- 🔌 [Multi-Provider Usage Example](examples/multi_provider_usage.rs)
 
 ### 🐛 Issues & Discussions
 
