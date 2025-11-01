@@ -72,6 +72,15 @@ pub enum LlmError {
     #[error("All providers failed")]
     AllProvidersFailed,
 
+    #[error("Unauthorized: invalid or missing API key")]
+    Unauthorized,
+
+    #[error("Rate limited: too many requests")]
+    RateLimited,
+
+    #[error("Server error: {0}")]
+    ServerError(String),
+
     #[error("Unknown error: {0}")]
     Unknown(String),
 }

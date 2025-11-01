@@ -1,6 +1,8 @@
 //! Language model integration using Ollama
 
 pub mod manager;
+pub mod provider;
+pub mod providers;
 
 use crate::cache::LlmCache;
 use crate::config::LlmConfig;

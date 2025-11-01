@@ -1,8 +1,14 @@
 # The Agency - Example Configuration File
-# This file demonstrates how to configure task-specific LLM models
+# This file demonstrates how to configure task-specific LLM models and multiple providers
+
+# ============================================================================
+# LLM Provider Configuration
+# ============================================================================
+# The Agency supports multiple LLM providers with automatic fallback
+# Supported providers: Ollama, OpenAI, Azure OpenAI, Anthropic, Groq, Together AI
 
 [llm]
-# Default Ollama server URL
+# Primary provider (currently Ollama - local inference)
 ollama_url = "http://localhost:11434"
 
 # Default model for text generation
@@ -22,6 +28,78 @@ timeout = 300
 
 # Enable streaming responses
 stream = false
+
+# ============================================================================
+# Multi-Provider Configuration (Optional)
+# ============================================================================
+# Uncomment and configure additional providers for automatic fallback
+
+# OpenAI Configuration
+# [llm.providers.openai]
+# enabled = false
+# api_key_env = "OPENAI_API_KEY"  # or set api_key = "sk-..." (not recommended)
+# base_url = "https://api.openai.com/v1"
+# text_model = "gpt-4"  # or "gpt-3.5-turbo", "gpt-4-turbo"
+# embedding_model = "text-embedding-ada-002"
+# max_tokens = 4096
+# temperature = 0.7
+# timeout = 120
+
+# Azure OpenAI Configuration  
+# [llm.providers.azure_openai]
+# enabled = false
+# api_key_env = "AZURE_OPENAI_API_KEY"
+# endpoint = "https://your-resource.openai.azure.com"
+# deployment_name = "gpt-4"
+# api_version = "2023-05-15"
+# max_tokens = 4096
+# temperature = 0.7
+
+# Anthropic Claude Configuration
+# [llm.providers.anthropic]
+# enabled = false
+# api_key_env = "ANTHROPIC_API_KEY"
+# base_url = "https://api.anthropic.com"
+# text_model = "claude-3-opus-20240229"  # or "claude-3-sonnet-20240229"
+# max_tokens = 4096
+# temperature = 0.7
+# timeout = 120
+
+# Groq Configuration (Fast inference)
+# [llm.providers.groq]
+# enabled = false
+# api_key_env = "GROQ_API_KEY"
+# base_url = "https://api.groq.com/openai/v1"
+# text_model = "mixtral-8x7b-32768"  # or "llama2-70b-4096"
+# max_tokens = 8192
+# temperature = 0.7
+
+# Together AI Configuration
+# [llm.providers.together]
+# enabled = false
+# api_key_env = "TOGETHER_API_KEY"
+# base_url = "https://api.together.xyz/v1"
+# text_model = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+# max_tokens = 4096
+# temperature = 0.7
+
+# Provider Fallback Configuration
+[llm.fallback]
+# Enable automatic fallback to other providers when primary fails
+enabled = true
+
+# Fallback strategy: "sequential" tries providers in order, "parallel" tries all at once
+strategy = "sequential"
+
+# Maximum retry attempts per provider before moving to next
+max_retries = 2
+
+# Delay between retries in milliseconds
+retry_delay_ms = 1000
+
+# Provider priority order (highest to lowest priority)
+# Only enabled providers from the list will be used
+priority = ["ollama", "groq", "openai", "anthropic", "together", "azure_openai"]
 
 # LLM response cache configuration
 [llm.cache]
