@@ -68,3 +68,6 @@ examples/robotics_workspace_complex/
 
 # Data directory
 data/
+
+# Demo outputs
+demo-outputs/
