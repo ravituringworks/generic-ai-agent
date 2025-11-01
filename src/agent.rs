@@ -593,11 +593,9 @@ mod tests {
     use tempfile::tempdir;
 
     async fn create_test_agent() -> Agent {
-        let temp_dir = tempdir().unwrap();
-        let db_path = temp_dir.path().join("test.db");
-
+        // Use in-memory SQLite database for tests
         let mut config = AgentConfig::default();
-        config.memory.database_url = Some(format!("sqlite://{}", db_path.to_str().unwrap()));
+        config.memory.database_url = Some("sqlite::memory:".to_string());
 
         Agent::new(config).await.unwrap()
     }

@@ -515,8 +515,8 @@ mod tests {
     use tempfile::NamedTempFile;
 
     async fn create_test_store() -> SqliteMemoryStore {
-        let temp_file = NamedTempFile::new().unwrap();
-        let database_url = format!("sqlite://{}", temp_file.path().to_str().unwrap());
+        // Use in-memory SQLite database for tests
+        let database_url = "sqlite::memory:".to_string();
 
         let config = MemoryConfig {
             database_url: Some(database_url),
