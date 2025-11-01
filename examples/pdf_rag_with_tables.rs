@@ -14,7 +14,7 @@
 use std::{collections::HashMap, fs, path::Path};
 use the_agency::{
     config::MemoryConfig,
-    llm::{user_message, LlmClient, Message, OllamaClient},
+    llm::{user_message, LlmClient, OllamaClient},
     memory::{MemoryStore, SqliteMemoryStore},
 };
 
@@ -84,7 +84,14 @@ pub struct DocumentFigure {
 pub struct AdvancedPDFProcessor {
     table_patterns: Vec<Regex>,
     section_patterns: Vec<Regex>,
+    #[allow(dead_code)]
     reference_patterns: Vec<Regex>,
+}
+
+impl Default for AdvancedPDFProcessor {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AdvancedPDFProcessor {
@@ -161,7 +168,7 @@ impl AdvancedPDFProcessor {
 
         // Fallback to simulated content
         println!("⚠️  Falling back to simulated PDF content");
-        Ok(self.simulate_pdf_extraction(pdf_path).await?)
+        self.simulate_pdf_extraction(pdf_path).await
     }
 
     /// Extract text from real PDF file using pdf-extract
@@ -354,7 +361,7 @@ References
                 .chars()
                 .take_while(|c| c.is_numeric() || *c == '.')
                 .count();
-            ((dots + 1) / 2).min(6) as u8
+            dots.div_ceil(2).min(6) as u8
         } else {
             1
         }
@@ -437,7 +444,7 @@ References
             rows,
             page_number: None,
             table_type: TableType::DataTable, // Simplified classification
-            context: lines.get(0).map(|s| s.to_string()).unwrap_or_default(),
+            context: lines.first().map(|s| s.to_string()).unwrap_or_default(),
         };
 
         Ok(Some(table))
@@ -449,23 +456,22 @@ References
             return Ok((vec![], vec![]));
         }
 
-        let mut headers = Vec::new();
         let mut rows = Vec::new();
 
         // Parse first line as headers
         let first_line = table_lines[0];
-        if first_line.contains("|") {
-            headers = first_line
+        let headers: Vec<String> = if first_line.contains("|") {
+            first_line
                 .split("|")
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty())
-                .collect();
+                .collect()
         } else {
-            headers = first_line
+            first_line
                 .split_whitespace()
                 .map(|s| s.to_string())
-                .collect();
-        }
+                .collect()
+        };
 
         // Parse remaining lines as data rows
         for line in &table_lines[1..] {
@@ -519,7 +525,7 @@ pub struct DocumentRAGSystem {
 }
 
 impl DocumentRAGSystem {
-    pub async fn new(database_path: &str) -> Result<Self> {
+    pub async fn new(_database_path: &str) -> Result<Self> {
         let memory_config = MemoryConfig {
             store_type: "sqlite".to_string(),
             database_url: Some("sqlite::memory:".to_string()),
@@ -540,6 +546,8 @@ impl DocumentRAGSystem {
             temperature: 0.7,
             timeout: 120,
             stream: false,
+            task_models: HashMap::new(),
+            cache: the_agency::cache::LlmCacheConfig::default(),
         };
 
         let llm_client = OllamaClient::new(llm_config);
@@ -789,7 +797,7 @@ Answer the user's question based on the provided context.";
 
         let messages = vec![
             the_agency::llm::system_message(system_prompt),
-            user_message(&format!(
+            user_message(format!(
                 "Context:\n{}\n\nQuestion: {}",
                 full_context, question
             )),

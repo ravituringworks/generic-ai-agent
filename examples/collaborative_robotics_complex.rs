@@ -224,7 +224,7 @@ impl Workspace {
         self.tasks
             .iter()
             .find(|t| t.id == task_id)
-            .map_or(false, |t| t.status == TaskStatus::Completed)
+            .is_some_and(|t| t.status == TaskStatus::Completed)
     }
 
     fn update_task_status(&mut self, task_id: &str, status: TaskStatus) {
@@ -263,7 +263,7 @@ struct CollaborativeAgent {
 }
 
 impl CollaborativeAgent {
-    async fn new(name: String, role: AgentRole, config: AgentConfig) -> Result<Self> {
+    async fn new(_name: String, role: AgentRole, config: AgentConfig) -> Result<Self> {
         let system_prompt = Self::get_system_prompt(&role);
 
         let agent = AgentBuilder::new()
@@ -272,7 +272,11 @@ impl CollaborativeAgent {
             .build()
             .await?;
 
-        Ok(Self { name, role, agent })
+        Ok(Self {
+            name: _name,
+            role,
+            agent,
+        })
     }
 
     fn get_system_prompt(role: &AgentRole) -> String {
@@ -1093,7 +1097,7 @@ async fn main() -> Result<()> {
     // List all artifacts by phase
     println!("\\n📋 Produced Artifacts by Phase:");
     let mut artifacts_by_phase: HashMap<u32, Vec<&Artifact>> = HashMap::new();
-    for (_id, artifact) in &workspace.artifacts {
+    for artifact in workspace.artifacts.values() {
         if let Some(phase_str) = artifact.name.split('_').next() {
             if let Some(phase_num) = phase_str.strip_prefix("phase") {
                 if let Ok(phase) = phase_num.parse::<u32>() {
@@ -1112,7 +1116,7 @@ async fn main() -> Result<()> {
                     artifact.name,
                     artifact.produced_by,
                     if artifact.verified {
-                        format!(" ✓ verified")
+                        " ✓ verified".to_string()
                     } else {
                         "".to_string()
                     }

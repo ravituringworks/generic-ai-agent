@@ -18,6 +18,13 @@ use std::collections::HashMap;
 use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
+/// Type alias for saga action functions
+type SagaActionFn = Box<dyn Fn(&mut WorkflowContext) -> Result<serde_json::Value> + Send + Sync>;
+
+/// Type alias for saga compensation functions
+type SagaCompensationFn =
+    Box<dyn Fn(&mut WorkflowContext, &serde_json::Value) -> Result<()> + Send + Sync>;
+
 /// Saga execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SagaResult {
@@ -72,11 +79,10 @@ pub struct SagaStep {
     pub name: String,
 
     /// Forward action to execute
-    pub action: Box<dyn Fn(&mut WorkflowContext) -> Result<serde_json::Value> + Send + Sync>,
+    pub action: SagaActionFn,
 
     /// Compensation action (rollback)
-    pub compensation:
-        Box<dyn Fn(&mut WorkflowContext, &serde_json::Value) -> Result<()> + Send + Sync>,
+    pub compensation: SagaCompensationFn,
 
     /// Whether this step can be retried on failure
     pub retryable: bool,

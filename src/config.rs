@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Main configuration for the AI agent
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentConfig {
     /// LLM configuration
     pub llm: LlmConfig,
@@ -471,21 +471,6 @@ impl Default for WorkflowConfig {
     }
 }
 
-impl Default for AgentConfig {
-    fn default() -> Self {
-        Self {
-            llm: LlmConfig::default(),
-            memory: MemoryConfig::default(),
-            mcp: McpConfig::default(),
-            a2a: A2AConfig::default(),
-            agent: AgentBehaviorConfig::default(),
-            workflow: WorkflowConfig::default(),
-            learning: LearningConfig::default(),
-            evaluation: EvaluationConfig::default(),
-        }
-    }
-}
-
 impl Default for LlmConfig {
     fn default() -> Self {
         Self {
@@ -512,7 +497,7 @@ impl LlmConfig {
 
         // Try to find a matching task model by keywords
         let task_lower = task.to_lowercase();
-        for (_, config) in &self.task_models {
+        for config in self.task_models.values() {
             for keyword in &config.keywords {
                 if task_lower.contains(&keyword.to_lowercase()) {
                     return config.clone();

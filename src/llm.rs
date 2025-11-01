@@ -421,6 +421,7 @@ mod tests {
 
     #[automock]
     #[async_trait]
+    #[allow(dead_code)]
     pub trait MockLlmClient: Send + Sync {
         async fn generate(&self, messages: &[Message]) -> Result<GenerationResponse>;
         async fn embed(&self, text: &str) -> Result<EmbeddingResponse>;

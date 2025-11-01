@@ -91,6 +91,7 @@ daemonize = "0.5"
 
 # Regular expressions
 regex = "1"
+pdf-extract = "0.10"
 
 # Windows service support
 [target.'cfg(windows)'.dependencies]

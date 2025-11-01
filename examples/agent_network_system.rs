@@ -20,11 +20,9 @@ use std::sync::Arc;
 use the_agency::{
     error::Result,
     workflow::{
-        ConditionFn, MapperFn, StepSchema, WorkflowBuilder, WorkflowContext, WorkflowDecision,
-        WorkflowStep,
+        ConditionFn, StepSchema, WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep,
     },
 };
-use tokio;
 
 /// Represents different types of specialized agents in the network
 #[derive(Debug, Clone)]
@@ -222,7 +220,7 @@ impl SpecializedAgent {
         }
     }
 
-    async fn orchestrate_workflow(&self, task: &str, context: &Value) -> Value {
+    async fn orchestrate_workflow(&self, _task: &str, _context: &Value) -> Value {
         json!({
             "type": "workflow_orchestration",
             "workflow_id": "wf_001",
@@ -446,6 +444,12 @@ pub struct AgentNetwork {
     pub agents: HashMap<String, Arc<SpecializedAgent>>,
 }
 
+impl Default for AgentNetwork {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AgentNetwork {
     pub fn new() -> Self {
         let mut agents = HashMap::new();
@@ -627,7 +631,7 @@ async fn main() -> anyhow::Result<()> {
     println!("📋 Demo 1: Unstructured Input → Structured Task Routing");
     println!("-------------------------------------------------------");
 
-    let unstructured_inputs = vec![
+    let unstructured_inputs = [
         "I need to analyze the sentiment of this customer feedback and create a summary report",
         "Please extract information from this PDF document and convert it to Excel format",
         "Can you help me create statistical analysis and charts for my sales data?",

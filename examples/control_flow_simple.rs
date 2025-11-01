@@ -13,11 +13,10 @@ use std::sync::Arc;
 use the_agency::{
     error::Result,
     workflow::{
-        ConditionFn, ItemsExtractorFn, MapperFn, ParallelExecutionStep, StepSchema,
-        WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep,
+        ConditionFn, ItemsExtractorFn, MapperFn, StepSchema, WorkflowBuilder, WorkflowContext,
+        WorkflowDecision, WorkflowStep,
     },
 };
-use tokio;
 
 /// Custom step for demonstration
 pub struct DataProcessingStep {
@@ -118,7 +117,7 @@ async fn main() -> anyhow::Result<()> {
 
     let context = WorkflowContext::new(20);
     let start_time = std::time::Instant::now();
-    let result = parallel_workflow.execute(context).await?;
+    let _result = parallel_workflow.execute(context).await?;
     let elapsed = start_time.elapsed();
     println!(
         "Parallel workflow completed in {}ms (should be ~200ms for parallel + 50ms sequential)\n",
@@ -217,7 +216,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     let context = WorkflowContext::new(20);
-    let result = foreach_workflow.execute(context).await?;
+    let _result = foreach_workflow.execute(context).await?;
     println!(
         "For-each workflow completed: Steps executed = {}\n",
         result.steps_executed
@@ -253,7 +252,7 @@ async fn main() -> anyhow::Result<()> {
     context
         .metadata
         .insert("source_data".to_string(), "original_value".to_string());
-    let result = mapping_workflow.execute(context).await?;
+    let _result = mapping_workflow.execute(context).await?;
     println!(
         "Mapping workflow completed: Steps executed = {}\n",
         result.steps_executed
@@ -305,7 +304,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     let context = WorkflowContext::new(20);
-    let result = schema_workflow.execute(context).await?;
+    let _result = schema_workflow.execute(context).await?;
     println!(
         "Schema workflow completed: Steps executed = {}\n",
         result.steps_executed
@@ -335,12 +334,12 @@ async fn main() -> anyhow::Result<()> {
 
     println!("Cloned workflow 1:");
     let context = WorkflowContext::new(10);
-    let result = customized_workflow_1.execute(context).await?;
+    let _result = customized_workflow_1.execute(context).await?;
     println!("  Steps executed: {}", result.steps_executed);
 
     println!("Cloned workflow 2:");
     let context = WorkflowContext::new(10);
-    let result = customized_workflow_2.execute(context).await?;
+    let _result = customized_workflow_2.execute(context).await?;
     println!("  Steps executed: {}", result.steps_executed);
 
     // Demo 9: Workflow State and Metadata
@@ -371,7 +370,7 @@ async fn main() -> anyhow::Result<()> {
     context
         .metadata
         .insert("version".to_string(), "1.0.0".to_string());
-    let result = metadata_workflow.execute(context).await?;
+    let _result = metadata_workflow.execute(context).await?;
     println!(
         "Metadata workflow completed: Steps executed = {}\n",
         result.steps_executed

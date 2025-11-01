@@ -26,7 +26,6 @@ use the_agency::{
         WorkflowStep,
     },
 };
-use tokio;
 use uuid::Uuid;
 
 /// Storage backend types
@@ -314,7 +313,9 @@ pub struct CleanupStats {
 
 /// SQLite implementation of unified storage
 pub struct SQLiteUnifiedStorage {
+    #[allow(dead_code)]
     connection_pool: Arc<tokio::sync::RwLock<Vec<String>>>, // Mock connection pool
+    #[allow(dead_code)]
     file_path: String,
 }
 
@@ -406,8 +407,7 @@ impl UnifiedStorage for SQLiteUnifiedStorage {
             Err(the_agency::error::AgentError::Config(format!(
                 "Workflow {} not found",
                 workflow_id
-            ))
-            .into())
+            )))
         }
     }
 
@@ -861,6 +861,7 @@ impl StorageManager {
     }
 
     /// Record a trace for observability
+    #[allow(clippy::too_many_arguments)]
     pub async fn record_trace(
         &self,
         resource_id: ResourceId,
@@ -946,6 +947,7 @@ impl StorageManager {
     }
 
     /// Record an evaluation score
+    #[allow(clippy::too_many_arguments)]
     pub async fn record_evaluation_score(
         &self,
         run_id: &str,
@@ -1242,7 +1244,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Start evaluation runs
     println!("\n🏃 Starting evaluation runs...");
-    let models = vec!["gpt-4", "claude-3", "local-llm"];
+    let models = ["gpt-4", "claude-3", "local-llm"];
     let mut run_ids = Vec::new();
 
     for (dataset_id, model_name) in dataset_ids.iter().zip(models.iter()) {

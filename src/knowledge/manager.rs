@@ -16,11 +16,7 @@ impl AdaptiveKnowledgeManager {
     }
 
     /// Check if knowledge store needs management
-    pub async fn needs_management(
-        &self,
-        _role: &str,
-        store: &Box<dyn MemoryStore>,
-    ) -> Result<bool> {
+    pub async fn needs_management(&self, _role: &str, store: &dyn MemoryStore) -> Result<bool> {
         let stats = store.stats().await?;
         Ok(stats.total_memories >= self.config.soft_limit_best_practices)
     }
@@ -195,7 +191,7 @@ impl AdaptiveKnowledgeManager {
     pub async fn get_storage_stats(
         &self,
         role: &str,
-        store: &Box<dyn MemoryStore>,
+        store: &dyn MemoryStore,
     ) -> Result<KnowledgeStats> {
         let all_memories = store.list(None).await?;
 

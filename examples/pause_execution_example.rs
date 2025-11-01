@@ -17,19 +17,18 @@ use the_agency::{
         WorkflowEvent, WorkflowSuspendConfig,
     },
 };
-use tokio;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize logging
-    tracing_subscriber::init();
+    tracing_subscriber::fmt::init();
 
     println!("🚀 Pause Execution Demo");
     println!("========================\n");
 
     // Setup infrastructure
     let storage_dir = PathBuf::from("./examples/pause_snapshots");
-    let snapshot_storage = FileSnapshotStorage::new(&storage_dir);
+    let _snapshot_storage = FileSnapshotStorage::new(&storage_dir);
     let event_bus = Arc::new(EventBus::new(50));
 
     let suspend_config = WorkflowSuspendConfig {
@@ -315,8 +314,8 @@ async fn main() -> anyhow::Result<()> {
 
     // Cleanup demo
     println!("\n🧹 Cleaning up snapshots...");
-    let cleanup_count = event_engine.cleanup_snapshots().await.unwrap_or(0);
-    println!("   Cleaned up {} old snapshots", cleanup_count);
+    // Note: cleanup_snapshots() is private, so we skip this demo
+    println!("   (Snapshot cleanup would be handled internally)");
 
     println!("\n🎉 Pause execution demo completed!");
     println!("📁 Check ./examples/pause_snapshots for workflow state files");
@@ -331,12 +330,13 @@ async fn main() -> anyhow::Result<()> {
 }
 
 /// Helper function to demonstrate workflow event handling patterns
+#[allow(dead_code)]
 async fn demonstrate_event_patterns(event_bus: &EventBus) -> anyhow::Result<()> {
     println!("🔄 Event Pattern Demonstrations");
 
     // Pattern 1: Request-Response
     println!("   Pattern 1: Request-Response");
-    let response_receiver = event_bus.subscribe("response_123");
+    let _response_receiver = event_bus.subscribe("response_123");
 
     let request_event = WorkflowEvent {
         id: "request_123".to_string(),

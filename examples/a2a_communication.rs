@@ -4,15 +4,14 @@
 //! to enable agents to discover and communicate with each other.
 
 use std::collections::HashMap;
-use std::sync::Arc;
+
 use std::time::Duration;
 use the_agency::*;
-use tokio::time::sleep;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize logging
-    tracing_subscriber::init();
+    tracing_subscriber::fmt::init();
 
     println!("🤖 Agent-to-Agent Communication Example");
     println!("========================================");
@@ -46,8 +45,10 @@ async fn basic_a2a_setup() -> Result<()> {
 
     // Create custom A2A configuration
     let agent_id = AgentId::new("demo", "basic_agent");
-    let mut a2a_config = A2AConfig::default();
-    a2a_config.agent_id = agent_id.clone();
+    let mut a2a_config = A2AConfig {
+        agent_id: agent_id.clone(),
+        ..Default::default()
+    };
 
     // Configure HTTP protocol
     if let Some(http_config) = a2a_config.protocols.get_mut(&ProtocolType::Http) {
@@ -60,7 +61,7 @@ async fn basic_a2a_setup() -> Result<()> {
     a2a_config.discovery.enabled = true;
     a2a_config.discovery.heartbeat_interval = Duration::from_secs(30);
 
-    println!("✓ Agent ID: {}", agent_id.to_string());
+    println!("✓ Agent ID: {}", agent_id);
     println!("✓ HTTP endpoint: http://localhost:8080");
     println!("✓ Discovery enabled: {}", a2a_config.discovery.enabled);
 
@@ -150,7 +151,7 @@ async fn agent_registration_example() -> Result<()> {
     // Show agent details
     if let Some(agent_reg) = chat_agents.first() {
         println!("\nChat Agent Details:");
-        println!("• ID: {}", agent_reg.agent_id.to_string());
+        println!("• ID: {}", agent_reg.agent_id);
         println!("• Services: {:?}", agent_reg.capabilities.services);
         println!("• Status: {:?}", agent_reg.status);
         println!("• Endpoints: {:?}", agent_reg.endpoints);
@@ -195,7 +196,7 @@ async fn message_exchange_example() -> Result<()> {
 
     // Example 1: Simple Text Message
     println!("\n📝 Text Message Exchange:");
-    let text_payload = MessagePayload::Text {
+    let _text_payload = MessagePayload::Text {
         content: "Hello from sender agent!".to_string(),
     };
 
@@ -205,12 +206,12 @@ async fn message_exchange_example() -> Result<()> {
         println!("• Sending text message to receiver...");
         // Note: In a real implementation, this would actually send the message
         println!("• Message: Hello from sender agent!");
-        println!("• Target: {}", receiver_agent.agent_id.to_string());
+        println!("• Target: {}", receiver_agent.agent_id);
     }
 
     // Example 2: Task Message
     println!("\n📋 Task Message Exchange:");
-    let task_payload = MessagePayload::Task {
+    let _task_payload = MessagePayload::Task {
         task_id: "task-001".to_string(),
         operation: "process_data".to_string(),
         parameters: HashMap::from([
@@ -220,7 +221,7 @@ async fn message_exchange_example() -> Result<()> {
         ]),
     };
 
-    if let Some(processor_agent) = receiver_agents.first() {
+    if let Some(_processor_agent) = receiver_agents.first() {
         println!("• Sending task to processor...");
         println!("• Task ID: task-001");
         println!("• Operation: process_data");
@@ -229,7 +230,7 @@ async fn message_exchange_example() -> Result<()> {
 
     // Example 3: Event Broadcasting
     println!("\n📡 Event Broadcasting:");
-    let event_payload = MessagePayload::Event {
+    let _event_payload = MessagePayload::Event {
         event_type: "system_update".to_string(),
         data: serde_json::json!({
             "version": "2.0.1",
@@ -246,7 +247,7 @@ async fn message_exchange_example() -> Result<()> {
 
     // Example 4: Query Message
     println!("\n🔍 Query Message:");
-    let query_payload = MessagePayload::Query {
+    let _query_payload = MessagePayload::Query {
         query_id: "query-001".to_string(),
         query_type: "status_check".to_string(),
         parameters: HashMap::from([
@@ -304,7 +305,7 @@ async fn multi_agent_collaboration() -> Result<()> {
 
     // Step 1: Document arrives at ingestion agent
     println!("1. Document received by ingestion agent");
-    let document_data = serde_json::json!({
+    let _document_data = serde_json::json!({
         "document_id": "doc-12345",
         "filename": "quarterly_report.pdf",
         "size_bytes": 2485760,
@@ -323,7 +324,7 @@ async fn multi_agent_collaboration() -> Result<()> {
         if !nlp_agents.is_empty() {
             println!("   • Found {} NLP agents available", nlp_agents.len());
 
-            let nlp_task = MessagePayload::Task {
+            let _nlp_task = MessagePayload::Task {
                 task_id: "nlp-12345".to_string(),
                 operation: "extract_text_and_metadata".to_string(),
                 parameters: HashMap::from([
@@ -339,7 +340,7 @@ async fn multi_agent_collaboration() -> Result<()> {
 
     // Step 3: Analysis phase
     println!("3. Text analysis processing...");
-    let analysis_task = MessagePayload::Task {
+    let _analysis_task = MessagePayload::Task {
         task_id: "analysis-12345".to_string(),
         operation: "comprehensive_analysis".to_string(),
         parameters: HashMap::from([
@@ -354,7 +355,7 @@ async fn multi_agent_collaboration() -> Result<()> {
 
     // Step 4: Storage and indexing
     println!("4. Storing results and creating indexes...");
-    let storage_task = MessagePayload::Task {
+    let _storage_task = MessagePayload::Task {
         task_id: "storage-12345".to_string(),
         operation: "store_document_results".to_string(),
         parameters: HashMap::from([
@@ -369,7 +370,7 @@ async fn multi_agent_collaboration() -> Result<()> {
     // Step 5: Completion notification
     println!("5. Pipeline completed successfully! ✨");
 
-    let completion_event = MessagePayload::Event {
+    let _completion_event = MessagePayload::Event {
         event_type: "document_processing_complete".to_string(),
         data: serde_json::json!({
             "document_id": "doc-12345",
@@ -421,7 +422,7 @@ async fn agent_integration_example() -> Result<()> {
     // But this requires Ollama to be running
 
     println!("✓ Agent would be initialized with:");
-    println!("  • Agent ID: {}", config.a2a.agent_id.to_string());
+    println!("  • Agent ID: {}", config.a2a.agent_id);
     println!("  • Discovery enabled: {}", config.a2a.discovery.enabled);
     println!("  • Memory: In-memory SQLite");
 
@@ -463,8 +464,10 @@ async fn create_agent_with_capabilities(
     services: Vec<String>,
 ) -> Result<HttpA2AClient> {
     let agent_id = AgentId::new(namespace, name);
-    let mut config = A2AConfig::default();
-    config.agent_id = agent_id;
+    let config = A2AConfig {
+        agent_id,
+        ..Default::default()
+    };
 
     let client = HttpA2AClient::new(config)?;
 

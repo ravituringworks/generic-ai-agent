@@ -18,7 +18,6 @@ use the_agency::{
     error::Result,
     workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep},
 };
-use tokio;
 use uuid::Uuid;
 
 /// Supported document types for RAG processing
@@ -657,6 +656,12 @@ impl RAGObservability {
     }
 }
 
+impl Default for RAGObservability {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Complete RAG system integrating all components
 pub struct RAGSystem {
     pub document_processor: DocumentProcessor,
@@ -886,7 +891,7 @@ async fn main() -> anyhow::Result<()> {
                 "  📄 {} -> {} chunks (avg size: {} chars)",
                 doc_name,
                 chunks.len(),
-                if chunks.len() > 0 {
+                if !chunks.is_empty() {
                     chunks.iter().map(|c| c.content.len()).sum::<usize>() / chunks.len()
                 } else {
                     0

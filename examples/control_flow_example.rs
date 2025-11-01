@@ -20,7 +20,6 @@ use the_agency::{
         WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep,
     },
 };
-use tokio;
 
 /// Custom step for demonstration
 pub struct DataProcessingStep {
@@ -108,7 +107,7 @@ async fn main() -> anyhow::Result<()> {
 
     let context = WorkflowContext::new(20);
     let start_time = std::time::Instant::now();
-    let result = parallel_workflow.execute(context).await?;
+    let _result = parallel_workflow.execute(context).await?;
     let elapsed = start_time.elapsed();
     println!(
         "Parallel workflow completed in {}ms (should be ~200ms for parallel + 50ms sequential)\n",
@@ -310,13 +309,13 @@ async fn main() -> anyhow::Result<()> {
         context.metadata.get("process_in_parallel") == Some(&"true".to_string())
     });
 
-    let batch_items: ItemsExtractorFn = Arc::new(|_context| {
+    let _batch_items: ItemsExtractorFn = Arc::new(|_context| {
         (1..=5)
             .map(|i| serde_json::json!(format!("batch_item_{}", i)))
             .collect()
     });
 
-    let transform_mapper: MapperFn = Arc::new(|_context, input_data| {
+    let _transform_mapper: MapperFn = Arc::new(|_context, input_data| {
         let mut transformed = input_data.clone();
         transformed["batch_processed"] = serde_json::json!(true);
         transformed["batch_count"] = serde_json::json!(5);
@@ -439,12 +438,13 @@ async fn main() -> anyhow::Result<()> {
 }
 
 /// Helper function to demonstrate nested workflow usage
+#[allow(dead_code)]
 async fn create_nested_workflow_example() -> anyhow::Result<()> {
     println!("📋 Nested Workflow Example");
     println!("---------------------------");
 
     // Create a sub-workflow
-    let sub_workflow = WorkflowBuilder::new("data_processing_subflow")
+    let _sub_workflow = WorkflowBuilder::new("data_processing_subflow")
         .then(Box::new(DataProcessingStep::new("extract", 100)))
         .then(Box::new(DataProcessingStep::new("transform", 150)))
         .then(Box::new(DataProcessingStep::new("load", 75)))

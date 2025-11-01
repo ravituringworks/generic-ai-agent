@@ -1,12 +1,10 @@
 //! Property-based tests for unified storage system using proptest
 
 use proptest::prelude::*;
-use serde_json::{json, Value};
+use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
-use tokio::time::sleep;
-use uuid::Uuid;
 
 // Include the storage system components from the library
 use the_agency::*;
@@ -172,7 +170,7 @@ proptest! {
     #[test]
     fn prop_workflow_storage_retrieval(workflow in arb_suspended_workflow()) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store workflow
@@ -186,7 +184,8 @@ proptest! {
             prop_assert_eq!(retrieved.workflow_id, workflow.workflow_id);
             prop_assert_eq!(retrieved.current_step, workflow.current_step);
             prop_assert_eq!(retrieved.resource_id, workflow.resource_id);
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -194,7 +193,7 @@ proptest! {
         workflows in prop::collection::vec(arb_suspended_workflow(), 1..10)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store all workflows
@@ -206,7 +205,7 @@ proptest! {
             let mut resource_groups: HashMap<ResourceId, Vec<&SuspendedWorkflow>> = HashMap::new();
             for workflow in &workflows {
                 resource_groups.entry(workflow.resource_id.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(workflow);
             }
 
@@ -217,16 +216,17 @@ proptest! {
 
                 // Verify all retrieved workflows belong to the correct resource
                 for retrieved_workflow in &retrieved {
-                    prop_assert_eq!(retrieved_workflow.resource_id, resource_id);
+                    prop_assert_eq!(&retrieved_workflow.resource_id, &resource_id);
                 }
             }
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
     fn prop_workflow_resume_removes_from_storage(workflow in arb_suspended_workflow()) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store workflow
@@ -234,12 +234,13 @@ proptest! {
 
             // Resume workflow (should remove it)
             let resumed = storage.resume_workflow(&workflow.workflow_id).await.unwrap();
-            prop_assert_eq!(resumed.workflow_id, workflow.workflow_id);
+            prop_assert_eq!(&resumed.workflow_id, &workflow.workflow_id);
 
             // Verify it's no longer in storage
             let retrieved = storage.get_suspended_workflow(&workflow.workflow_id).await.unwrap();
             prop_assert!(retrieved.is_none());
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -247,14 +248,14 @@ proptest! {
         messages in prop::collection::vec(arb_memory_message(), 1..50)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Group messages by thread_id for testing
             let mut thread_groups: HashMap<String, Vec<&MemoryMessage>> = HashMap::new();
             for message in &messages {
                 thread_groups.entry(message.thread_id.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(message);
             }
 
@@ -270,10 +271,11 @@ proptest! {
 
                 // Verify all retrieved messages belong to the correct thread
                 for retrieved_message in &retrieved {
-                    prop_assert_eq!(retrieved_message.thread_id, thread_id);
+                    prop_assert_eq!(&retrieved_message.thread_id, &thread_id);
                 }
             }
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -281,7 +283,7 @@ proptest! {
         traces in prop::collection::vec(arb_trace_data(), 1..20)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store all traces
@@ -293,7 +295,7 @@ proptest! {
             let mut resource_groups: HashMap<ResourceId, Vec<&TraceData>> = HashMap::new();
             for trace in &traces {
                 resource_groups.entry(trace.resource_id.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(trace);
             }
 
@@ -305,10 +307,11 @@ proptest! {
 
                 // Verify all retrieved traces belong to the correct resource
                 for retrieved_trace in &retrieved {
-                    prop_assert_eq!(retrieved_trace.resource_id, resource_id);
+                    prop_assert_eq!(&retrieved_trace.resource_id, &resource_id);
                 }
             }
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -316,7 +319,7 @@ proptest! {
         traces in prop::collection::vec(arb_trace_data(), 1..20)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store all traces
@@ -329,7 +332,7 @@ proptest! {
             for trace in &traces {
                 let key = (trace.resource_id.clone(), trace.component.clone());
                 resource_component_groups.entry(key)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(trace);
             }
 
@@ -344,11 +347,12 @@ proptest! {
 
                 // Verify all retrieved traces match the filter criteria
                 for retrieved_trace in &retrieved {
-                    prop_assert_eq!(retrieved_trace.resource_id, resource_id);
-                    prop_assert_eq!(retrieved_trace.component, component);
+                    prop_assert_eq!(&retrieved_trace.resource_id, &resource_id);
+                    prop_assert_eq!(&retrieved_trace.component, &component);
                 }
             }
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -356,7 +360,7 @@ proptest! {
         scores in prop::collection::vec(arb_eval_score(), 1..30)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store all scores
@@ -368,7 +372,7 @@ proptest! {
             let mut run_groups: HashMap<String, Vec<&EvalScore>> = HashMap::new();
             for score in &scores {
                 run_groups.entry(score.run_id.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(score);
             }
 
@@ -379,10 +383,11 @@ proptest! {
 
                 // Verify all retrieved scores belong to the correct run
                 for retrieved_score in &retrieved {
-                    prop_assert_eq!(retrieved_score.run_id, run_id);
+                    prop_assert_eq!(&retrieved_score.run_id, &run_id);
                 }
             }
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -392,7 +397,7 @@ proptest! {
         scores in prop::collection::vec(arb_eval_score(), 0..10)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store all data
@@ -418,7 +423,8 @@ proptest! {
             prop_assert_eq!(stats.traces, traces.len());
             prop_assert_eq!(stats.eval_runs, run_ids.len());
             prop_assert_eq!(stats.eval_scores, scores.len());
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -431,7 +437,7 @@ proptest! {
         prop_assume!(resource1 != resource2);
 
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Store workflows for resource1
@@ -450,16 +456,17 @@ proptest! {
             let retrieved1 = storage.list_suspended_workflows(&resource1).await.unwrap();
             prop_assert_eq!(retrieved1.len(), workflows1.len());
             for workflow in &retrieved1 {
-                prop_assert_eq!(workflow.resource_id, resource1);
+                prop_assert_eq!(&workflow.resource_id, &resource1);
             }
 
             // Verify resource2 only sees its own workflows
             let retrieved2 = storage.list_suspended_workflows(&resource2).await.unwrap();
             prop_assert_eq!(retrieved2.len(), workflows2.len());
             for workflow in &retrieved2 {
-                prop_assert_eq!(workflow.resource_id, resource2);
+                prop_assert_eq!(&workflow.resource_id, &resource2);
             }
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -467,7 +474,7 @@ proptest! {
         workflows in prop::collection::vec(arb_suspended_workflow(), 1..20)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
             // Spawn concurrent storage operations
@@ -504,7 +511,8 @@ proptest! {
             }
 
             prop_assert_eq!(total_stored, workflows.len());
-        });
+            Ok(())
+        }).unwrap();
     }
 
     #[test]
@@ -513,7 +521,7 @@ proptest! {
         new_traces in prop::collection::vec(arb_trace_data(), 1..10)
     ) {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
+        rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
             let now = SystemTime::now();
             let cutoff_time = now + Duration::from_secs(3600); // 1 hour from now
@@ -550,7 +558,8 @@ proptest! {
             }
 
             prop_assert_eq!(total_remaining, new_traces.len());
-        });
+            Ok(())
+        }).unwrap();
     }
 }
 
@@ -626,7 +635,7 @@ mod additional_property_tests {
 
         // Store messages in random order
         use rand::prelude::*;
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let mut shuffled_messages = messages.clone();
         shuffled_messages.shuffle(&mut rng);
 

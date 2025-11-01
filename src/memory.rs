@@ -619,7 +619,7 @@ mod tests {
         let results = store.search(base_embedding, 10, 0.5).await.unwrap();
 
         // Should find at least the exact match and similar document
-        assert!(results.len() >= 1);
+        assert!(!results.is_empty());
         assert!(results[0].similarity > 0.8);
     }
 

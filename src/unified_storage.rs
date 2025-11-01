@@ -270,6 +270,12 @@ pub struct InMemoryUnifiedStorage {
     scores: Arc<RwLock<HashMap<String, Vec<EvalScore>>>>,
 }
 
+impl Default for InMemoryUnifiedStorage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InMemoryUnifiedStorage {
     pub fn new() -> Self {
         Self {
@@ -510,6 +516,7 @@ impl StorageManager {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn suspend_workflow(
         &self,
         workflow_id: &str,
@@ -584,6 +591,7 @@ impl StorageManager {
         Ok(message_id)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn record_trace(
         &self,
         resource_id: ResourceId,
@@ -642,6 +650,7 @@ impl StorageManager {
         Ok(dataset_id)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn record_evaluation_score(
         &self,
         run_id: &str,

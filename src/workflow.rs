@@ -1020,10 +1020,8 @@ impl SnapshotStorage for FileSnapshotStorage {
         let mut deleted_count = 0;
 
         for snapshot in snapshots {
-            if snapshot.created_at < cutoff {
-                if self.delete_snapshot(snapshot.id).await? {
-                    deleted_count += 1;
-                }
+            if snapshot.created_at < cutoff && self.delete_snapshot(snapshot.id).await? {
+                deleted_count += 1;
             }
         }
 
@@ -1185,16 +1183,17 @@ impl WorkflowStep for ToolAnalysisStep {
             if matches!(last_message.role, Role::User) {
                 let content = last_message.content.to_lowercase();
 
-                if content.contains("system") && content.contains("info") {
-                    if context.available_tools.contains(&"system_info".to_string()) {
-                        let tool_call = ToolCall {
-                            id: Uuid::new_v4().to_string(),
-                            name: "system_info".to_string(),
-                            arguments: serde_json::json!({}),
-                        };
+                if content.contains("system")
+                    && content.contains("info")
+                    && context.available_tools.contains(&"system_info".to_string())
+                {
+                    let tool_call = ToolCall {
+                        id: Uuid::new_v4().to_string(),
+                        name: "system_info".to_string(),
+                        arguments: serde_json::json!({}),
+                    };
 
-                        return Ok(WorkflowDecision::ExecuteTools(vec![tool_call]));
-                    }
+                    return Ok(WorkflowDecision::ExecuteTools(vec![tool_call]));
                 }
             }
         }
@@ -1223,13 +1222,10 @@ impl WorkflowStep for ResponseGenerationStep {
         // Include tool results if any
         if !context.tool_results.is_empty() {
             response_parts.push("Based on the tools I called:".to_string());
-            for (_, result) in &context.tool_results {
+            for result in context.tool_results.values() {
                 for content in &result.content {
-                    match content {
-                        crate::mcp::ToolContent::Text { text } => {
-                            response_parts.push(text.clone());
-                        }
-                        _ => {}
+                    if let crate::mcp::ToolContent::Text { text } = content {
+                        response_parts.push(text.clone());
                     }
                 }
             }
@@ -2108,191 +2104,189 @@ impl WorkflowEngine {
     ) -> Result<WorkflowResult> {
         info!("Resuming workflow execution from step {}", start_step);
 
-        while context.should_continue() {
-            context.increment_step();
+        context.increment_step();
 
-            // Execute steps starting from the specified step
-            for (step_index, step) in self.steps.iter().enumerate().skip(start_step) {
-                debug!("Executing step: {} (index: {})", step.name(), step_index);
+        // Execute steps starting from the specified step
+        for (step_index, step) in self.steps.iter().enumerate().skip(start_step) {
+            debug!("Executing step: {} (index: {})", step.name(), step_index);
 
-                // Auto-checkpoint if configured
-                if self.suspend_config.auto_checkpoint
-                    && step_index % self.suspend_config.checkpoint_interval == 0
+            // Auto-checkpoint if configured
+            if self.suspend_config.auto_checkpoint
+                && step_index % self.suspend_config.checkpoint_interval == 0
+            {
+                if let Err(e) = self
+                    .suspend(&context, step_index, SuspendReason::Scheduled)
+                    .await
                 {
-                    if let Err(e) = self
-                        .suspend(&context, step_index, SuspendReason::Scheduled)
-                        .await
-                    {
-                        warn!("Failed to create automatic checkpoint: {}", e);
-                    }
-                }
-
-                match step.execute(&mut context).await? {
-                    WorkflowDecision::Continue => {
-                        continue;
-                    }
-                    WorkflowDecision::Complete(response) => {
-                        let step_count = context.step_count;
-                        info!("Workflow completed after {} steps", step_count);
-                        return Ok(WorkflowResult {
-                            response,
-                            context,
-                            completed: true,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        });
-                    }
-                    WorkflowDecision::Jump(step_name) => {
-                        debug!("Jump to step requested: {}", step_name);
-                        return Err(AgentError::Workflow(
-                            "Step jumping not implemented".to_string(),
-                        )
-                        .into());
-                    }
-                    WorkflowDecision::ExecuteTools(tool_calls) => {
-                        debug!("Tool execution requested: {} tools", tool_calls.len());
-                        let step_count = context.step_count;
-                        return Ok(WorkflowResult {
-                            response: String::new(),
-                            context,
-                            completed: false,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        }
-                        .with_tool_calls(tool_calls));
-                    }
-                    WorkflowDecision::RetrieveMemories(query) => {
-                        debug!("Memory retrieval requested for: {}", query);
-                        let step_count = context.step_count;
-                        return Ok(WorkflowResult {
-                            response: String::new(),
-                            context,
-                            completed: false,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        }
-                        .with_memory_query(query));
-                    }
-                    WorkflowDecision::Suspend(reason) => {
-                        info!("Workflow step requested suspension: {:?}", reason);
-                        let snapshot_id = self.suspend(&context, step_index, reason).await?;
-                        let step_count = context.step_count;
-                        return Ok(WorkflowResult {
-                            response: format!("Workflow suspended (ID: {})", snapshot_id),
-                            context,
-                            completed: false,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        });
-                    }
-                    WorkflowDecision::WaitForInput(message) => {
-                        info!("Workflow waiting for input: {}", message);
-                        let reason = SuspendReason::WaitingForInput(message.clone());
-                        let snapshot_id = self.suspend(&context, step_index, reason).await?;
-                        let step_count = context.step_count;
-                        return Ok(WorkflowResult {
-                            response: format!(
-                                "Waiting for input: {} (Suspended with ID: {})",
-                                message, snapshot_id
-                            ),
-                            context,
-                            completed: false,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        });
-                    }
-                    WorkflowDecision::Sleep(duration_ms) => {
-                        info!("Workflow sleeping for {}ms", duration_ms);
-                        let started_at = Utc::now();
-                        let reason = SuspendReason::Sleep {
-                            duration_ms,
-                            started_at,
-                        };
-                        let snapshot_id = self.suspend(&context, step_index, reason).await?;
-
-                        // Note: Auto-resume would require shared ownership of engine
-                        // For now, we'll just suspend and let external code handle resume
-                        info!(
-                            "Workflow suspended for sleep, use resume_from_snapshot({}) after {}ms",
-                            snapshot_id, duration_ms
-                        );
-
-                        let step_count = context.step_count;
-                        return Ok(WorkflowResult {
-                            response: format!(
-                                "Sleeping for {}ms (Suspended with ID: {})",
-                                duration_ms, snapshot_id
-                            ),
-                            context,
-                            completed: false,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        });
-                    }
-                    WorkflowDecision::SleepUntil(timestamp) => {
-                        info!("Workflow sleeping until {}", timestamp);
-                        let reason = SuspendReason::SleepUntil(timestamp);
-                        let snapshot_id = self.suspend(&context, step_index, reason).await?;
-
-                        // Note: Auto-resume would require shared ownership of engine
-                        info!("Workflow suspended until {}, use resume_from_snapshot({}) after timestamp", timestamp, snapshot_id);
-
-                        let step_count = context.step_count;
-                        return Ok(WorkflowResult {
-                            response: format!(
-                                "Sleeping until {} (Suspended with ID: {})",
-                                timestamp, snapshot_id
-                            ),
-                            context,
-                            completed: false,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        });
-                    }
-                    WorkflowDecision::WaitForEvent {
-                        event_id,
-                        timeout_ms,
-                    } => {
-                        info!(
-                            "Workflow waiting for event '{}' with timeout {:?}ms",
-                            event_id, timeout_ms
-                        );
-                        let started_at = Utc::now();
-                        let reason = SuspendReason::WaitingForEvent {
-                            event_id: event_id.clone(),
-                            timeout_ms,
-                            started_at,
-                        };
-                        let snapshot_id = self.suspend(&context, step_index, reason).await?;
-
-                        // Note: Auto-resume would require shared ownership of engine
-                        // Events can be sent using send_event() method and workflows resumed manually
-                        info!("Workflow suspended waiting for event '{}', use send_event() and resume_from_snapshot({})", event_id, snapshot_id);
-
-                        let step_count = context.step_count;
-                        return Ok(WorkflowResult {
-                            response: format!(
-                                "Waiting for event '{}' (Suspended with ID: {})",
-                                event_id, snapshot_id
-                            ),
-                            context,
-                            completed: false,
-                            steps_executed: step_count,
-                            pending_tool_calls: None,
-                            pending_memory_query: None,
-                        });
-                    }
+                    warn!("Failed to create automatic checkpoint: {}", e);
                 }
             }
 
-            break;
+            match step.execute(&mut context).await? {
+                WorkflowDecision::Continue => {
+                    continue;
+                }
+                WorkflowDecision::Complete(response) => {
+                    let step_count = context.step_count;
+                    info!("Workflow completed after {} steps", step_count);
+                    return Ok(WorkflowResult {
+                        response,
+                        context,
+                        completed: true,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    });
+                }
+                WorkflowDecision::Jump(step_name) => {
+                    debug!("Jump to step requested: {}", step_name);
+                    return Err(AgentError::Workflow(
+                        "Step jumping not implemented".to_string(),
+                    ));
+                }
+                WorkflowDecision::ExecuteTools(tool_calls) => {
+                    debug!("Tool execution requested: {} tools", tool_calls.len());
+                    let step_count = context.step_count;
+                    return Ok(WorkflowResult {
+                        response: String::new(),
+                        context,
+                        completed: false,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    }
+                    .with_tool_calls(tool_calls));
+                }
+                WorkflowDecision::RetrieveMemories(query) => {
+                    debug!("Memory retrieval requested for: {}", query);
+                    let step_count = context.step_count;
+                    return Ok(WorkflowResult {
+                        response: String::new(),
+                        context,
+                        completed: false,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    }
+                    .with_memory_query(query));
+                }
+                WorkflowDecision::Suspend(reason) => {
+                    info!("Workflow step requested suspension: {:?}", reason);
+                    let snapshot_id = self.suspend(&context, step_index, reason).await?;
+                    let step_count = context.step_count;
+                    return Ok(WorkflowResult {
+                        response: format!("Workflow suspended (ID: {})", snapshot_id),
+                        context,
+                        completed: false,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    });
+                }
+                WorkflowDecision::WaitForInput(message) => {
+                    info!("Workflow waiting for input: {}", message);
+                    let reason = SuspendReason::WaitingForInput(message.clone());
+                    let snapshot_id = self.suspend(&context, step_index, reason).await?;
+                    let step_count = context.step_count;
+                    return Ok(WorkflowResult {
+                        response: format!(
+                            "Waiting for input: {} (Suspended with ID: {})",
+                            message, snapshot_id
+                        ),
+                        context,
+                        completed: false,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    });
+                }
+                WorkflowDecision::Sleep(duration_ms) => {
+                    info!("Workflow sleeping for {}ms", duration_ms);
+                    let started_at = Utc::now();
+                    let reason = SuspendReason::Sleep {
+                        duration_ms,
+                        started_at,
+                    };
+                    let snapshot_id = self.suspend(&context, step_index, reason).await?;
+
+                    // Note: Auto-resume would require shared ownership of engine
+                    // For now, we'll just suspend and let external code handle resume
+                    info!(
+                        "Workflow suspended for sleep, use resume_from_snapshot({}) after {}ms",
+                        snapshot_id, duration_ms
+                    );
+
+                    let step_count = context.step_count;
+                    return Ok(WorkflowResult {
+                        response: format!(
+                            "Sleeping for {}ms (Suspended with ID: {})",
+                            duration_ms, snapshot_id
+                        ),
+                        context,
+                        completed: false,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    });
+                }
+                WorkflowDecision::SleepUntil(timestamp) => {
+                    info!("Workflow sleeping until {}", timestamp);
+                    let reason = SuspendReason::SleepUntil(timestamp);
+                    let snapshot_id = self.suspend(&context, step_index, reason).await?;
+
+                    // Note: Auto-resume would require shared ownership of engine
+                    info!(
+                        "Workflow suspended until {}, use resume_from_snapshot({}) after timestamp",
+                        timestamp, snapshot_id
+                    );
+
+                    let step_count = context.step_count;
+                    return Ok(WorkflowResult {
+                        response: format!(
+                            "Sleeping until {} (Suspended with ID: {})",
+                            timestamp, snapshot_id
+                        ),
+                        context,
+                        completed: false,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    });
+                }
+                WorkflowDecision::WaitForEvent {
+                    event_id,
+                    timeout_ms,
+                } => {
+                    info!(
+                        "Workflow waiting for event '{}' with timeout {:?}ms",
+                        event_id, timeout_ms
+                    );
+                    let started_at = Utc::now();
+                    let reason = SuspendReason::WaitingForEvent {
+                        event_id: event_id.clone(),
+                        timeout_ms,
+                        started_at,
+                    };
+                    let snapshot_id = self.suspend(&context, step_index, reason).await?;
+
+                    // Note: Auto-resume would require shared ownership of engine
+                    // Events can be sent using send_event() method and workflows resumed manually
+                    info!("Workflow suspended waiting for event '{}', use send_event() and resume_from_snapshot({})", event_id, snapshot_id);
+
+                    let step_count = context.step_count;
+                    return Ok(WorkflowResult {
+                        response: format!(
+                            "Waiting for event '{}' (Suspended with ID: {})",
+                            event_id, snapshot_id
+                        ),
+                        context,
+                        completed: false,
+                        steps_executed: step_count,
+                        pending_tool_calls: None,
+                        pending_memory_query: None,
+                    });
+                }
+            }
         }
 
         let step_count = context.step_count;
@@ -3101,7 +3095,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_dowhile_loop_execution() {
-        let mut counter = 0;
         let condition: ConditionFn = Arc::new(move |context, _| {
             let current_count = context
                 .metadata
@@ -3187,7 +3180,7 @@ mod tests {
 
     #[test]
     fn test_workflow_builder_fluent_api() {
-        let condition: ConditionFn =
+        let _condition: ConditionFn =
             Arc::new(|context, _| context.metadata.contains_key("should_branch"));
 
         let workflow_builder = WorkflowBuilder::new("fluent_test")

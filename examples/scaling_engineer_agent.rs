@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use the_agency::{Agent, AgentBuilder, AgentConfig};
 
 /// Scaling task types
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 enum ScalingTask {
     DistributedTraining {
@@ -35,6 +36,7 @@ enum ScalingTask {
     },
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 enum DeploymentType {
     Datacenter,
@@ -43,6 +45,7 @@ enum DeploymentType {
 }
 
 /// System metrics for scaling analysis
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct SystemMetrics {
     throughput_samples_per_sec: f32,
@@ -54,6 +57,7 @@ struct SystemMetrics {
 }
 
 /// Scaling configuration
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct ScalingConfig {
     num_nodes: usize,
@@ -65,8 +69,9 @@ struct ScalingConfig {
 }
 
 /// Scaling Research Engineer Agent
-struct ScalingEngineerAgent {
+pub struct ScalingEngineerAgent {
     agent: Agent,
+    #[allow(dead_code)]
     experiments: HashMap<String, SystemMetrics>,
 }
 
@@ -194,6 +199,7 @@ impl ScalingEngineerAgent {
     }
 
     /// Design fault-tolerant training system
+    #[allow(dead_code)]
     pub async fn design_fault_tolerance(
         &mut self,
         system_scale: &str,
@@ -226,6 +232,7 @@ impl ScalingEngineerAgent {
     }
 
     /// Optimize data pipeline for training
+    #[allow(dead_code)]
     pub async fn optimize_data_pipeline(
         &mut self,
         dataset_size_tb: f32,
@@ -259,6 +266,7 @@ impl ScalingEngineerAgent {
     }
 
     /// Analyze and optimize for scaling laws
+    #[allow(dead_code)]
     pub async fn analyze_scaling_laws(
         &mut self,
         model_family: &str,
@@ -292,6 +300,7 @@ impl ScalingEngineerAgent {
     }
 
     /// Profile and optimize CUDA kernels
+    #[allow(dead_code)]
     pub async fn optimize_cuda_kernels(
         &mut self,
         operation_description: &str,
@@ -324,6 +333,7 @@ impl ScalingEngineerAgent {
 }
 
 #[tokio::main]
+#[allow(dead_code)]
 async fn main() -> Result<()> {
     // Initialize logging
     tracing_subscriber::fmt::init();
@@ -342,7 +352,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 1: Design Large-Scale Distributed Training");
     println!("{}", "-".repeat(80));
 
-    let training_design = agent
+    let _training_design = agent
         .design_distributed_training(
             1024,
             "World model transformer (10B parameters)",
@@ -354,7 +364,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 2: Optimize Datacenter Inference");
     println!("{}", "-".repeat(80));
 
-    let datacenter_opt = agent
+    let _datacenter_opt = agent
         .optimize_datacenter_inference(
             "Diffusion model for motion planning (2B parameters, 50 denoising steps)",
             10000, // 10K inferences per second
@@ -365,7 +375,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 3: Optimize Edge Deployment");
     println!("{}", "-".repeat(80));
 
-    let edge_opt = agent
+    let _edge_opt = agent
         .optimize_edge_deployment(
             "Real-time robot policy (500M parameters, vision + proprioception)",
             10.0, // 10ms latency
@@ -377,7 +387,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 4: Design Fault-Tolerant Training");
     println!("{}", "-".repeat(80));
 
-    let fault_tolerance = agent
+    let _fault_tolerance = agent
         .design_fault_tolerance(
             "512 GPU cluster (64 nodes × 8 GPUs)",
             0.5, // 0.5% failure rate per hour
@@ -388,7 +398,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 5: Optimize Data Pipeline");
     println!("{}", "-".repeat(80));
 
-    let data_pipeline = agent
+    let _data_pipeline = agent
         .optimize_data_pipeline(
             500.0, // 500 TB
             256,   // 256 GPUs
@@ -400,7 +410,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 6: Analyze Scaling Laws");
     println!("{}", "-".repeat(80));
 
-    let scaling_analysis = agent
+    let _scaling_analysis = agent
         .analyze_scaling_laws(
             "Vision-language-action models",
             "1B parameters, 100M data points, 1K GPUs",
@@ -412,7 +422,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 7: Optimize CUDA Kernels");
     println!("{}", "-".repeat(80));
 
-    let cuda_opt = agent
+    let _cuda_opt = agent
         .optimize_cuda_kernels(
             "Flash Attention for long context (16K tokens)",
             "120ms per forward pass on A100",

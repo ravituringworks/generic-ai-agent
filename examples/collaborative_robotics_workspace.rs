@@ -510,7 +510,7 @@ async fn main() -> Result<()> {
 
     // List all artifacts
     println!("\n📋 Produced Artifacts:");
-    for (_id, artifact) in &workspace.artifacts {
+    for artifact in workspace.artifacts.values() {
         println!(
             "  • {} ({}) - by {}{}",
             artifact.name,

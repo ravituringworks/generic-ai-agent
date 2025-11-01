@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
+use the_agency::a2a::LoadBalancingStrategy;
 use the_agency::*;
 use tokio::time::sleep;
 
@@ -211,9 +212,9 @@ async fn test_message_priority_ordering() {
 #[tokio::test]
 async fn test_agent_status_variants() {
     let online_status = AgentStatus::Online;
-    let busy_status = AgentStatus::Busy;
-    let idle_status = AgentStatus::Idle;
-    let offline_status = AgentStatus::Offline;
+    let _busy_status = AgentStatus::Busy;
+    let _idle_status = AgentStatus::Idle;
+    let _offline_status = AgentStatus::Offline;
     let error_status = AgentStatus::Error {
         message: "Connection failed".to_string(),
     };
@@ -288,9 +289,9 @@ async fn test_a2a_stats() {
 async fn test_response_status_variants() {
     let success = ResponseStatus::Success;
     let error = ResponseStatus::Error;
-    let timeout = ResponseStatus::Timeout;
-    let rejected = ResponseStatus::Rejected;
-    let processing = ResponseStatus::Processing;
+    let _timeout = ResponseStatus::Timeout;
+    let _rejected = ResponseStatus::Rejected;
+    let _processing = ResponseStatus::Processing;
 
     match success {
         ResponseStatus::Success => (),
@@ -305,7 +306,7 @@ async fn test_response_status_variants() {
 
 #[tokio::test]
 async fn test_protocol_type_variants() {
-    let protocols = vec![
+    let protocols = [
         ProtocolType::Http,
         ProtocolType::WebSocket,
         ProtocolType::Redis,
@@ -320,7 +321,7 @@ async fn test_protocol_type_variants() {
 
 #[tokio::test]
 async fn test_load_balancing_strategies() {
-    let strategies = vec![
+    let strategies = [
         LoadBalancingStrategy::RoundRobin,
         LoadBalancingStrategy::WeightedRoundRobin,
         LoadBalancingStrategy::LeastConnections,

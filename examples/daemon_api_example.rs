@@ -21,14 +21,14 @@ async fn main() -> anyhow::Result<()> {
 
     // 1. Health check
     println!("1. Checking API health...");
-    let response = client.get(&format!("{}/health", base_url)).send().await?;
+    let response = client.get(format!("{}/health", base_url)).send().await?;
     println!("   Status: {}", response.status());
     println!("   Response: {}\n", response.text().await?);
 
     // 2. Process a simple message
     println!("2. Processing a message...");
     let response = client
-        .post(&format!("{}/api/v1/agent/process", base_url))
+        .post(format!("{}/api/v1/agent/process", base_url))
         .json(&json!({
             "message": "What is Rust programming language?",
             "max_steps": 5
@@ -46,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
     // 3. Create a workflow
     println!("3. Creating a workflow...");
     let response = client
-        .post(&format!("{}/api/v1/workflows", base_url))
+        .post(format!("{}/api/v1/workflows", base_url))
         .json(&json!({
             "workflow_id": "example-workflow-001",
             "initial_message": "Process long-running task",
@@ -65,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
     // 4. List workflow snapshots
     println!("4. Listing workflow snapshots...");
     let response = client
-        .get(&format!("{}/api/v1/workflows/snapshots", base_url))
+        .get(format!("{}/api/v1/workflows/snapshots", base_url))
         .send()
         .await?;
     println!("   Status: {}", response.status());

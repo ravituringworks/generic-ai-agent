@@ -13,6 +13,7 @@
 use anyhow::Result;
 use the_agency::{Agent, AgentBuilder, AgentConfig};
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 enum SimulationTask {
     DesignEnvironment {
         description: String,
@@ -35,6 +36,7 @@ enum SimulationTask {
 
 /// Simulation environment specification
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct SimEnvironment {
     name: String,
     physics_engine: String,
@@ -44,6 +46,7 @@ struct SimEnvironment {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct PerformanceMetrics {
     fps: f32,
     latency_ms: f32,
@@ -51,8 +54,9 @@ struct PerformanceMetrics {
 }
 
 /// Simulation Engineer Agent
-struct SimulationEngineerAgent {
+pub struct SimulationEngineerAgent {
     agent: Agent,
+    #[allow(dead_code)]
     environments: Vec<SimEnvironment>,
 }
 
@@ -140,6 +144,7 @@ impl SimulationEngineerAgent {
     }
 
     /// Scale up simulation data production
+    #[allow(dead_code)]
     pub async fn scale_data_production(
         &mut self,
         target_samples: usize,
@@ -193,6 +198,7 @@ impl SimulationEngineerAgent {
     }
 
     /// Optimize simulation performance
+    #[allow(dead_code)]
     pub async fn optimize_performance(&mut self, bottleneck: &str) -> Result<String> {
         let prompt = format!(
             "Optimize simulation performance for the following bottleneck:\n\
@@ -217,6 +223,7 @@ impl SimulationEngineerAgent {
     }
 
     /// Generate comprehensive simulation test suite
+    #[allow(dead_code)]
     pub async fn generate_test_suite(&mut self, environment_name: &str) -> Result<String> {
         let prompt = format!(
             "Generate a comprehensive test suite for simulation environment: {}\n\n\
@@ -241,6 +248,7 @@ impl SimulationEngineerAgent {
 }
 
 #[tokio::main]
+#[allow(dead_code)]
 async fn main() -> Result<()> {
     // Initialize logging
     tracing_subscriber::fmt::init();
@@ -259,7 +267,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 1: Design Home Environment Simulation");
     println!("{}", "-".repeat(80));
 
-    let home_design = agent
+    let _home_design = agent
         .design_environment(
             "Living room environment for humanoid robot training",
             vec![
@@ -276,7 +284,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 2: Sim-to-Real Gap Analysis");
     println!("{}", "-".repeat(80));
 
-    let gap_analysis = agent.analyze_sim_to_real_gap(
+    let _gap_analysis = agent.analyze_sim_to_real_gap(
         "Deep RL policy for object grasping trained in Isaac Sim using RGB-D input and proprioception. \
         Policy outputs joint position targets at 10Hz."
     ).await?;
@@ -285,7 +293,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 3: Scale Simulation Data Production");
     println!("{}", "-".repeat(80));
 
-    let scaling_plan = agent
+    let _scaling_plan = agent
         .scale_data_production(
             1_000_000,
             "Diverse object manipulation in kitchen environments",
@@ -296,7 +304,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 4: Prototype New Hardware");
     println!("{}", "-".repeat(80));
 
-    let hardware_proto = agent
+    let _hardware_proto = agent
         .prototype_hardware(
             "3-finger adaptive gripper with tactile sensors. \
         Specifications: 3 DOF per finger, force/torque sensors, fingertip cameras.",
@@ -307,7 +315,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 5: Performance Optimization");
     println!("{}", "-".repeat(80));
 
-    let optimization = agent
+    let _optimization = agent
         .optimize_performance(
             "Rendering pipeline bottleneck when simulating 100+ robots with RGB-D cameras",
         )
@@ -317,7 +325,7 @@ async fn main() -> Result<()> {
     println!("\n📋 Task 6: Generate Test Suite");
     println!("{}", "-".repeat(80));
 
-    let test_suite = agent.generate_test_suite("home_environment_v1").await?;
+    let _test_suite = agent.generate_test_suite("home_environment_v1").await?;
 
     println!("\n✅ Simulation Engineer Agent demonstration complete!");
     println!("{}", "=".repeat(80));

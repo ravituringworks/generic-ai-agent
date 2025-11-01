@@ -127,8 +127,7 @@ impl Agent {
         }
 
         // Initialize conversation with system message
-        let mut conversation = Vec::new();
-        conversation.push(system_message(&config.agent.system_prompt));
+        let conversation = vec![system_message(&config.agent.system_prompt)];
 
         info!("AI Agent initialized successfully");
 
@@ -290,13 +289,10 @@ impl Agent {
             let mut tool_summary = String::new();
             tool_summary.push_str("Tool results:\n");
 
-            for (_, tool_result) in &result.context.tool_results {
+            for tool_result in result.context.tool_results.values() {
                 for content in &tool_result.content {
-                    match content {
-                        crate::mcp::ToolContent::Text { text } => {
-                            tool_summary.push_str(&format!("- {}\n", text));
-                        }
-                        _ => {}
+                    if let crate::mcp::ToolContent::Text { text } = content {
+                        tool_summary.push_str(&format!("- {}\n", text));
                     }
                 }
             }
@@ -398,14 +394,11 @@ impl Agent {
     /// Get agent statistics
     pub async fn stats(&self) -> AgentStats {
         let memory = self.memory.read().await;
-        let memory_stats = memory
-            .stats()
-            .await
-            .unwrap_or_else(|_| crate::memory::MemoryStats {
-                total_memories: 0,
-                embedding_dimension: self.config.memory.embedding_dimension,
-                store_size_bytes: None,
-            });
+        let memory_stats = memory.stats().await.unwrap_or(crate::memory::MemoryStats {
+            total_memories: 0,
+            embedding_dimension: self.config.memory.embedding_dimension,
+            store_size_bytes: None,
+        });
 
         let mcp = self.mcp.read().await;
         let mcp_stats = mcp.stats();

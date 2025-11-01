@@ -77,7 +77,7 @@ impl ContentChunker {
         let search_text = &text[search_start..];
 
         // Find last sentence ending
-        if let Some(pos) = search_text.rfind(|c: char| c == '.' || c == '!' || c == '?') {
+        if let Some(pos) = search_text.rfind(['.', '!', '?']) {
             return text[..search_start + pos + 1].to_string();
         }
 
@@ -175,10 +175,12 @@ mod tests {
 
     #[test]
     fn test_chunk_long_text() {
-        let mut config = IngestionConfig::default();
-        config.chunk_size = 50;
-        config.chunk_overlap = 10;
-        config.max_chunks = Some(5); // Limit to avoid memory issues
+        let config = IngestionConfig {
+            chunk_size: 50,
+            chunk_overlap: 10,
+            max_chunks: Some(5),
+            ..Default::default()
+        };
 
         let chunker = ContentChunker::new(config);
         let text = "This is sentence one. This is sentence two. This is sentence three. This is sentence four.";

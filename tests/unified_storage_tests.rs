@@ -3,9 +3,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
-use tempfile::tempdir;
 use the_agency::*;
-use tokio::time::sleep;
 
 // Re-include the unified storage system components for testing
 // In a real project, these would be in the main library
@@ -299,6 +297,12 @@ impl InMemoryUnifiedStorage {
     }
 }
 
+impl Default for InMemoryUnifiedStorage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[async_trait]
 impl UnifiedStorage for InMemoryUnifiedStorage {
     async fn store_suspended_workflow(&self, workflow: &SuspendedWorkflow) -> error::Result<()> {
@@ -329,9 +333,9 @@ impl UnifiedStorage for InMemoryUnifiedStorage {
 
     async fn resume_workflow(&self, workflow_id: &str) -> error::Result<SuspendedWorkflow> {
         let mut workflows = self.workflows.write().await;
-        workflows.remove(workflow_id).ok_or_else(|| {
-            error::AgentError::Config(format!("Workflow {} not found", workflow_id)).into()
-        })
+        workflows
+            .remove(workflow_id)
+            .ok_or_else(|| error::AgentError::Config(format!("Workflow {} not found", workflow_id)))
     }
 
     async fn delete_suspended_workflow(&self, workflow_id: &str) -> error::Result<()> {
@@ -505,7 +509,7 @@ impl UnifiedStorage for InMemoryUnifiedStorage {
         let traces_cutoff = now
             .checked_sub(retention_policy.traces_retention)
             .unwrap_or(now);
-        let memory_cutoff = now
+        let _memory_cutoff = now
             .checked_sub(retention_policy.memory_retention)
             .unwrap_or(now);
 
@@ -615,6 +619,7 @@ impl StorageManager {
         Ok(message_id)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn record_trace(
         &self,
         resource_id: ResourceId,
@@ -673,6 +678,7 @@ impl StorageManager {
         Ok(dataset_id)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn record_evaluation_score(
         &self,
         run_id: &str,

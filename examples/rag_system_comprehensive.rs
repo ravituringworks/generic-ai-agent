@@ -10,7 +10,7 @@
 //! - Integration with workflow system for enhanced responses
 
 use async_trait::async_trait;
-use serde_json::{json, Value};
+use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
@@ -18,7 +18,6 @@ use the_agency::{
     error::Result,
     workflow::{WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep},
 };
-use tokio;
 use uuid::Uuid;
 
 /// Supported document types for RAG processing
@@ -227,7 +226,7 @@ impl DocumentProcessor {
                 for part in parts {
                     if current_chunk.len() + part.len() > chunk_size && !current_chunk.is_empty() {
                         // Create chunk with overlap handling
-                        let mut chunk = DocumentChunk::new(
+                        let chunk = DocumentChunk::new(
                             current_chunk.clone(),
                             source.to_string(),
                             chunk_index,
@@ -365,10 +364,11 @@ impl DocumentProcessor {
             chunk_index += 1;
 
             // Move start position considering overlap
-            start += size - overlap;
-            if start <= 0 {
+            let next_start = start + size.saturating_sub(overlap);
+            if next_start <= start {
                 break;
             }
+            start = next_start;
         }
 
         Ok(chunks)
@@ -487,6 +487,7 @@ pub struct EmbeddingMetrics {
 }
 
 /// Vector store interface for similarity search
+#[async_trait]
 pub trait VectorStore: Send + Sync {
     async fn store_chunks(&self, chunks: &[DocumentChunk]) -> Result<usize>;
     async fn similarity_search(
@@ -690,7 +691,7 @@ pub struct RAGObservability {
     pub metrics: Arc<tokio::sync::RwLock<RAGMetrics>>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct RAGMetrics {
     pub total_queries: usize,
     pub total_documents_processed: usize,
@@ -700,6 +701,12 @@ pub struct RAGMetrics {
     pub query_latencies: Vec<std::time::Duration>,
     pub retrieval_relevance_scores: Vec<f32>,
     pub cache_stats: (usize, usize, f64), // hits, misses, hit_rate
+}
+
+impl Default for RAGObservability {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RAGObservability {
@@ -779,7 +786,7 @@ impl RAGObservability {
 pub struct RAGSystem {
     pub document_processor: DocumentProcessor,
     pub embedding_generator: EmbeddingGenerator,
-    pub vector_store: Arc<dyn VectorStore>,
+    pub vector_store: Arc<SQLiteVectorStore>,
     pub query_cache: QueryCache,
     pub observability: RAGObservability,
 }
@@ -789,7 +796,7 @@ impl RAGSystem {
         chunking_strategy: ChunkingStrategy,
         embedding_model: &str,
         embedding_dimensions: usize,
-        vector_store: Arc<dyn VectorStore>,
+        vector_store: Arc<SQLiteVectorStore>,
     ) -> Self {
         Self {
             document_processor: DocumentProcessor::new(chunking_strategy),
@@ -1026,7 +1033,7 @@ async fn main() -> anyhow::Result<()> {
                 "  📄 {} -> {} chunks (avg size: {} chars)",
                 doc_name,
                 chunks.len(),
-                if chunks.len() > 0 {
+                if !chunks.is_empty() {
                     chunks.iter().map(|c| c.content.len()).sum::<usize>() / chunks.len()
                 } else {
                     0
@@ -1039,7 +1046,7 @@ async fn main() -> anyhow::Result<()> {
     println!("\n📋 Demo 2: Vector Store Implementations");
     println!("--------------------------------------");
 
-    let vector_stores: Vec<(String, Arc<dyn VectorStore>)> = vec![
+    let vector_stores: Vec<(String, Arc<SQLiteVectorStore>)> = vec![
         (
             "SQLite".to_string(),
             Arc::new(SQLiteVectorStore::new("demo_sqlite")),

@@ -114,14 +114,14 @@ pub enum McpError {
 impl AgentError {
     /// Check if the error is retryable
     pub fn is_retryable(&self) -> bool {
-        match self {
-            AgentError::Llm(LlmError::Timeout) => true,
-            AgentError::Llm(LlmError::ConnectionFailed(_)) => true,
-            AgentError::Mcp(McpError::ConnectionFailed(_)) => true,
-            AgentError::Mcp(McpError::Timeout(_)) => true,
-            AgentError::Http(_) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            AgentError::Llm(LlmError::Timeout)
+                | AgentError::Llm(LlmError::ConnectionFailed(_))
+                | AgentError::Mcp(McpError::ConnectionFailed(_))
+                | AgentError::Mcp(McpError::Timeout(_))
+                | AgentError::Http(_)
+        )
     }
 
     /// Get error category for logging/metrics

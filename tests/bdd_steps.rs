@@ -1,7 +1,6 @@
 //! Cucumber step definitions for BDD tests
 
 use cucumber::{given, then, when, World};
-use std::collections::HashMap;
 use tempfile::tempdir;
 use the_agency::*;
 
@@ -29,6 +28,7 @@ impl std::fmt::Debug for AgentWorld {
 }
 
 impl AgentWorld {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             agent: None,
@@ -178,7 +178,7 @@ async fn make_request(world: &mut AgentWorld, request: String) {
 }
 
 #[when("the agent processes this request")]
-async fn process_request(world: &mut AgentWorld) {
+async fn process_request(_world: &mut AgentWorld) {
     // This is a placeholder - the actual processing happened in the given step
     // In a more sophisticated test, we might have separate steps for request and processing
 }
@@ -246,7 +246,6 @@ async fn verify_non_empty_response(world: &mut AgentWorld) {
         assert!(!response.trim().is_empty(), "Response should not be empty");
     } else if world.error.is_some() {
         // If there's an error (like Ollama not available), that's acceptable for testing
-        return;
     } else {
         panic!("No response received");
     }
@@ -409,7 +408,7 @@ async fn verify_graceful_handling(world: &mut AgentWorld) {
 }
 
 #[then("should not crash or return an error")]
-async fn verify_no_crash(world: &mut AgentWorld) {
+async fn verify_no_crash(_world: &mut AgentWorld) {
     // For empty message handling, we might actually expect an error or empty response
     // The important thing is no panic occurred (which would terminate the test)
     // Just completing this step means no crash occurred

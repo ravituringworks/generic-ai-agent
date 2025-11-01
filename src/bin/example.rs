@@ -6,7 +6,6 @@ use the_agency::{
     Agent, AgentBuilder, AgentConfig,
 };
 use tracing::{error, info};
-use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,19 +15,18 @@ async fn main() -> anyhow::Result<()> {
     println!("🤖 Generic AI Agent - Example Application");
     println!("==========================================");
 
-    // Create agent configuration
-    let mut config = AgentConfig::default();
-
-    // Configure memory to use an in-memory database for this example
-    // For persistent storage, use: Some("sqlite:/path/to/database.db".to_string())
-    config.memory = MemoryConfig {
-        // Use an in-memory SQLite database for this demo
-        database_url: Some("sqlite::memory:".to_string()),
-        embedding_dimension: 768,
-        max_search_results: 5,
-        similarity_threshold: 0.6, // slightly lower to make recall easier
-        persistent: true,
-        store_type: "sqlite".to_string(),
+    // Create agent configuration with memory settings
+    let mut config = AgentConfig {
+        memory: MemoryConfig {
+            // Use an in-memory SQLite database for this demo
+            database_url: Some("sqlite::memory:".to_string()),
+            embedding_dimension: 768,
+            max_search_results: 5,
+            similarity_threshold: 0.6, // slightly lower to make recall easier
+            persistent: true,
+            store_type: "sqlite".to_string(),
+        },
+        ..Default::default()
     };
 
     // Add example MCP server (if available)
@@ -130,14 +128,13 @@ When you don't know something, you admit it rather than making things up.
             continue;
         }
 
-        if input.starts_with("demo ") {
-            let demo_type = &input[5..];
+        if let Some(demo_type) = input.strip_prefix("demo ") {
             run_demo(&mut agent, demo_type).await?;
             continue;
         }
 
         // Process user input
-        print!("🤔 Agent is thinking...\n");
+        println!("🤔 Agent is thinking...");
         match agent.process(input).await {
             Ok(response) => {
                 println!("🤖 Agent: {}\n", response);

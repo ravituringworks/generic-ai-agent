@@ -14,6 +14,7 @@ use async_trait::async_trait;
 use reqwest;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tokio::sync::{broadcast, Mutex, RwLock};
@@ -35,9 +36,11 @@ impl AgentId {
             instance: Uuid::new_v4().to_string(),
         }
     }
+}
 
-    pub fn to_string(&self) -> String {
-        format!("{}:{}:{}", self.namespace, self.name, self.instance)
+impl fmt::Display for AgentId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}:{}", self.namespace, self.name, self.instance)
     }
 }
 
@@ -398,9 +401,9 @@ impl A2AClient for HttpA2AClient {
 
         // Look up target agent endpoint
         let registry = self.agent_registry.read().await;
-        let target_agent = registry.get(&message.to).ok_or_else(|| {
-            AgentError::NotFound(format!("Agent {} not found", message.to.to_string()))
-        })?;
+        let target_agent = registry
+            .get(&message.to)
+            .ok_or_else(|| AgentError::NotFound(format!("Agent {} not found", message.to)))?;
 
         let endpoint = target_agent.endpoints.get("http").ok_or_else(|| {
             AgentError::Config("No HTTP endpoint found for target agent".to_string())
@@ -409,7 +412,7 @@ impl A2AClient for HttpA2AClient {
         // Send HTTP request
         let response = self
             .client
-            .post(&format!("{}/a2a/message", endpoint))
+            .post(format!("{}/a2a/message", endpoint))
             .json(&message)
             .send()
             .await

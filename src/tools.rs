@@ -287,16 +287,13 @@ async fn get_network_location() -> Result<serde_json::Value, Box<dyn std::error:
     Ok(network_info)
 }
 
+/// Type alias for tool executor functions
+type ToolExecutorFn =
+    Box<dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin> + Send + Sync>;
+
 /// Built-in tool registry
 pub struct BuiltinTools {
-    tools: HashMap<
-        String,
-        Box<
-            dyn Fn() -> Box<dyn std::future::Future<Output = ToolResult> + Send + Unpin>
-                + Send
-                + Sync,
-        >,
-    >,
+    tools: HashMap<String, ToolExecutorFn>,
 }
 
 impl BuiltinTools {

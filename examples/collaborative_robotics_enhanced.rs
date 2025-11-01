@@ -9,7 +9,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use the_agency::AgentConfig;
@@ -82,6 +81,7 @@ impl Artifact {
         }
     }
 
+    #[allow(dead_code)]
     fn verify(&mut self, reviewer: String) {
         self.reviewed_by = Some(reviewer);
         self.verified = true;
@@ -90,6 +90,7 @@ impl Artifact {
 
 /// Shared workspace for agent collaboration
 struct Workspace {
+    #[allow(dead_code)]
     name: String,
     directory: PathBuf,
     artifacts: HashMap<String, Artifact>,
@@ -106,6 +107,7 @@ struct WorkspaceTask {
     status: TaskStatus,
     phase: u32,
     dependencies: Vec<String>,
+    #[allow(dead_code)]
     priority: TaskPriority,
 }
 
@@ -116,6 +118,7 @@ enum TaskType {
     DesignEnvironment {
         requirements: Vec<String>,
     },
+    #[allow(dead_code)]
     AnalyzeSimToRealGap {
         policy_description: String,
     },
@@ -132,12 +135,14 @@ enum TaskType {
         target_latency_ms: f32,
         deployment_target: String,
     },
+    #[allow(dead_code)]
     DataPipeline {
         throughput_gbps: f32,
         dataset_size_tb: f32,
     },
 
     // Generic task for coordination
+    #[allow(dead_code)]
     GenerateReport {
         topic: String,
     },
@@ -147,6 +152,7 @@ enum TaskType {
 enum AgentType {
     SimulationEngineer,
     ScalingEngineer,
+    #[allow(dead_code)]
     ProjectCoordinator,
 }
 
@@ -159,6 +165,7 @@ enum TaskStatus {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 enum TaskPriority {
+    #[allow(dead_code)]
     Medium,
     High,
     Critical,
@@ -231,7 +238,7 @@ impl Workspace {
         self.tasks
             .iter()
             .find(|t| t.id == task_id)
-            .map_or(false, |t| t.status == TaskStatus::Completed)
+            .is_some_and(|t| t.status == TaskStatus::Completed)
     }
 
     fn update_task_status(&mut self, task_id: &str, status: TaskStatus) {

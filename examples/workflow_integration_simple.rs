@@ -16,7 +16,6 @@ use the_agency::{
         MapperFn, StepSchema, WorkflowBuilder, WorkflowContext, WorkflowDecision, WorkflowStep,
     },
 };
-use tokio;
 
 /// Mock agent-like functionality within a workflow step
 pub struct TextAnalysisStep {
@@ -402,7 +401,7 @@ async fn main() -> anyhow::Result<()> {
             .unwrap_or("I absolutely love this new feature! It's incredible and works perfectly.");
 
         // Format as a structured prompt for analysis
-        let formatted_prompt = format!(
+        let _formatted_prompt = format!(
             "Please perform comprehensive analysis on the following text:\n\nInput: '{}'\n\nProvide sentiment, language detection, and summary.",
             original_text
         );
