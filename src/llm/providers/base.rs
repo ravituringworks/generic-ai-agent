@@ -168,7 +168,6 @@ mod tests {
             base_url: "https://api.example.com/v1".to_string(),
             api_key: Some("test-key".to_string()),
         };
-        let base_url = provider.base_url().to_string();
 
         assert_eq!(
             provider.build_url("chat/completions"),

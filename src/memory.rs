@@ -512,7 +512,6 @@ impl MemoryStore for SqliteMemoryStore {
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    use tempfile::NamedTempFile;
 
     async fn create_test_store() -> SqliteMemoryStore {
         // Use in-memory SQLite database for tests

@@ -174,9 +174,7 @@ impl LlmProvider for GoogleProvider {
             }),
         };
 
-        let api_key = self
-            .api_key()
-            .ok_or_else(|| LlmError::Unauthorized)?;
+        let api_key = self.api_key().ok_or_else(|| LlmError::Unauthorized)?;
 
         let url = format!(
             "{}/models/{}:generateContent?key={}",
@@ -202,9 +200,7 @@ impl LlmProvider for GoogleProvider {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let tokens_used = response
-            .usage_metadata
-            .map(|u| u.total_token_count);
+        let tokens_used = response.usage_metadata.map(|u| u.total_token_count);
 
         info!(
             "Generated {} tokens with {}",
@@ -221,13 +217,14 @@ impl LlmProvider for GoogleProvider {
     }
 
     async fn embed(&self, text: &str) -> Result<EmbeddingResponse> {
-        debug!("Generating embedding with Google for text length {}", text.len());
+        debug!(
+            "Generating embedding with Google for text length {}",
+            text.len()
+        );
 
-        let embedding_model = self
-            .config
-            .embedding_model
-            .as_ref()
-            .ok_or_else(|| LlmError::EmbeddingFailed("No embedding model configured".to_string()))?;
+        let embedding_model = self.config.embedding_model.as_ref().ok_or_else(|| {
+            LlmError::EmbeddingFailed("No embedding model configured".to_string())
+        })?;
 
         let request = GeminiEmbedRequest {
             content: GeminiContent {
@@ -238,9 +235,7 @@ impl LlmProvider for GoogleProvider {
             },
         };
 
-        let api_key = self
-            .api_key()
-            .ok_or_else(|| LlmError::Unauthorized)?;
+        let api_key = self.api_key().ok_or_else(|| LlmError::Unauthorized)?;
 
         let url = format!(
             "{}/models/{}:embedContent?key={}",

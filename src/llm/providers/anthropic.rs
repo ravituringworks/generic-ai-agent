@@ -189,10 +189,8 @@ impl LlmProvider for AnthropicProvider {
         let url = format!("{}/v1/messages", self.base_url().trim_end_matches('/'));
         let headers = self.build_headers();
 
-        let borrowed_headers: Vec<(&str, &str)> = headers
-            .iter()
-            .map(|(k, v)| (*k, v.as_str()))
-            .collect();
+        let borrowed_headers: Vec<(&str, &str)> =
+            headers.iter().map(|(k, v)| (*k, v.as_str())).collect();
 
         let response: AnthropicResponse = self
             .client

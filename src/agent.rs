@@ -590,7 +590,6 @@ impl Default for AgentBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::tempdir;
 
     async fn create_test_agent() -> Agent {
         // Use in-memory SQLite database for tests
