@@ -35,6 +35,7 @@ pub mod knowledge;
 pub mod llm;
 pub mod mcp;
 pub mod memory;
+pub mod organization;
 pub mod saga;
 pub mod tools;
 pub mod unified_storage;
@@ -57,6 +58,10 @@ pub use knowledge::{
 };
 pub use mcp::{McpClient, McpTool, ToolCall, ToolResult};
 pub use memory::{MemoryStore, VectorStore};
+pub use organization::{
+    AgentStatus as OrgAgentStatus, CollaborativeWorkspace, Organization, OrganizationAgent,
+    OrganizationRole, RoleCategory, TaskPriority, TaskStatus, WorkspaceTask,
+};
 pub use saga::{
     SagaContext, SagaOrchestrator, SagaResult, SagaStep, SagaStepState, SagaWorkflowStep,
 };
