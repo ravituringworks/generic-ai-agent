@@ -398,13 +398,22 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
 /// Spawn AI agents with configurations
 async fn spawn_agents(coordinator: &AgentCoordinator, org: &Organization) -> Result<()> {
-    let config = AgentConfig::default();
-
     for (agent_id, agent) in &org.agents {
+        // Create role-specific configuration with learning-enabled system prompt
+        let mut config = AgentConfig::default();
+        
+        // Use role-specific system prompt that includes organizational learning
+        let system_prompt = agent.role.system_prompt();
+        
+        // Enable memory and tools for organizational learning
+        config.agent.use_memory = true;
+        config.agent.use_tools = true;
+        config.agent.system_prompt = system_prompt;
+        
         coordinator
-            .spawn_agent(agent_id.clone(), config.clone())
+            .spawn_agent(agent_id.clone(), config)
             .await?;
-        info!("  ✓ Spawned: {} ({})", agent.name, format!("{:?}", agent.role));
+        info!("  ✓ Spawned: {} ({}) with learning capabilities", agent.name, format!("{:?}", agent.role));
     }
 
     Ok(())

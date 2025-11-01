@@ -5,6 +5,7 @@
 //! in robotics and advanced technology sectors.
 
 pub mod coordinator;
+pub mod prompts;
 
 use crate::error::Result;
 use serde::{Deserialize, Serialize};
