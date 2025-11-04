@@ -151,7 +151,7 @@ cargo run --example collaborative_robotics_complex
 ## Workspace Structure
 
 ```
-robotics_workspace_complex/
+output/robotics_workspace_complex/
 └── humanoid_manipulation_system/
     ├── code/           # Python/Rust implementations
     ├── configs/        # URDF, XML configurations

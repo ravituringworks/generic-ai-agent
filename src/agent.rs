@@ -13,7 +13,7 @@ use crate::workflow::{WorkflowContext, WorkflowEngine, WorkflowResult};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 
 /// Main AI Agent that coordinates all components
 pub struct Agent {
@@ -97,7 +97,23 @@ impl Agent {
         };
 
         // Initialize workflow engine with configuration
-        let mut workflow = WorkflowEngine::default();
+        // Don't use default() to avoid adding steps that might not be wanted
+        let mut workflow = WorkflowEngine::new();
+
+        // Add workflow steps based on configuration
+        if config.agent.use_memory {
+            use crate::workflow::MemoryRetrievalStep;
+            workflow = workflow.add_step(Box::new(MemoryRetrievalStep));
+        }
+
+        if config.agent.use_tools {
+            use crate::workflow::ToolAnalysisStep;
+            workflow = workflow.add_step(Box::new(ToolAnalysisStep));
+        }
+
+        // Always add response generation step
+        use crate::workflow::ResponseGenerationStep;
+        workflow = workflow.add_step(Box::new(ResponseGenerationStep));
 
         // Configure SQLite snapshot storage using the same database as memory
         let database_url = config
@@ -115,13 +131,22 @@ impl Agent {
         }
 
         // Apply workflow suspend configuration
+        use crate::workflow::WorkflowSuspendConfig;
         if config.workflow.enable_suspend_resume {
-            use crate::workflow::WorkflowSuspendConfig;
             let suspend_config = WorkflowSuspendConfig {
                 auto_checkpoint: config.workflow.auto_checkpoint,
                 checkpoint_interval: config.workflow.checkpoint_interval,
                 max_snapshots: config.workflow.max_snapshots,
                 snapshot_retention: chrono::Duration::days(config.workflow.snapshot_retention_days),
+            };
+            workflow = workflow.with_suspend_config(suspend_config);
+        } else {
+            // Explicitly disable suspend/resume functionality
+            let suspend_config = WorkflowSuspendConfig {
+                auto_checkpoint: false,
+                checkpoint_interval: 0,
+                max_snapshots: 0,
+                snapshot_retention: chrono::Duration::days(0),
             };
             workflow = workflow.with_suspend_config(suspend_config);
         }
@@ -313,7 +338,12 @@ impl Agent {
         }
 
         // Generate response
-        let generation_result = self.llm.generate(&messages).await?;
+        info!("About to call LLM.generate with {} messages", messages.len());
+        let generation_result = self.llm.generate(&messages).await.map_err(|e| {
+            error!("LLM generate failed: {}", e);
+            e
+        })?;
+        info!("LLM generate succeeded");
 
         result.response = generation_result.text;
         result.completed = true;

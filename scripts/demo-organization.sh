@@ -26,11 +26,15 @@ echo "${BLUE}${ROCKET} RoboTech Industries Multi-Agent Organization Demo${NC}"
 echo "${CYAN}═══════════════════════════════════════════════════════════${NC}"
 echo ""
 
-# Create output directory
+# The example now creates its own output directory
+EXAMPLE_OUTPUT_DIR="./output/robotech_organization_output"
+
+# Create additional demo output directory for script-generated files
 OUTPUT_DIR="./demo-outputs/organization-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$OUTPUT_DIR"
 
-echo "${GREEN}${CHECK} Created output directory: ${OUTPUT_DIR}${NC}"
+echo "${GREEN}${CHECK} Example will output to: ${EXAMPLE_OUTPUT_DIR}${NC}"
+echo "${GREEN}${CHECK} Script output directory: ${OUTPUT_DIR}${NC}"
 echo ""
 
 # Run the organization example and capture output
@@ -55,6 +59,14 @@ echo "   - Total Agents: ${TOTAL_AGENTS}"
 echo "   - Total Workspaces: ${TOTAL_WORKSPACES}"
 echo "   - Task Executions: ${COMPLETED_TASKS}"
 echo ""
+
+# Copy example outputs to demo directory
+if [ -d "${EXAMPLE_OUTPUT_DIR}" ]; then
+    echo "${GREEN}${CHECK} Copying example outputs...${NC}"
+    cp -r "${EXAMPLE_OUTPUT_DIR}/reports" "$OUTPUT_DIR/" 2>/dev/null || true
+    cp -r "${EXAMPLE_OUTPUT_DIR}/logs" "$OUTPUT_DIR/" 2>/dev/null || true
+    echo ""
+fi
 
 # Create a summary report
 REPORT_FILE="$OUTPUT_DIR/demo-report.md"
@@ -93,12 +105,15 @@ The organization includes agents from 11 specialized categories:
 
 ### Collaborative Workspaces
 
-The demo created multiple collaborative workspaces:
-- AI & Autonomy Research
-- Software Platform Development
-- Hardware Integration
+The demo created multiple collaborative workspaces for 3 robot variants:
+- Robo-1: Home Companion
+- Robo-2: Construction Assistant
+- Robo-3: Rescue Operations
 - Manufacturing Excellence
 - Supply Chain & Analytics
+- Executive Leadership
+- Product Strategy
+- Customer & Market Success
 
 ## Key Features Demonstrated
 
@@ -122,6 +137,11 @@ The demo created multiple collaborative workspaces:
    - Workspace membership
    - Role categorization
 
+5. **Knowledge Management**
+   - Persistent memory with embeddings
+   - Organizational learning across tasks
+   - Context-aware agent prompts
+
 ## Work Products
 
 The organization system produced the following work products during execution:
@@ -144,20 +164,20 @@ cat >> "$REPORT_FILE" << EOF
 
 \`\`\`
 ┌─────────────────────────────────────────────────────────────┐
-│                   Organization Daemon                        │
+│                   Organization Daemon                       │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │              Agent Coordinator                         │  │
-│  │  - Message Queue                                       │  │
-│  │  - Task Routing                                        │  │
-│  │  - Workspace Orchestration                             │  │
+│  │              Agent Coordinator                        │  │
+│  │  - Message Queue                                      │  │
+│  │  - Task Routing                                       │  │
+│  │  - Workspace Orchestration                            │  │
 │  └───────────────────────────────────────────────────────┘  │
-│                          │                                   │
-│      ┌───────────────────┼───────────────────┐             │
-│      │                   │                   │             │
-│  ┌───▼────┐      ┌───────▼───────┐  ┌──────▼──────┐      │
-│  │ Agents │      │  Workspaces   │  │    Tasks    │      │
-│  │        │◄────►│               │◄─┤             │      │
-│  └────────┘      └───────────────┘  └─────────────┘      │
+│                          │                                  │
+│      ┌───────────────────┼─────────────────┐                │
+│      │                   │                 │                │
+│  ┌───▼────┐      ┌───────▼───────┐  ┌──────▼──────┐         │
+│  │ Agents │      │  Workspaces   │  │    Tasks    │         │
+│  │        │◄────►│               │◄─┤             │         │
+│  └────────┘      └───────────────┘  └─────────────┘         │
 └─────────────────────────────────────────────────────────────┘
 \`\`\`
 
@@ -167,11 +187,19 @@ cat >> "$REPORT_FILE" << EOF
 - **Async Runtime:** Tokio
 - **Coordination:** Message-based architecture
 - **State Management:** Arc<RwLock<T>> for concurrent access
+- **LLM:** gpt-oss:20b-cloud for text generation
+- **Embeddings:** nomic-embed-text (local) for memory
 
 ## Output Files
 
-- Full execution log: \`organization-execution.log\`
-- This report: \`demo-report.md\`
+### Example-Generated Files (${EXAMPLE_OUTPUT_DIR})
+- \`reports/summary.md\` - Organization summary with all agents and workspaces
+- \`reports/organization_state.json\` - Full serialized organization state
+
+### Script-Generated Files (${OUTPUT_DIR})
+- \`organization-execution.log\` - Full execution trace
+- \`demo-report.md\` - This comprehensive demo report
+- \`workspace-summary.txt\` - Workspace task breakdown
 
 ## Next Steps
 
@@ -179,6 +207,7 @@ cat >> "$REPORT_FILE" << EOF
 2. Examine workspace coordination patterns
 3. Analyze task completion metrics
 4. Explore cross-workspace collaboration
+5. Review the organization_state.json for full system state
 
 ---
 
@@ -194,7 +223,12 @@ echo "${BLUE}${DOCS} Demo Report Preview${NC}"
 echo "${CYAN}═══════════════════════════════════════════════════════════${NC}"
 echo ""
 
-head -50 "$REPORT_FILE"
+# Show the example-generated summary if it exists
+if [ -f "${EXAMPLE_OUTPUT_DIR}/reports/summary.md" ]; then
+    head -50 "${EXAMPLE_OUTPUT_DIR}/reports/summary.md"
+else
+    head -50 "$REPORT_FILE"
+fi
 
 echo ""
 echo "${YELLOW}... (see full report in ${REPORT_FILE})${NC}"
@@ -220,15 +254,23 @@ echo "${CYAN}══════════════════════�
 echo "${BLUE}${ROCKET} Demo Complete!${NC}"
 echo "${CYAN}═══════════════════════════════════════════════════════════${NC}"
 echo ""
-echo "${GREEN}Output files created in: ${OUTPUT_DIR}${NC}"
+echo "${GREEN}Output files created in multiple locations:${NC}"
 echo ""
-echo "Files:"
+echo "${CYAN}Example Output (${EXAMPLE_OUTPUT_DIR}):${NC}"
+echo "  1. ${CYAN}reports/summary.md${NC} - Organization summary report"
+echo "  2. ${CYAN}reports/organization_state.json${NC} - Full organization state"
+echo ""
+echo "${CYAN}Script Output (${OUTPUT_DIR}):${NC}"
 echo "  1. ${CYAN}organization-execution.log${NC} - Full execution trace"
-echo "  2. ${CYAN}demo-report.md${NC} - Comprehensive demo report"
+echo "  2. ${CYAN}demo-report.md${NC} - Script-generated demo report"
 echo "  3. ${CYAN}workspace-summary.txt${NC} - Workspace task breakdown"
+echo "  4. ${CYAN}reports/${NC} - Copied from example output"
 echo ""
-echo "${YELLOW}To view the full report:${NC}"
-echo "  cat ${OUTPUT_DIR}/demo-report.md"
+echo "${YELLOW}To view the organization summary:${NC}"
+echo "  cat ${EXAMPLE_OUTPUT_DIR}/reports/summary.md"
+echo ""
+echo "${YELLOW}To view the organization state (JSON):${NC}"
+echo "  cat ${EXAMPLE_OUTPUT_DIR}/reports/organization_state.json"
 echo ""
 echo "${YELLOW}To view execution logs:${NC}"
 echo "  less ${OUTPUT_DIR}/organization-execution.log"

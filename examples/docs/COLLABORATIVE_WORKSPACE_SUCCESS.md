@@ -34,7 +34,7 @@ The collaborative workspace example is now **fully functional** and demonstrates
 
 ### 📂 Generated Artifacts
 
-Location: `examples/robotics_workspace/humanoid_robot_project/`
+Location: `output/robotics_workspace/humanoid_robot_project/`
 
 ```
 code/

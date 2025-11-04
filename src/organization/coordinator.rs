@@ -64,7 +64,7 @@ pub struct TaskResult {
 /// Coordinator that manages agent interactions and task orchestration
 pub struct AgentCoordinator {
     organization: Arc<RwLock<Organization>>,
-    active_agents: Arc<RwLock<HashMap<String, Agent>>>,
+    active_agents: Arc<RwLock<HashMap<String, Arc<RwLock<Agent>>>>>,
     a2a_client: Arc<LocalA2AClient>,
     agent_id_map: Arc<RwLock<HashMap<String, AgentId>>>, // org agent id -> A2A agent id
     knowledge_manager: Option<Arc<AdaptiveKnowledgeManager>>,
@@ -99,7 +99,7 @@ impl AgentCoordinator {
     pub async fn spawn_agent(&self, agent_id: String, config: AgentConfig) -> Result<()> {
         let agent = Agent::new(config).await?;
         let mut agents = self.active_agents.write().await;
-        agents.insert(agent_id.clone(), agent);
+        agents.insert(agent_id.clone(), Arc::new(RwLock::new(agent)));
 
         // Register agent with A2A client
         let org = self.organization.read().await;
@@ -188,8 +188,9 @@ impl AgentCoordinator {
                     // Access agent's memory to find similar tasks
                     let memories = {
                         let agents_read = self.active_agents.read().await;
-                        if let Some(agent) = agents_read.get(agent_id) {
+                        if let Some(agent_arc) = agents_read.get(agent_id) {
                             // Query agent's memory for past learnings
+                            let agent = agent_arc.read().await;
                             match agent.list_memories(Some(100)).await {
                                 Ok(mem) => {
                                     info!(
@@ -234,15 +235,24 @@ impl AgentCoordinator {
 
             info!("Executing task with {} characters of context", prompt.len());
 
-            // Execute with owned agent reference
-            let result = {
-                let mut agents_write = self.active_agents.write().await;
-                if let Some(agent) = agents_write.get_mut(agent_id) {
-                    agent.process(&prompt).await?
-                } else {
-                    return Err(anyhow::anyhow!("Agent {} not found", agent_id).into());
-                }
+            // Get Arc to the agent without holding the outer lock
+            let agent_arc = {
+                let agents_read = self.active_agents.read().await;
+                agents_read.get(agent_id).cloned()
+                    .ok_or_else(|| anyhow::anyhow!("Agent {} not found", agent_id))?
             };
+
+            // Lock just this agent and execute (not holding the HashMap lock)
+            info!("Acquired agent arc, about to lock agent");
+            let result = {
+                info!("Locking agent for execution");
+                let mut agent = agent_arc.write().await;
+                info!("Agent locked, calling agent.process()");
+                let result = agent.process(&prompt).await;
+                info!("agent.process() returned: {:?}", result.is_ok());
+                result?
+            };
+            info!("Task execution completed successfully");
 
             Ok(TaskResult {
                 success: true,
@@ -379,8 +389,9 @@ impl AgentCoordinator {
                 );
 
                 // Store in agent's memory via the new store_knowledge method
-                let mut agents_write = self.active_agents.write().await;
-                if let Some(agent) = agents_write.get_mut(agent_id) {
+                let agents_read = self.active_agents.read().await;
+                if let Some(agent_arc) = agents_read.get(agent_id) {
+                    let mut agent = agent_arc.write().await;
                     match agent.store_knowledge(knowledge_entry.clone()).await {
                         Ok(memory_id) => {
                             info!("✅ Knowledge stored successfully (ID: {})", memory_id);

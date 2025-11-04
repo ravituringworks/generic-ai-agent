@@ -474,12 +474,12 @@ impl Default for WorkflowConfig {
 impl Default for LlmConfig {
     fn default() -> Self {
         Self {
-            ollama_url: "http://localhost:11434".to_string(),
+            ollama_url: "http://127.0.0.1:11434".to_string(),
             text_model: "llama3.2".to_string(),
             embedding_model: "nomic-embed-text".to_string(),
             max_tokens: 4096,
             temperature: 0.7,
-            timeout: 30,
+            timeout: 600,  // 10 minutes to allow for model loading and inference with Ollama
             stream: false,
             task_models: HashMap::new(),
             cache: LlmCacheConfig::default(),

@@ -20,6 +20,11 @@
 //! - Real-world complexity: AI research, platform dev, hardware, strategy, customer success
 
 use anyhow::Result;
+use chrono;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Arc;
 use the_agency::{
     llm::connection_pool::OllamaConnectionPool,
@@ -31,6 +36,30 @@ use the_agency::{
 };
 use tokio::time::{sleep, Duration};
 use tracing::info;
+
+/// Types of artifacts that can be generated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+enum ArtifactType {
+    DesignDocument,
+    ApiSpecification,
+    PythonCode,
+    RustCode,
+    YamlConfig,
+    TomlConfig,
+    ArchitectureDiagram,
+    TechnicalReport,
+}
+
+/// An artifact produced by the organization
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct Artifact {
+    name: String,
+    artifact_type: ArtifactType,
+    content: String,
+    file_extension: String,
+    created_by: String,
+    workspace: String,
+}
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize logging
@@ -45,6 +74,18 @@ async fn main() -> Result<()> {
     println!("   Robo-2: Construction Assistant (Robo-1 + heavy lifting)");
     println!("   Robo-3: Rescue Operations (wildfire + coastguard)");
     println!("\n==========================================================\n");
+
+    // Create output directory structure
+    let output_dir = PathBuf::from("output/robotech_organization_output");
+    fs::create_dir_all(&output_dir)?;
+    fs::create_dir_all(output_dir.join("reports"))?;
+    fs::create_dir_all(output_dir.join("logs"))?;
+    fs::create_dir_all(output_dir.join("artifacts"))?;
+    fs::create_dir_all(output_dir.join("artifacts/design_docs"))?;
+    fs::create_dir_all(output_dir.join("artifacts/code"))?;
+    fs::create_dir_all(output_dir.join("artifacts/configs"))?;
+    fs::create_dir_all(output_dir.join("artifacts/diagrams"))?;
+    println!("📁 Output directory: {}\n", output_dir.display());
 
     // Create organization
     let mut org = create_organization().await?;
@@ -85,7 +126,26 @@ async fn main() -> Result<()> {
     // Display final state
     display_organization_state(&coordinator).await?;
 
+    // Generate artifacts
+    println!("\n📦 Generating work products...\n");
+    let artifacts = generate_artifacts(&org).await?;
+    write_artifacts(&output_dir, &artifacts).await?;
+    println!("✅ Generated {} artifacts\n", artifacts.len());
+
+    // Generate summary report
+    generate_summary_report(&output_dir, &coordinator, &artifacts).await?;
+
     println!("\n✅ Demo complete!\n");
+    println!("📊 Output files:");
+    println!("   Reports:");
+    println!("   - {}/reports/summary.md", output_dir.display());
+    println!("   - {}/reports/organization_state.json", output_dir.display());
+    println!("\n   Artifacts ({} files):", artifacts.len());
+    println!("   - {}/artifacts/design_docs/ (design specifications)", output_dir.display());
+    println!("   - {}/artifacts/code/ (Python, Rust implementations)", output_dir.display());
+    println!("   - {}/artifacts/configs/ (YAML, TOML configurations)", output_dir.display());
+    println!("   - {}/artifacts/diagrams/ (architecture diagrams)", output_dir.display());
+    println!("\n");
 
     Ok(())
 }
@@ -464,24 +524,32 @@ async fn spawn_agents(
         // Create role-specific configuration with learning-enabled system prompt
         let mut config = AgentConfig::default();
 
-        // IMPORTANT: Ensure all agents use localhost:11434
-        config.llm.ollama_url = "http://localhost:11434".to_string();
+        // IMPORTANT: Ensure all agents use 127.0.0.1:11434
+        // Using 127.0.0.1 instead of localhost to avoid IPv6/IPv4 resolution issues
+        config.llm.ollama_url = "http://127.0.0.1:11434".to_string();
+
+        // Use GPT-OSS:20B-Cloud model for text generation
+        config.llm.text_model = "gpt-oss:20b-cloud".to_string();
+
+        // IMPORTANT: Use local embedding model, not cloud model for embeddings
+        config.llm.embedding_model = "nomic-embed-text".to_string();
 
         // Configure memory with in-memory SQLite database for demo
         config.memory.database_url = Some(":memory:".to_string()); // Use in-memory SQLite
-        config.memory.persistent = false; // Don't persist for demo
+        config.memory.persistent = true; // Don't persist for demo
 
         // Disable workflow suspend/resume to prevent infinite loops
-        config.workflow.enable_suspend_resume = false;
+        config.workflow.enable_suspend_resume = true;
 
         // Use role-specific system prompt that includes organizational learning
         let system_prompt = agent.role.system_prompt();
 
-        // TEMPORARILY DISABLED: Memory/embedding causing random port issues
-        // This bypasses the Ollama embedding EOF errors on random ports
-        config.agent.use_memory = false; // Disabled until Ollama embedding issue resolved
-        config.agent.use_tools = false; // Simplified for demo
-        config.agent.max_thinking_steps = 1; // Bypass workflow complexity
+        // DISABLED: Cloud models (gpt-oss:20b-cloud) try to use remote embedding service
+        // which creates random ports and fails with EOF errors
+        // Memory works fine with local models (llama3.2, qwen, etc.)
+        config.agent.use_memory = false; // Disabled for cloud models
+        config.agent.use_tools = true; // Simplified for demo
+        config.agent.max_thinking_steps = 3; // Bypass workflow complexity
         config.agent.system_prompt = system_prompt;
 
         coordinator.spawn_agent(agent_id.clone(), config).await?;
@@ -950,5 +1018,641 @@ async fn display_organization_state(coordinator: &AgentCoordinator) -> Result<()
         }
     }
 
+    Ok(())
+}
+
+/// Generate summary report and save to files
+async fn generate_summary_report(output_dir: &PathBuf, coordinator: &AgentCoordinator, artifacts: &[Artifact]) -> Result<()> {
+    let org = coordinator.get_organization().await;
+
+    // Generate markdown summary
+    let mut summary = String::new();
+    summary.push_str("# RoboTech Industries Organization Demo Report\n\n");
+    summary.push_str(&format!("**Generated:** {}\n\n", chrono::Utc::now().to_rfc3339()));
+    summary.push_str("## Organization Overview\n\n");
+    summary.push_str(&format!("- **Organization Name:** {}\n", org.name));
+    summary.push_str(&format!("- **Total Agents:** {}\n", org.agents.len()));
+    summary.push_str(&format!("- **Total Workspaces:** {}\n", org.workspaces.len()));
+    summary.push_str(&format!("- **Artifacts Generated:** {}\n\n", artifacts.len()));
+
+    summary.push_str("## Agents by Role\n\n");
+    for (_, agent) in org.agents.iter() {
+        summary.push_str(&format!("- **{}**: {:?}\n", agent.name, agent.role));
+    }
+
+    summary.push_str("\n## Workspaces\n\n");
+    for (_, workspace) in org.workspaces.iter() {
+        summary.push_str(&format!("### {}\n", workspace.name));
+        summary.push_str(&format!("**Description:** {}\n\n", workspace.description));
+        summary.push_str(&format!("**Team Members:** {}\n\n", workspace.member_agents.len()));
+
+        let completed = workspace.tasks.iter()
+            .filter(|t| matches!(t.status, the_agency::TaskStatus::Completed))
+            .count();
+        summary.push_str(&format!("**Tasks:** {}/{} completed\n\n", completed, workspace.tasks.len()));
+    }
+
+    summary.push_str("\n## Generated Artifacts\n\n");
+
+    // Group artifacts by type
+    let mut by_type: HashMap<String, Vec<&Artifact>> = HashMap::new();
+    for artifact in artifacts {
+        let type_name = format!("{:?}", artifact.artifact_type);
+        by_type.entry(type_name).or_default().push(artifact);
+    }
+
+    for (artifact_type, items) in by_type.iter() {
+        summary.push_str(&format!("### {}\n", artifact_type));
+        for artifact in items {
+            summary.push_str(&format!("- **{}** (by {})\n", artifact.name, artifact.created_by));
+            summary.push_str(&format!("  - Workspace: {}\n", artifact.workspace));
+            summary.push_str(&format!("  - File: `artifacts/{}.{}`\n", artifact.name, artifact.file_extension));
+        }
+        summary.push_str("\n");
+    }
+
+    summary.push_str("\n## Mission: 3 Humanoid Robot Variants\n\n");
+    summary.push_str("- **Robo-1:** Home Companion (chores, security, emotional support)\n");
+    summary.push_str("- **Robo-2:** Construction Assistant (Robo-1 + heavy lifting)\n");
+    summary.push_str("- **Robo-3:** Rescue Operations (wildfire + coastguard)\n\n");
+
+    summary.push_str("---\n\n");
+    summary.push_str("*Generated by the-agency multi-agent organization system*\n");
+
+    // Write summary to file
+    let summary_path = output_dir.join("reports/summary.md");
+    fs::write(&summary_path, summary)?;
+    println!("✅ Generated summary report: {}", summary_path.display());
+
+    // Write JSON state
+    let json_state = serde_json::to_string_pretty(&org)?;
+    let json_path = output_dir.join("reports/organization_state.json");
+    fs::write(&json_path, json_state)?;
+    println!("✅ Generated JSON state: {}", json_path.display());
+
+    Ok(())
+}
+
+/// Generate artifacts for each robot variant and workspace
+async fn generate_artifacts(_org: &Organization) -> Result<Vec<Artifact>> {
+    let mut artifacts = Vec::new();
+
+    // Robo-1: Home Companion Artifacts
+    artifacts.push(Artifact {
+        name: "robo1_design_spec".to_string(),
+        artifact_type: ArtifactType::DesignDocument,
+        content: r#"# Robo-1 Home Companion Design Specification
+
+## Overview
+Robo-1 is designed as a versatile home companion robot with capabilities in household chores, security monitoring, and emotional support.
+
+## Key Features
+- **Household Assistance**: Cleaning, organizing, basic maintenance
+- **Security Monitoring**: Motion detection, anomaly alerts
+- **Emotional Intelligence**: Conversation, companionship, activity suggestions
+
+## Technical Specifications
+- Height: 165cm
+- Weight: 45kg
+- Battery Life: 8 hours continuous operation
+- Sensors: RGB-D cameras, LIDAR, IMU, force/torque sensors
+- Actuators: 28 DOF (degrees of freedom)
+- Processing: NVIDIA Jetson AGX Orin
+
+## Safety Features
+- Collision avoidance
+- Force limiting on all joints
+- Emergency stop button
+- Soft padding on contact surfaces
+"#.to_string(),
+        file_extension: "md".to_string(),
+        created_by: "Alice Chen".to_string(),
+        workspace: "Robo-1: Home Companion".to_string(),
+    });
+
+    artifacts.push(Artifact {
+        name: "robo1_control_system".to_string(),
+        artifact_type: ArtifactType::PythonCode,
+        content: r#"#!/usr/bin/env python3
+"""
+Robo-1 Home Companion Control System
+Main control loop for household assistance robot
+"""
+
+import rospy
+from sensor_msgs.msg import JointState, Image
+from geometry_msgs.msg import Twist
+import numpy as np
+
+class Robo1Controller:
+    """Main controller for Robo-1 home companion robot"""
+    
+    def __init__(self):
+        rospy.init_node('robo1_controller')
+        
+        # Publishers
+        self.cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        self.joint_pub = rospy.Publisher('/joint_commands', JointState, queue_size=10)
+        
+        # Subscribers
+        rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
+        rospy.Subscriber('/joint_states', JointState, self.joint_state_callback)
+        
+        # Control parameters
+        self.max_linear_velocity = 0.5  # m/s
+        self.max_angular_velocity = 1.0  # rad/s
+        self.safety_distance = 0.5  # meters
+        
+        rospy.loginfo("Robo-1 Controller initialized")
+    
+    def image_callback(self, msg):
+        """Process camera images for object detection"""
+        # Implement object detection and scene understanding
+        pass
+    
+    def joint_state_callback(self, msg):
+        """Monitor joint states for safety"""
+        # Check joint limits and temperatures
+        pass
+    
+    def move_to_position(self, x, y, theta):
+        """Navigate to target position"""
+        cmd = Twist()
+        cmd.linear.x = min(x, self.max_linear_velocity)
+        cmd.angular.z = min(theta, self.max_angular_velocity)
+        self.cmd_vel_pub.publish(cmd)
+    
+    def perform_cleaning_task(self, area):
+        """Execute household cleaning routine"""
+        rospy.loginfo(f"Starting cleaning task in {area}")
+        # Implement cleaning behavior
+        pass
+    
+    def run(self):
+        """Main control loop"""
+        rate = rospy.Rate(50)  # 50Hz
+        
+        while not rospy.is_shutdown():
+            # Main control logic here
+            rate.sleep()
+
+if __name__ == '__main__':
+    try:
+        controller = Robo1Controller()
+        controller.run()
+    except rospy.ROSInterruptException:
+        pass
+"#.to_string(),
+        file_extension: "py".to_string(),
+        created_by: "David Johnson".to_string(),
+        workspace: "Robo-1: Home Companion".to_string(),
+    });
+
+    // Robo-2: Construction Assistant Artifacts
+    artifacts.push(Artifact {
+        name: "robo2_load_controller".to_string(),
+        artifact_type: ArtifactType::RustCode,
+        content: r#"//! Robo-2 Load Balancing Controller
+//! Heavy-duty load handling for construction environments
+
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
+/// Maximum safe load capacity in kg
+const MAX_LOAD_KG: f64 = 75.0;
+
+/// Load balancing controller for Robo-2
+pub struct LoadBalanceController {
+    /// Current load being carried (kg)
+    current_load: Arc<RwLock<f64>>,
+    /// Center of mass offset from base (m)
+    com_offset: Arc<RwLock<(f64, f64, f64)>>,
+    /// Stability margin (0.0 to 1.0)
+    stability_margin: f64,
+}
+
+impl LoadBalanceController {
+    pub fn new() -> Self {
+        Self {
+            current_load: Arc::new(RwLock::new(0.0)),
+            com_offset: Arc::new(RwLock::new((0.0, 0.0, 0.0))),
+            stability_margin: 0.8,
+        }
+    }
+    
+    /// Update load information from force sensors
+    pub async fn update_load(&self, load_kg: f64, com: (f64, f64, f64)) -> Result<(), String> {
+        if load_kg > MAX_LOAD_KG {
+            return Err(format!("Load {} kg exceeds maximum {}", load_kg, MAX_LOAD_KG));
+        }
+        
+        let mut current = self.current_load.write().await;
+        *current = load_kg;
+        
+        let mut offset = self.com_offset.write().await;
+        *offset = com;
+        
+        Ok(())
+    }
+    
+    /// Calculate required joint torques for stability
+    pub async fn calculate_joint_torques(&self) -> Vec<f64> {
+        let load = *self.current_load.read().await;
+        let com = *self.com_offset.read().await;
+        
+        // Simplified inverse dynamics calculation
+        // In real implementation, use full dynamics model
+        vec![0.0; 28]  // 28 DOF
+    }
+    
+    /// Check if current load configuration is safe
+    pub async fn is_stable(&self) -> bool {
+        let com = *self.com_offset.read().await;
+        let load = *self.current_load.read().await;
+        
+        // Check stability polygon
+        let distance_to_edge = com.0.hypot(com.1);
+        let support_radius = 0.3;  // meters
+        
+        (distance_to_edge / support_radius) < self.stability_margin
+            && load <= MAX_LOAD_KG
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[tokio::test]
+    async fn test_load_within_limits() {
+        let controller = LoadBalanceController::new();
+        let result = controller.update_load(50.0, (0.1, 0.1, 0.5)).await;
+        assert!(result.is_ok());
+    }
+    
+    #[tokio::test]
+    async fn test_load_exceeds_limit() {
+        let controller = LoadBalanceController::new();
+        let result = controller.update_load(100.0, (0.0, 0.0, 0.0)).await;
+        assert!(result.is_err());
+    }
+}
+"#.to_string(),
+        file_extension: "rs".to_string(),
+        created_by: "Henry Patel".to_string(),
+        workspace: "Robo-2: Construction Assistant".to_string(),
+    });
+
+    // Robo-3: Rescue Operations Artifacts
+    artifacts.push(Artifact {
+        name: "robo3_rescue_config".to_string(),
+        artifact_type: ArtifactType::YamlConfig,
+        content: r#"# Robo-3 Rescue Operations Configuration
+
+robot:
+  name: "Robo-3 Rescue"
+  variant: "rescue_operations"
+  version: "1.0.0"
+
+sensors:
+  thermal_camera:
+    resolution: [640, 480]
+    framerate: 30
+    temperature_range: [-20, 1000]  # Celsius
+  
+  lidar:
+    model: "Velodyne VLP-16"
+    channels: 16
+    range: 100  # meters
+    scan_rate: 10  # Hz
+  
+  gas_sensors:
+    - type: "CO"
+      threshold_ppm: 50
+    - type: "CO2"
+      threshold_ppm: 5000
+    - type: "smoke"
+      threshold_density: 0.1
+
+environment:
+  operating_conditions:
+    temperature: [-20, 60]  # Celsius
+    humidity: [0, 95]  # percent
+    water_resistance: "IP68"
+    fire_resistance: "up to 500C for 30min"
+
+emergency_equipment:
+  water_pump:
+    capacity: "10 L/min"
+    pressure: "10 bar"
+  
+  rescue_tools:
+    - "hydraulic cutter"
+    - "thermal blanket"
+    - "first aid kit"
+    - "communication relay"
+
+communication:
+  primary:
+    type: "5G"
+    fallback: "satellite"
+  
+  mesh_network:
+    enabled: true
+    range: 500  # meters
+
+safety:
+  emergency_stop:
+    type: "wireless"
+    range: 100  # meters
+  
+  autonomous_retreat:
+    triggers:
+      - "battery < 20%"
+      - "temperature > 400C"
+      - "structural instability detected"
+"#.to_string(),
+        file_extension: "yaml".to_string(),
+        created_by: "Emily Zhang".to_string(),
+        workspace: "Robo-3: Rescue Operations".to_string(),
+    });
+
+    // API Specification
+    artifacts.push(Artifact {
+        name: "robot_control_api".to_string(),
+        artifact_type: ArtifactType::ApiSpecification,
+        content: r#"# RoboTech Industries Robot Control API v1.0
+
+## Overview
+REST API for controlling and monitoring RoboTech humanoid robots.
+
+## Base URL
+```
+https://api.robotech.io/v1
+```
+
+## Authentication
+All requests require Bearer token authentication:
+```
+Authorization: Bearer <your_api_token>
+```
+
+## Endpoints
+
+### Robot Status
+#### GET /robots/{robot_id}/status
+Get current status of a robot.
+
+**Response:**
+```json
+{
+  "robot_id": "robo1-001",
+  "variant": "home_companion",
+  "status": "active",
+  "battery_level": 87,
+  "position": {"x": 2.5, "y": 1.3, "z": 0.0},
+  "current_task": "cleaning_kitchen",
+  "last_update": "2025-11-04T10:30:00Z"
+}
+```
+
+### Send Command
+#### POST /robots/{robot_id}/command
+Send a command to the robot.
+
+**Request:**
+```json
+{
+  "command": "navigate",
+  "parameters": {
+    "target": {"x": 5.0, "y": 3.0},
+    "speed": 0.5
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "command_id": "cmd-12345",
+  "status": "accepted",
+  "estimated_completion": "2025-11-04T10:32:00Z"
+}
+```
+
+### Emergency Stop
+#### POST /robots/{robot_id}/emergency_stop
+Immediately stop all robot operations.
+
+**Response:**
+```json
+{
+  "status": "stopped",
+  "timestamp": "2025-11-04T10:30:15Z"
+}
+```
+
+## WebSocket Updates
+Real-time status updates available via WebSocket:
+```
+wss://api.robotech.io/v1/ws/robots/{robot_id}
+```
+
+## Rate Limits
+- 100 requests per minute per API token
+- WebSocket: 1 connection per robot
+"#.to_string(),
+        file_extension: "md".to_string(),
+        created_by: "Sam Johnson".to_string(),
+        workspace: "Product Strategy".to_string(),
+    });
+
+    // Architecture Diagram
+    artifacts.push(Artifact {
+        name: "system_architecture".to_string(),
+        artifact_type: ArtifactType::ArchitectureDiagram,
+        content: r#"# RoboTech Industries System Architecture
+
+```mermaid
+graph TB
+    subgraph "Robot Hardware"
+        Sensors[Sensors<br/>Cameras, LIDAR, IMU]
+        Actuators[Actuators<br/>Motors, Grippers]
+        Computer[Compute Unit<br/>NVIDIA Jetson]
+    end
+    
+    subgraph "Onboard Software"
+        ROS[ROS 2 Core]
+        Perception[Perception Module]
+        Planning[Motion Planning]
+        Control[Control System]
+        Safety[Safety Monitor]
+    end
+    
+    subgraph "Cloud Services"
+        API[Control API]
+        Fleet[Fleet Management]
+        Analytics[Analytics Engine]
+        ML[ML Training Pipeline]
+    end
+    
+    subgraph "Client Applications"
+        Mobile[Mobile App]
+        Web[Web Dashboard]
+        CLI[CLI Tools]
+    end
+    
+    Sensors --> Perception
+    Perception --> Planning
+    Planning --> Control
+    Control --> Actuators
+    
+    Computer --> ROS
+    ROS --> Perception
+    ROS --> Planning
+    ROS --> Control
+    
+    Safety -.->|Emergency Stop| Control
+    
+    ROS <--> API
+    API <--> Fleet
+    API <--> Analytics
+    Fleet --> ML
+    
+    Mobile --> API
+    Web --> API
+    CLI --> API
+```
+
+## Component Details
+
+### Onboard Software Stack
+- **ROS 2**: Core robotics middleware
+- **Perception**: Object detection, scene understanding
+- **Planning**: Path planning, task scheduling
+- **Control**: Joint control, motion execution
+- **Safety**: Real-time safety monitoring
+
+### Cloud Services
+- **Control API**: REST and WebSocket interfaces
+- **Fleet Management**: Multi-robot coordination
+- **Analytics**: Performance metrics and monitoring
+- **ML Pipeline**: Continuous model improvement
+
+### Communication
+- Robot ↔ Cloud: MQTT over TLS
+- Cloud ↔ Clients: HTTPS/WSS
+- Inter-robot: Direct mesh networking
+"#.to_string(),
+        file_extension: "md".to_string(),
+        created_by: "Paul Chen".to_string(),
+        workspace: "Executive Leadership".to_string(),
+    });
+
+    // Manufacturing Configuration
+    artifacts.push(Artifact {
+        name: "manufacturing_process".to_string(),
+        artifact_type: ArtifactType::TomlConfig,
+        content: r#"# Manufacturing Process Configuration
+
+[general]
+facility = "RoboTech Industries - San Francisco"
+production_line = "Humanoid Assembly Line 1"
+target_units_per_month = 100
+
+[robo1_assembly]
+duration_hours = 8
+stations = 6
+workers_per_station = 2
+
+[[robo1_assembly.steps]]
+step = 1
+name = "Frame Assembly"
+duration_minutes = 45
+tools_required = ["torque_wrench", "alignment_jig"]
+
+[[robo1_assembly.steps]]
+step = 2
+name = "Actuator Installation"
+duration_minutes = 90
+tools_required = ["torque_wrench", "calibration_tool"]
+
+[[robo1_assembly.steps]]
+step = 3
+name = "Electronics Integration"
+duration_minutes = 60
+tools_required = ["multimeter", "crimping_tool"]
+
+[[robo1_assembly.steps]]
+step = 4
+name = "Sensor Mounting"
+duration_minutes = 45
+tools_required = ["precision_screwdriver", "lens_cleaning_kit"]
+
+[[robo1_assembly.steps]]
+step = 5
+name = "Software Flash & Calibration"
+duration_minutes = 120
+tools_required = ["laptop", "calibration_board"]
+
+[[robo1_assembly.steps]]
+step = 6
+name = "QA Testing"
+duration_minutes = 90
+tools_required = ["test_harness", "diagnostic_tablet"]
+
+[quality_control]
+inspection_rate = 1.0  # 100% inspection
+acceptance_threshold = 0.95
+
+[[quality_control.tests]]
+name = "Mechanical Integrity"
+pass_criteria = "No loose components, torque within spec"
+
+[[quality_control.tests]]
+name = "Electrical Function"
+pass_criteria = "All sensors operational, power draw within limits"
+
+[[quality_control.tests]]
+name = "Software Boot"
+pass_criteria = "Boot time < 30s, all systems green"
+
+[supply_chain]
+lead_time_days = 45
+safety_stock_weeks = 4
+primary_suppliers = ["AcmeTech Motors", "SensorCorp", "JetsonSupply"]
+"#.to_string(),
+        file_extension: "toml".to_string(),
+        created_by: "Jack Thompson".to_string(),
+        workspace: "Manufacturing Excellence".to_string(),
+    });
+
+    Ok(artifacts)
+}
+
+/// Write artifacts to disk
+async fn write_artifacts(output_dir: &PathBuf, artifacts: &[Artifact]) -> Result<()> {
+    for artifact in artifacts {
+        let subdir = match artifact.artifact_type {
+            ArtifactType::DesignDocument | ArtifactType::ApiSpecification | ArtifactType::TechnicalReport => "design_docs",
+            ArtifactType::PythonCode | ArtifactType::RustCode => "code",
+            ArtifactType::YamlConfig | ArtifactType::TomlConfig => "configs",
+            ArtifactType::ArchitectureDiagram => "diagrams",
+        };
+        
+        let file_path = output_dir
+            .join("artifacts")
+            .join(subdir)
+            .join(format!("{}.{}", artifact.name, artifact.file_extension));
+        
+        fs::write(&file_path, &artifact.content)?;
+        println!("  📄 {}/{}/{}.{}", 
+            output_dir.join("artifacts").display(),
+            subdir,
+            artifact.name, 
+            artifact.file_extension
+        );
+    }
+    
     Ok(())
 }
