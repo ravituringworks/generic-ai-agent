@@ -4,8 +4,8 @@
 
 **Run Date:** 2025-10-30  
 **Duration:** ~180 seconds (3 minutes)  
-**Status:** Partially completed (7/8 tasks before timeout)  
-**Workspace:** `examples/robotics_workspace_complex/humanoid_manipulation_system`
+**Status:** Partially completed (7/8 tasks before timeout)
+**Workspace:** `output/robotics_workspace_complex/humanoid_manipulation_system`
 
 ---
 

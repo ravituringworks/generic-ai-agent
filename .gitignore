@@ -62,9 +62,13 @@ Icon
 # SQLx offline data (if used)
 .sqlx/
 
-# Generated workspace artifacts (except README)
-examples/robotics_workspace/humanoid_robot_project/
-examples/robotics_workspace_complex/
+# Generated workspace artifacts are now in output/ directory (ignored above)
 
 # Data directory
 data/
+
+# Demo outputs
+demo-outputs/
+
+# Output directory for all examples
+output/

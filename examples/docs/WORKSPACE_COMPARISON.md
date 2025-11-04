@@ -61,8 +61,8 @@ cargo run --example collaborative_robotics_workspace
 ```
 
 **Output**: 2 artifacts (1 Python file + 1 Markdown doc)  
-**Time**: 30 seconds  
-**Workspace**: `examples/robotics_workspace/humanoid_robot_project/`
+**Time**: 30 seconds
+**Workspace**: `output/robotics_workspace/humanoid_robot_project/`
 
 ---
 
@@ -144,8 +144,8 @@ cargo run --example collaborative_robotics_complex
 ```
 
 **Output**: 10-15 artifacts across 4 phases  
-**Time**: 2-3 minutes  
-**Workspace**: `examples/robotics_workspace_complex/humanoid_manipulation_system/`
+**Time**: 2-3 minutes
+**Workspace**: `output/robotics_workspace_complex/humanoid_manipulation_system/`
 
 ---
 

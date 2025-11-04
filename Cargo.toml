@@ -76,6 +76,9 @@ tokio-tungstenite = "0.28"
 # Async trait
 async-trait = "0.1"
 
+# High-performance MPMC channels
+flume = "0.11"
+
 # HTTP server for REST API
 axum = "0.8"
 tower = "0.5"

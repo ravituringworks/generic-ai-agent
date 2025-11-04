@@ -1,5 +1,6 @@
 //! Language model integration using Ollama
 
+pub mod connection_pool;
 pub mod manager;
 pub mod provider;
 pub mod providers;
@@ -150,6 +151,10 @@ impl OllamaClient {
     pub fn new(config: LlmConfig) -> Self {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(config.timeout))
+            .pool_max_idle_per_host(10)
+            .pool_idle_timeout(Duration::from_secs(90))
+            .tcp_keepalive(Duration::from_secs(60))
+            .connect_timeout(Duration::from_secs(10))
             .build()
             .expect("Failed to create HTTP client");
 
@@ -164,6 +169,10 @@ impl OllamaClient {
     pub async fn new_with_cache(config: LlmConfig) -> Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(config.timeout))
+            .pool_max_idle_per_host(10)
+            .pool_idle_timeout(Duration::from_secs(90))
+            .tcp_keepalive(Duration::from_secs(60))
+            .connect_timeout(Duration::from_secs(10))
             .build()
             .expect("Failed to create HTTP client");
 
@@ -242,8 +251,23 @@ impl LlmClient for OllamaClient {
             self.client.post(&url).json(&request).send(),
         )
         .await
-        .map_err(|_| LlmError::Timeout)?
-        .map_err(|e| LlmError::ConnectionFailed(e.to_string()))?;
+        .map_err(|_| {
+            error!("Request timed out after {} seconds", self.config.timeout);
+            LlmError::Timeout
+        })?
+        .map_err(|e| {
+            error!("Reqwest error details: {:?}", e);
+            if e.is_connect() {
+                error!("  -> Connection error (is Ollama running?)");
+            }
+            if e.is_timeout() {
+                error!("  -> Timeout error");
+            }
+            if e.is_request() {
+                error!("  -> Request error");
+            }
+            LlmError::ConnectionFailed(e.to_string())
+        })?;
 
         if !response.status().is_success() {
             let error_text = response

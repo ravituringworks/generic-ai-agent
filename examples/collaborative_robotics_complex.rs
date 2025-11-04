@@ -667,7 +667,7 @@ async fn main() -> Result<()> {
     println!("{}", "=".repeat(80));
 
     // Create workspace in examples folder
-    let workspace_dir = PathBuf::from("examples/robotics_workspace_complex");
+    let workspace_dir = PathBuf::from("output/robotics_workspace_complex");
     let mut workspace = Workspace::new("humanoid_manipulation_system".to_string(), &workspace_dir)?;
 
     println!("\\n📁 Workspace created: {}", workspace.directory.display());
