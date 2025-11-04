@@ -16,6 +16,12 @@ pub struct OllamaConnectionPool {
     max_connections: usize,
 }
 
+impl Default for OllamaConnectionPool {
+    fn default() -> Self {
+        Self::new(5)
+    }
+}
+
 impl OllamaConnectionPool {
     /// Create a new connection pool with specified max connections
     pub fn new(max_connections: usize) -> Self {
@@ -29,10 +35,6 @@ impl OllamaConnectionPool {
         }
     }
 
-    /// Create a default connection pool (5 concurrent connections)
-    pub fn default() -> Self {
-        Self::new(5)
-    }
 
     /// Acquire a permit to make a request
     /// This will block if all connections are in use

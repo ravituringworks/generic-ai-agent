@@ -512,7 +512,7 @@ mod tests {
             "Test Agent".to_string(),
             OrganizationRole::SoftwareEngineerSimulation,
         );
-        let agent_id = agent.id.clone();
+        let _agent_id = agent.id.clone();
         org.add_agent(agent);
 
         let coordinator = AgentCoordinator::new(org);

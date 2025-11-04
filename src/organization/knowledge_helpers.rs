@@ -187,10 +187,10 @@ pub fn find_similar_tasks(
             // Filter by task type if it matches
             m.metadata
                 .get("task_type")
-                .map_or(false, |t| t == task_type)
+                .is_some_and(|t| t == task_type)
                 || m.metadata
                     .get("task_type")
-                    .map_or(false, |t| t == "general")
+                    .is_some_and(|t| t == "general")
         })
         .map(|memory| {
             let content_lower = memory.content.to_lowercase();
@@ -222,7 +222,7 @@ pub fn find_similar_tasks(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::organization::{TaskPriority, TaskStatus};
+    
 
     #[test]
     fn test_extract_task_type() {

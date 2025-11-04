@@ -344,7 +344,7 @@ mod tests {
         let client = LocalA2AClient::new(config).unwrap();
 
         // Register sender and receiver agents
-        let sender_id = AgentId::new("test", "sender");
+        let _sender_id = AgentId::new("test", "sender");
         let receiver_id = AgentId::new("test", "receiver");
 
         let capabilities = AgentCapabilities {

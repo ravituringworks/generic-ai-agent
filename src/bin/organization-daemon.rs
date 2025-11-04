@@ -7,14 +7,14 @@ use anyhow::Result;
 use std::sync::Arc;
 use the_agency::{
     organization::{
-        coordinator::{AgentCoordinator, TaskResult},
+        coordinator::AgentCoordinator,
         CollaborativeWorkspace, Organization, OrganizationAgent, OrganizationRole, TaskPriority,
         WorkspaceTask,
     },
     AgentConfig,
 };
 use tokio::sync::RwLock;
-use tracing::{error, info};
+use tracing::info;
 
 /// Organization daemon that runs the agent environment
 pub struct OrganizationDaemon {
@@ -69,11 +69,6 @@ impl OrganizationDaemon {
         info!("📡 Organization Daemon event loop started");
 
         while self.is_running().await {
-            // Process pending messages
-            if let Err(e) = self.coordinator.process_messages().await {
-                error!("Error processing messages: {}", e);
-            }
-
             // Small delay to prevent busy waiting
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
         }
@@ -130,13 +125,13 @@ async fn main() -> Result<()> {
     // Create workspaces
     info!("🏢 Creating collaborative workspaces...");
 
-    let mut sim_workspace = CollaborativeWorkspace::new(
+    let sim_workspace = CollaborativeWorkspace::new(
         "Simulation Development".to_string(),
         "Develop robotics simulation environment".to_string(),
     );
     let sim_ws_id = sim_workspace.id.clone();
 
-    let mut prod_workspace = CollaborativeWorkspace::new(
+    let prod_workspace = CollaborativeWorkspace::new(
         "Production Engineering".to_string(),
         "Manufacturing process optimization".to_string(),
     );
@@ -269,7 +264,7 @@ async fn main() -> Result<()> {
     info!("Total Agents: {}", final_org.agents.len());
     info!("Total Workspaces: {}", final_org.workspaces.len());
 
-    for (ws_id, workspace) in &final_org.workspaces {
+    for workspace in final_org.workspaces.values() {
         let completed = workspace
             .tasks
             .iter()
