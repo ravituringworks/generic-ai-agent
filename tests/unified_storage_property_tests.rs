@@ -460,28 +460,40 @@ proptest! {
         rt.block_on(async move {
             let storage = Arc::new(InMemoryUnifiedStorage::new());
 
-            // Store workflows for resource1
-            for mut workflow in workflows1.clone() {
+            // Make workflow IDs unique by prefixing to avoid cross-resource collisions
+            // (since workflow_id is the global primary key in storage)
+            let mut modified_workflows1 = workflows1.clone();
+            for (idx, workflow) in modified_workflows1.iter_mut().enumerate() {
+                workflow.workflow_id = format!("r1_{}_{}", idx, workflow.workflow_id);
                 workflow.resource_id = resource1.clone();
-                storage.store_suspended_workflow(&workflow).await.unwrap();
+            }
+
+            let mut modified_workflows2 = workflows2.clone();
+            for (idx, workflow) in modified_workflows2.iter_mut().enumerate() {
+                workflow.workflow_id = format!("r2_{}_{}", idx, workflow.workflow_id);
+                workflow.resource_id = resource2.clone();
+            }
+
+            // Store workflows for resource1
+            for workflow in &modified_workflows1 {
+                storage.store_suspended_workflow(workflow).await.unwrap();
             }
 
             // Store workflows for resource2
-            for mut workflow in workflows2.clone() {
-                workflow.resource_id = resource2.clone();
-                storage.store_suspended_workflow(&workflow).await.unwrap();
+            for workflow in &modified_workflows2 {
+                storage.store_suspended_workflow(workflow).await.unwrap();
             }
 
             // Verify resource1 only sees its own workflows
             let retrieved1 = storage.list_suspended_workflows(&resource1).await.unwrap();
-            prop_assert_eq!(retrieved1.len(), workflows1.len());
+            prop_assert_eq!(retrieved1.len(), modified_workflows1.len());
             for workflow in &retrieved1 {
                 prop_assert_eq!(&workflow.resource_id, &resource1);
             }
 
             // Verify resource2 only sees its own workflows
             let retrieved2 = storage.list_suspended_workflows(&resource2).await.unwrap();
-            prop_assert_eq!(retrieved2.len(), workflows2.len());
+            prop_assert_eq!(retrieved2.len(), modified_workflows2.len());
             for workflow in &retrieved2 {
                 prop_assert_eq!(&workflow.resource_id, &resource2);
             }
