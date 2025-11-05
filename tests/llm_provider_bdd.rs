@@ -124,9 +124,18 @@ async fn disable_primary_provider(_world: &mut LlmProviderWorld) {
 
 #[given("I have configured different models for different task types")]
 async fn configure_task_models(world: &mut LlmProviderWorld) {
-    world.config.task_model_map.insert("code".to_string(), "gpt-4".to_string());
-    world.config.task_model_map.insert("creative".to_string(), "claude-3-opus".to_string());
-    world.config.task_model_map.insert("math".to_string(), "gpt-4".to_string());
+    world
+        .config
+        .task_model_map
+        .insert("code".to_string(), "gpt-4".to_string());
+    world
+        .config
+        .task_model_map
+        .insert("creative".to_string(), "claude-3-opus".to_string());
+    world
+        .config
+        .task_model_map
+        .insert("math".to_string(), "gpt-4".to_string());
 }
 
 #[given("I have configured streaming enabled")]
@@ -165,7 +174,10 @@ async fn request_embeddings(world: &mut LlmProviderWorld, _text: String) {
 
 #[then(regex = r"the (.*) provider should generate a response")]
 async fn verify_provider_response(world: &mut LlmProviderWorld, _provider: String) {
-    assert!(world.last_response.is_some(), "Response should be generated");
+    assert!(
+        world.last_response.is_some(),
+        "Response should be generated"
+    );
     assert!(world.last_error.is_none(), "No error should occur");
 }
 
@@ -194,8 +206,8 @@ async fn verify_embeddings_generated(world: &mut LlmProviderWorld) {
 
 #[then("the embedding dimension should match the model specification")]
 async fn verify_embedding_dimension(world: &mut LlmProviderWorld) {
-    assert!(world.embeddings_generated, "Embeddings should have been generated");
+    assert!(
+        world.embeddings_generated,
+        "Embeddings should have been generated"
+    );
 }
-
-// Export the world for use in main.rs
-pub use LlmProviderWorld;
