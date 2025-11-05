@@ -7,7 +7,9 @@ This directory contains Behavior-Driven Development (BDD) feature files that doc
 ### Core Agent Features
 
 #### `agent_capabilities.feature`
+
 Documents the fundamental AI agent capabilities:
+
 - Basic conversation and interaction
 - Memory storage and retrieval
 - Tool usage (built-in tools)
@@ -18,7 +20,9 @@ Documents the fundamental AI agent capabilities:
 - Configuration validation
 
 #### `multi_provider_llm.feature`
+
 Documents multi-provider LLM support:
+
 - **Providers**: OpenAI, Anthropic Claude, Google Gemini, Groq, Together AI, Azure OpenAI, Ollama
 - Provider-specific features (extended context, structured output, streaming)
 - Automatic provider fallback
@@ -31,7 +35,9 @@ Documents multi-provider LLM support:
 ### Communication & Networking
 
 #### `a2a_communication.feature`
+
 Documents Agent-to-Agent (A2A) communication:
+
 - **Protocols**: HTTP, WebSocket, Redis pub/sub, RabbitMQ
 - Direct agent-to-agent messaging
 - Service discovery and capability-based routing
@@ -49,7 +55,9 @@ Documents Agent-to-Agent (A2A) communication:
 ### Workflow & State Management
 
 #### `workflow_engine.feature`
+
 Documents workflow orchestration capabilities:
+
 - Sequential and parallel workflow execution
 - Conditional branching
 - Workflow pause and resume
@@ -72,7 +80,9 @@ Documents workflow orchestration capabilities:
 ### Multi-Agent Systems
 
 #### `multi_agent_organization.feature`
+
 Documents organizational and multi-agent capabilities:
+
 - Create organizations with specialized agent roles
 - Collaborative workspaces
 - Multi-workspace project coordination
@@ -86,7 +96,9 @@ Documents organizational and multi-agent capabilities:
 ### Data Management
 
 #### `unified_storage.feature`
+
 Documents the unified storage system:
+
 - Workflow suspension and resumption
 - Memory thread management
 - Trace collection and querying
@@ -99,7 +111,9 @@ Documents the unified storage system:
 - Cross-component integration
 
 #### `knowledge_rag.feature`
+
 Documents knowledge management and RAG:
+
 - PDF document processing (text and tables)
 - Semantic search over documents
 - External web content learning
@@ -112,7 +126,9 @@ Documents knowledge management and RAG:
 ### Tool Integration
 
 #### `mcp_integration.feature`
+
 Documents Model Context Protocol (MCP) integration:
+
 - Discover available MCP tools
 - Call MCP tools from agents
 - Multiple MCP servers

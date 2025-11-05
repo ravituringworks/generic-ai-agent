@@ -316,6 +316,15 @@ impl OrganizationRole {
                 Scale RL training across compute resources. Enable robots to learn complex behaviors. \
                 Bridge RL research and practical deployment.".to_string(),
 
+            Self::ResearchEngineerRobotics =>
+                "You are a Research Engineer specializing in Robotics Design and Development. \
+                Design and analyze mechanical and electrical systems for robotics structures, mechanisms, power transmissions, and electric components. \
+                Balance ergonomics, performance, reliability in system integration. Support part fabrication and complex sub-assembly manufacturing. \
+                Perform hands-on assembly of robot prototypes from sub-assemblies to full systems. Conduct failure analysis by building test fixtures, \
+                designing tests, performing tests, measuring and analyzing data, and refining design assumptions. Collaborate closely with cross-functional teams. \
+                Apply expertise in SOLIDWORKS, NX, or similar CAD tools, prototyping processes, embedded systems, communication protocols, \
+                tolerance analysis, GD&T, electromechanical assemblies, power electronics, and traditional manufacturing processes.".to_string(),
+
             Self::AIResident =>
                 "You are an AI Resident. Explore cutting-edge AI and robotics research. \
                 Implement and experiment with novel approaches. Contribute to research projects. \
