@@ -787,14 +787,14 @@ async fn main() -> Result<()> {
     println!("\\n👥 Initializing specialized agents...");
 
     let mut sim_engineer = CollaborativeAgent::new(
-        "SimulationEngineer_Alice".to_string(),
+        "SimulationEngineer_EMP001".to_string(),
         AgentRole::SimulationEngineer,
         config_sim,
     )
     .await?;
 
     let mut scaling_engineer = CollaborativeAgent::new(
-        "ScalingEngineer_Bob".to_string(),
+        "ScalingEngineer_EMP002".to_string(),
         AgentRole::ScalingEngineer,
         config_scaling,
     )
@@ -808,7 +808,7 @@ async fn main() -> Result<()> {
     .await?;
 
     let mut coordinator = CollaborativeAgent::new(
-        "Coordinator_Charlie".to_string(),
+        "Coordinator_EMP003".to_string(),
         AgentRole::ProjectCoordinator,
         config_coord,
     )

@@ -19,14 +19,14 @@ async fn main() -> Result<()> {
 
     // Add just 2 agents
     let alice = OrganizationAgent::new(
-        "Alice Chen".to_string(),
+        "EMP001".to_string(),
         OrganizationRole::ResearchEngineerScaling,
     );
     let alice_id = alice.id.clone();
     org.add_agent(alice);
 
     let bob = OrganizationAgent::new(
-        "Bob Martinez".to_string(),
+        "EMP002".to_string(),
         OrganizationRole::ResearchEngineerAutonomy,
     );
     let bob_id = bob.id.clone();
@@ -59,10 +59,10 @@ async fn main() -> Result<()> {
     coordinator
         .spawn_agent(alice_id.clone(), config.clone())
         .await?;
-    println!("  ✓ Spawned Alice");
+    println!("  ✓ Spawned EMP001");
 
     coordinator.spawn_agent(bob_id.clone(), config).await?;
-    println!("  ✓ Spawned Bob\n");
+    println!("  ✓ Spawned EMP002\n");
 
     println!("🎯 Creating and executing task...\n");
 

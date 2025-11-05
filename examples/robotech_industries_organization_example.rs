@@ -171,151 +171,151 @@ async fn create_organization() -> Result<Organization> {
 
     // Research & AI Team
     let alice = OrganizationAgent::new(
-        "Alice Chen".to_string(),
+        "EMP001".to_string(),
         OrganizationRole::ResearchEngineerScaling,
     );
     org.add_agent(alice);
 
     let bob = OrganizationAgent::new(
-        "Bob Martinez".to_string(),
+        "EMP002".to_string(),
         OrganizationRole::ResearchEngineerAutonomy,
     );
     org.add_agent(bob);
 
     let carol = OrganizationAgent::new(
-        "Carol Kim".to_string(),
+        "EMP003".to_string(),
         OrganizationRole::ResearchEngineerWorldModels,
     );
     org.add_agent(carol);
 
     // Software Engineering Team
     let david = OrganizationAgent::new(
-        "David Johnson".to_string(),
+        "EMP004".to_string(),
         OrganizationRole::SoftwareEngineerSimulation,
     );
     org.add_agent(david);
 
     let emily = OrganizationAgent::new(
-        "Emily Zhang".to_string(),
+        "EMP005".to_string(),
         OrganizationRole::SoftwareEngineerPlatforms,
     );
     org.add_agent(emily);
 
     let frank = OrganizationAgent::new(
-        "Frank Wilson".to_string(),
+        "EMP006".to_string(),
         OrganizationRole::SoftwareEngineerEmbeddedSystems,
     );
     org.add_agent(frank);
 
     // Hardware & Robotics Team
     let grace = OrganizationAgent::new(
-        "Grace Lee".to_string(),
+        "EMP007".to_string(),
         OrganizationRole::HardcoreElectricalEngineer,
     );
     org.add_agent(grace);
 
     let henry = OrganizationAgent::new(
-        "Henry Patel".to_string(),
+        "EMP008".to_string(),
         OrganizationRole::SeniorRoboticsEngineerControls,
     );
     org.add_agent(henry);
 
     let iris = OrganizationAgent::new(
-        "Iris Anderson".to_string(),
+        "EMP009".to_string(),
         OrganizationRole::MechanicalEngineerAllLevels,
     );
     org.add_agent(iris);
 
     // Manufacturing & Production Team
     let jack = OrganizationAgent::new(
-        "Jack Thompson".to_string(),
+        "EMP010".to_string(),
         OrganizationRole::ManufacturingEngineer,
     );
     org.add_agent(jack);
 
     let kate = OrganizationAgent::new(
-        "Kate Brown".to_string(),
+        "EMP011".to_string(),
         OrganizationRole::AutomationEngineerManufacturing,
     );
     org.add_agent(kate);
 
     let leo = OrganizationAgent::new(
-        "Leo Garcia".to_string(),
+        "EMP012".to_string(),
         OrganizationRole::QualityEngineerManufacturing,
     );
     org.add_agent(leo);
 
     // Supply Chain & Data Team
-    let maya = OrganizationAgent::new("Maya Nguyen".to_string(), OrganizationRole::NPIPlanner);
+    let maya = OrganizationAgent::new("EMP013".to_string(), OrganizationRole::NPIPlanner);
     org.add_agent(maya);
 
-    let noah = OrganizationAgent::new("Noah Davis".to_string(), OrganizationRole::DataAnalyst);
+    let noah = OrganizationAgent::new("EMP014".to_string(), OrganizationRole::DataAnalyst);
     org.add_agent(noah);
 
     // Executive Leadership
     let olivia = OrganizationAgent::new(
-        "Olivia Torres".to_string(),
+        "EMP015".to_string(),
         OrganizationRole::ChiefExecutiveOfficer,
     );
     org.add_agent(olivia);
 
     let paul = OrganizationAgent::new(
-        "Paul Chen".to_string(),
+        "EMP016".to_string(),
         OrganizationRole::ChiefTechnologyOfficer,
     );
     org.add_agent(paul);
 
-    let quinn = OrganizationAgent::new("Quinn Rivera".to_string(), OrganizationRole::VPEngineering);
+    let quinn = OrganizationAgent::new("EMP017".to_string(), OrganizationRole::VPEngineering);
     org.add_agent(quinn);
 
     // Product & Strategy
     let rachel = OrganizationAgent::new(
-        "Rachel Kim".to_string(),
+        "EMP018".to_string(),
         OrganizationRole::ChiefProductOfficer,
     );
     org.add_agent(rachel);
 
     let sam = OrganizationAgent::new(
-        "Sam Johnson".to_string(),
+        "EMP019".to_string(),
         OrganizationRole::PrincipalProductManager,
     );
     org.add_agent(sam);
 
     let tina = OrganizationAgent::new(
-        "Tina Martinez".to_string(),
+        "EMP020".to_string(),
         OrganizationRole::TechnicalProgramManager,
     );
     org.add_agent(tina);
 
     // People & Culture
-    let uma = OrganizationAgent::new("Uma Patel".to_string(), OrganizationRole::DirectorOfPeople);
+    let uma = OrganizationAgent::new("EMP021".to_string(), OrganizationRole::DirectorOfPeople);
     org.add_agent(uma);
 
     // Customer Success & Sales
-    let victor = OrganizationAgent::new("Victor Wong".to_string(), OrganizationRole::VPSales);
+    let victor = OrganizationAgent::new("EMP022".to_string(), OrganizationRole::VPSales);
     org.add_agent(victor);
 
     let wendy = OrganizationAgent::new(
-        "Wendy Anderson".to_string(),
+        "EMP023".to_string(),
         OrganizationRole::CustomerSuccessManager,
     );
     org.add_agent(wendy);
 
     let xavier = OrganizationAgent::new(
-        "Xavier Lopez".to_string(),
+        "EMP024".to_string(),
         OrganizationRole::SolutionsArchitect,
     );
     org.add_agent(xavier);
 
     // Marketing & Design
     let yara = OrganizationAgent::new(
-        "Yara Hassan".to_string(),
+        "EMP025".to_string(),
         OrganizationRole::ProductMarketingManager,
     );
     org.add_agent(yara);
 
     let zack = OrganizationAgent::new(
-        "Zack Thompson".to_string(),
+        "EMP026".to_string(),
         OrganizationRole::PrincipalProductDesigner,
     );
     org.add_agent(zack);
@@ -336,11 +336,11 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign cross-functional team for Robo-1
     let agent_names = [
-        "Alice Chen",    // AI/Autonomy
-        "David Johnson", // Simulation
-        "Grace Lee",     // Electrical
-        "Iris Anderson", // Mechanical
-        "Sam Johnson",   // Product Manager
+        "EMP001",    // AI/Autonomy
+        "EMP004", // Simulation
+        "EMP007",     // Electrical
+        "EMP009", // Mechanical
+        "EMP019",   // Product Manager
     ];
     for name in agent_names {
         let agent_id = org
@@ -363,11 +363,11 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign team for Robo-2 (inherits from Robo-1)
     let agent_names = [
-        "Bob Martinez",  // Autonomy for load handling
-        "Henry Patel",   // Robotics Controls
-        "Iris Anderson", // Mechanical (heavy-duty)
-        "Jack Thompson", // Manufacturing
-        "Maya Nguyen",   // NPI Planning
+        "EMP002",  // Autonomy for load handling
+        "EMP008",   // Robotics Controls
+        "EMP009", // Mechanical (heavy-duty)
+        "EMP010", // Manufacturing
+        "EMP013",   // NPI Planning
     ];
     for name in agent_names {
         let agent_id = org
@@ -390,12 +390,12 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign elite team for Robo-3 (most advanced)
     let agent_names = [
-        "Carol Kim",    // World Models for rescue
-        "Emily Zhang",  // Platform software
-        "Frank Wilson", // Embedded systems
-        "Henry Patel",  // Advanced controls
-        "Kate Brown",   // Automation
-        "Leo Garcia",   // Quality for safety
+        "EMP003",    // World Models for rescue
+        "EMP005",  // Platform software
+        "EMP006", // Embedded systems
+        "EMP008",  // Advanced controls
+        "EMP011",   // Automation
+        "EMP012",   // Quality for safety
     ];
     for name in agent_names {
         let agent_id = org
@@ -417,7 +417,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(mfg_ws);
 
     // Assign manufacturing team
-    let agent_names = ["Jack Thompson", "Kate Brown", "Leo Garcia"];
+    let agent_names = ["EMP010", "EMP011", "EMP012"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -438,7 +438,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(sc_ws);
 
     // Assign supply chain team
-    let agent_names = ["Maya Nguyen", "Noah Davis"];
+    let agent_names = ["EMP013", "EMP014"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -459,7 +459,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(executive_ws);
 
     // Assign executives
-    let agent_names = ["Olivia Torres", "Paul Chen", "Quinn Rivera", "Rachel Kim"];
+    let agent_names = ["EMP015", "EMP016", "EMP017", "EMP018"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -480,7 +480,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(product_ws);
 
     // Assign product team
-    let agent_names = ["Sam Johnson", "Tina Martinez", "Zack Thompson"];
+    let agent_names = ["EMP019", "EMP020", "EMP026"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -502,10 +502,10 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign customer success and sales team
     let agent_names = [
-        "Victor Wong",
-        "Wendy Anderson",
-        "Xavier Lopez",
-        "Yara Hassan",
+        "EMP022",
+        "EMP023",
+        "EMP024",
+        "EMP025",
     ];
     for name in agent_names {
         let agent_id = org
@@ -625,21 +625,21 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task1 = WorkspaceTask::new(
         "Design Home Assistant AI".to_string(),
         "Develop AI for household chores: cleaning, organizing, basic maintenance".to_string(),
-        vec![get_agent_id("Alice Chen")],
+        vec![get_agent_id("EMP001")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task2 = WorkspaceTask::new(
         "Build Security & Emotional Intelligence".to_string(),
         "Create security monitoring and emotional companionship capabilities".to_string(),
-        vec![get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task3 = WorkspaceTask::new(
         "Design Safe Home-Use Actuators".to_string(),
         "Engineer safe, quiet actuators suitable for home environment".to_string(),
-        vec![get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::High);
 
@@ -659,21 +659,21 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task4 = WorkspaceTask::new(
         "Design Heavy-Duty Actuator System".to_string(),
         "Engineer actuators capable of lifting 50+ kg loads safely".to_string(),
-        vec![get_agent_id("Bob Martinez")],
+        vec![get_agent_id("EMP002")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task5 = WorkspaceTask::new(
         "Develop Load-Balancing Control System".to_string(),
         "Create controls for stable load handling and construction site navigation".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task6 = WorkspaceTask::new(
         "Build Construction Safety Features".to_string(),
         "Implement safety protocols for construction site operations".to_string(),
-        vec![get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -693,28 +693,28 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task7 = WorkspaceTask::new(
         "Design Extreme Environment Systems".to_string(),
         "Engineer systems for high-heat (wildfire) and marine environments".to_string(),
-        vec![get_agent_id("Carol Kim")],
+        vec![get_agent_id("EMP003")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task8 = WorkspaceTask::new(
         "Build Advanced Perception for Rescue".to_string(),
         "Develop AI for victim detection, smoke/water navigation, threat assessment".to_string(),
-        vec![get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task9 = WorkspaceTask::new(
         "Implement Emergency Response Protocols".to_string(),
         "Create fail-safe systems and emergency response automation".to_string(),
-        vec![get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task10 = WorkspaceTask::new(
         "Design Rescue Equipment Integration".to_string(),
         "Integrate thermal imaging, water pumps, rescue tools, communication systems".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::High);
 
@@ -745,14 +745,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task11 = WorkspaceTask::new(
         "Research Advanced World Models".to_string(),
         "Investigate next-gen world modeling for better environment understanding".to_string(),
-        vec![get_agent_id("Carol Kim")],
+        vec![get_agent_id("EMP003")],
     )
     .with_priority(TaskPriority::High);
 
     let task12 = WorkspaceTask::new(
         "Optimize Scaling Algorithms".to_string(),
         "Improve scalability of AI systems for multiple robot variants".to_string(),
-        vec![get_agent_id("Alice Chen")],
+        vec![get_agent_id("EMP001")],
     )
     .with_priority(TaskPriority::High);
 
@@ -779,14 +779,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task13 = WorkspaceTask::new(
         "Build Cross-Platform SDK".to_string(),
         "Create unified SDK for all robot variants".to_string(),
-        vec![get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::High);
 
     let task14 = WorkspaceTask::new(
         "Implement Real-Time Simulation Framework".to_string(),
         "Develop simulation tools for testing robot behaviors".to_string(),
-        vec![get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::High);
 
@@ -813,14 +813,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task15 = WorkspaceTask::new(
         "Integrate Sensor Arrays".to_string(),
         "Coordinate integration of all sensor systems across robot variants".to_string(),
-        vec![get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Medium);
 
     let task16 = WorkspaceTask::new(
         "Standardize Power Management".to_string(),
         "Create unified power management system for all robots".to_string(),
-        vec![get_agent_id("Iris Anderson")],
+        vec![get_agent_id("EMP009")],
     )
     .with_priority(TaskPriority::Medium);
 
@@ -847,7 +847,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task17 = WorkspaceTask::new(
         "Q1 Strategic Planning".to_string(),
         "Review progress and plan next quarter strategy".to_string(),
-        vec![get_agent_id("Olivia Torres"), get_agent_id("Paul Chen")],
+        vec![get_agent_id("EMP015"), get_agent_id("EMP016")],
     )
     .with_priority(TaskPriority::Medium);
 
@@ -874,7 +874,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task18 = WorkspaceTask::new(
         "Define Product Roadmap".to_string(),
         "Create 12-month roadmap for all robot variants".to_string(),
-        vec![get_agent_id("Sam Johnson"), get_agent_id("Rachel Kim")],
+        vec![get_agent_id("EMP019"), get_agent_id("EMP018")],
     )
     .with_priority(TaskPriority::Medium);
 
@@ -901,14 +901,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task19 = WorkspaceTask::new(
         "Launch Customer Feedback Program".to_string(),
         "Establish feedback loop with early adopters".to_string(),
-        vec![get_agent_id("Wendy Anderson")],
+        vec![get_agent_id("EMP023")],
     )
     .with_priority(TaskPriority::Low);
 
     let task20 = WorkspaceTask::new(
         "Develop Training Materials".to_string(),
         "Create comprehensive training for robot operators".to_string(),
-        vec![get_agent_id("Xavier Lopez")],
+        vec![get_agent_id("EMP024")],
     )
     .with_priority(TaskPriority::Low);
 
@@ -931,7 +931,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create supplier-ready CNC machining work orders with GD&T drawings, material specs (Al 6061-T6), \
         tolerances (±0.001\" for bearing fits), STEP/DXF files, and complete specifications ready for Xometry, \
         Protolabs, or local CNC shops.".to_string(),
-        vec![get_agent_id("Iris Anderson")],
+        vec![get_agent_id("EMP009")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -939,7 +939,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Generate PCB Fabrication Orders".to_string(),
         "Create complete PCB fabrication packages with Gerber files, drill files, BOM in CSV format, \
         pick-and-place files, and assembly notes ready for PCBWay, JLCPCB, or OSH Park.".to_string(),
-        vec![get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -969,7 +969,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create comprehensive assembly procedures with step-by-step instructions, torque specifications \
         (M4: 2.8 N·m, M6: 8 N·m), bearing installation procedures, alignment checks, and unit testing \
         protocols with acceptance criteria.".to_string(),
-        vec![get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -977,7 +977,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Generate Actuation System Assembly Procedures".to_string(),
         "Create detailed actuation assembly documentation with motor-to-gearbox mounting, encoder calibration, \
         wiring color codes, and unit testing (no-load current <500mA, position control ±1°, thermal test 30min <80°C).".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1001,7 +1001,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         system bring-up procedures, subsystem integration tests (power, communications, sensors), \
         and safety system validation (emergency stop <100ms)."
             .to_string(),
-        vec![get_agent_id("Leo Garcia")],
+        vec![get_agent_id("EMP012")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1010,7 +1010,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create detailed locomotion testing with progressive sequence (static balance 30s, weight shifting, \
         single-leg stance 10s, forward walking 1 m/s, obstacle negotiation), performance metrics (step length, \
         stride frequency, energy consumption), and failure mode testing.".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1033,7 +1033,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create complete ROS2 workspace with robot_description, robot_bringup, robot_control packages. \
         Include URDF/XACRO files with complete kinematic chain, launch files for simulation/hardware, \
         parameter files (PID gains, sensor configs), and Docker container setup.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP004"), get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1043,7 +1043,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         inverse kinematics solvers, balance controller (ZMP, LIPM, CoM planning), gait generation \
         (footstep planning, phase state machine), and compliance control for manipulation."
             .to_string(),
-        vec![get_agent_id("Henry Patel"), get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP008"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1052,7 +1052,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create perception software stack with sensor drivers (RealSense, IMU, LIDAR), sensor fusion (EKF), \
         computer vision pipeline (YOLO, semantic segmentation, depth processing), SLAM implementation, \
         and GPU acceleration (CUDA/TensorRT).".to_string(),
-        vec![get_agent_id("Alice Chen"), get_agent_id("Bob Martinez")],
+        vec![get_agent_id("EMP001"), get_agent_id("EMP002")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1061,7 +1061,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create ML models for behaviors: MoveIt2 integration, RL framework (PPO/SAC algorithms), \
         imitation learning, vision-based learning (grasp pose estimation), model deployment (ONNX/TensorRT), \
         and training infrastructure.".to_string(),
-        vec![get_agent_id("Carol Kim"), get_agent_id("Alice Chen")],
+        vec![get_agent_id("EMP003"), get_agent_id("EMP001")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1084,7 +1084,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create comprehensive technical documentation: system architecture diagrams, design rationale, \
         consolidated BOM with suppliers, assembly documentation, test results and validation data, \
         change log, and safety documentation (FMEA, risk assessment). Export as PDF with searchable text.".to_string(),
-        vec![get_agent_id("Tina Martinez"), get_agent_id("Quinn Rivera")],
+        vec![get_agent_id("EMP020"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1093,7 +1093,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create user-friendly operation manual with quick start guide, operation modes (manual/semi-autonomous/autonomous), \
         safety procedures, basic troubleshooting, operational limits, and software interface guide. \
         Export as PDF and interactive HTML.".to_string(),
-        vec![get_agent_id("Wendy Anderson"), get_agent_id("Xavier Lopez")],
+        vec![get_agent_id("EMP023"), get_agent_id("EMP024")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1102,7 +1102,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create detailed maintenance manual with preventive maintenance schedule (daily/weekly/monthly/annual), \
         component replacement procedures, lubrication guide, diagnostic procedures, calibration procedures, \
         spare parts list, and safety for technicians. Export as PDF with laminated quick-reference sheets.".to_string(),
-        vec![get_agent_id("Leo Garcia"), get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP012"), get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1127,7 +1127,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         test plans for electrical safety (UL 60950, IEC 62368), EMC testing (FCC Part 15, EN 55032), \
         mechanical safety (ISO 13849, ISO 12100), functional safety analysis, safety test reports, \
         declaration of conformity templates, and technical construction files for CE marking.".to_string(),
-        vec![get_agent_id("Leo Garcia"), get_agent_id("Quinn Rivera")],
+        vec![get_agent_id("EMP012"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1138,7 +1138,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         (novel actuation mechanisms, control algorithms, sensor fusion methods), trade secret identification \
         and protection procedures, trademark registrations (brand, logos), copyright protection for software, \
         IP licensing strategy, freedom-to-operate analysis, and defensive publication strategy.".to_string(),
-        vec![get_agent_id("Paul Chen"), get_agent_id("Rachel Kim")],
+        vec![get_agent_id("EMP016"), get_agent_id("EMP018")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1149,7 +1149,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         REACH SVHC declaration, conflict minerals reporting, WEEE compliance and recycling procedures, \
         packaging material declarations, battery disposal procedures (EPA, state regulations), \
         California Prop 65 warnings if applicable, and supplier environmental compliance verification.".to_string(),
-        vec![get_agent_id("Maya Nguyen"), get_agent_id("Leo Garcia")],
+        vec![get_agent_id("EMP013"), get_agent_id("EMP012")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1174,7 +1174,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         salt spray corrosion testing (ASTM B117, 48-96 hours), altitude testing (low pressure), sand and dust \
         ingress testing (IP6X), water ingress testing (IPX7/IPX8), UV exposure and weathering (ASTM G154), \
         test setup procedures, acceptance criteria, data collection templates, and failure analysis procedures.".to_string(),
-        vec![get_agent_id("Leo Garcia"), get_agent_id("Iris Anderson")],
+        vec![get_agent_id("EMP012"), get_agent_id("EMP009")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1186,7 +1186,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         wear testing for contact surfaces, fatigue analysis and accelerated life testing, packaging drop testing \
         (ISTA procedures), transportation simulation, acceptance criteria based on functional requirements, \
         and MTBF/MTTF calculation methodology.".to_string(),
-        vec![get_agent_id("Iris Anderson"), get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP009"), get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1197,7 +1197,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         (IEC 61000-4-3, 80 MHz - 6 GHz, 3-10 V/m), ESD immunity (IEC 61000-4-2, contact/air discharge), \
         electrical fast transient/burst (IEC 61000-4-4), surge immunity (IEC 61000-4-5), power frequency magnetic field \
         (IEC 61000-4-8), test lab selection and scheduling, pre-compliance testing procedures, and remediation strategies.".to_string(),
-        vec![get_agent_id("Grace Lee"), get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP007"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1223,7 +1223,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         quality control checkpoints (in-process inspection, final QA), yield analysis and defect tracking (Pareto analysis), \
         design for manufacturing (DFM) recommendations, cost analysis (labor, material, overhead), \
         lessons learned documentation, and readiness criteria for volume production.".to_string(),
-        vec![get_agent_id("Jack Thompson"), get_agent_id("Kate Brown")],
+        vec![get_agent_id("EMP010"), get_agent_id("EMP011")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1235,7 +1235,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         supplier qualification and dual-sourcing strategy, statistical process control (SPC) implementation \
         (Cp, Cpk targets), lean manufacturing initiatives (5S, kaizen, waste reduction), production scheduling \
         and MRP system, quality management system (ISO 9001), continuous improvement program, and cost reduction roadmap.".to_string(),
-        vec![get_agent_id("Kate Brown"), get_agent_id("Maya Nguyen")],
+        vec![get_agent_id("EMP011"), get_agent_id("EMP013")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1248,7 +1248,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         supply chain risk assessment (single-source risks, geopolitical risks, natural disaster contingencies), \
         second-source development timeline, contract manufacturing (CM) evaluation if applicable, \
         and supplier relationship management (SRM) procedures.".to_string(),
-        vec![get_agent_id("Maya Nguyen"), get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP013"), get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1275,7 +1275,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         commissioning checklist (power-on sequence, network configuration, sensor calibration verification), \
         customer acceptance testing (CAT) procedures, installation troubleshooting guide, \
         field service technician training materials, and installation time estimates.".to_string(),
-        vec![get_agent_id("Xavier Lopez"), get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP024"), get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1288,7 +1288,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         predictive maintenance algorithms (anomaly detection, failure prediction), multi-tenancy architecture \
         for multiple customers, data security and privacy controls, API design for third-party integrations, \
         and scalability planning (support 10k+ robots).".to_string(),
-        vec![get_agent_id("Emily Zhang"), get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP005"), get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1301,7 +1301,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         remote support tools (VPN access, screen sharing), warranty claim procedures and RMA process, \
         spare parts inventory planning (critical components, lead times), field service dispatch system, \
         customer satisfaction tracking (CSAT, NPS), and support cost analysis.".to_string(),
-        vec![get_agent_id("Wendy Anderson"), get_agent_id("Xavier Lopez")],
+        vec![get_agent_id("EMP023"), get_agent_id("EMP024")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1328,7 +1328,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         STRIDE threat modeling (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, \
         Elevation of Privilege), risk scoring (likelihood × impact), threat mitigation strategies, \
         security requirements traceability matrix, and incident response scenarios.".to_string(),
-        vec![get_agent_id("Frank Wilson"), get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP006"), get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1342,7 +1342,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         secure software update mechanism (signed updates, anti-rollback protection), \
         data encryption (at-rest: AES-256, in-transit: TLS), intrusion detection/prevention system (IDS/IPS), \
         security logging and audit trails, and vulnerability management process.".to_string(),
-        vec![get_agent_id("Frank Wilson"), get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP006"), get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1355,7 +1355,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         GDPR/CCPA compliance documentation (data inventory, processing activities, privacy notices, data subject rights), \
         security certification (IEC 62443 for industrial systems if applicable), incident response plan \
         (detection, containment, eradication, recovery, lessons learned), and security awareness training for developers.".to_string(),
-        vec![get_agent_id("Emily Zhang"), get_agent_id("Quinn Rivera")],
+        vec![get_agent_id("EMP005"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1387,7 +1387,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         - Supply chain: lead times, availability, EOL roadmaps, multi-sourcing options. \
         - Recommendation matrix: flagship config with Thor ($2599), high-performance config ($2090), mid-range config ($754), budget config ($163). \
         Include performance/watt and performance/dollar charts, 2025 market positioning.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP004"), get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1406,7 +1406,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         - Dual-sourcing strategy: Primary (Mouser), Secondary (DigiKey), Tertiary (Newark/Avnet), Direct (Raspberry Pi for RP2xxx). \
         - Lead time analysis and inventory planning (safety stock for long-lead items, 2025 availability updates). \
         Include pinout compatibility matrix for drop-in replacements and 2025 supply chain updates.".to_string(),
-        vec![get_agent_id("Frank Wilson"), get_agent_id("Maya Nguyen")],
+        vec![get_agent_id("EMP006"), get_agent_id("EMP013")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1429,7 +1429,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         - Transition plan: when to trigger second-source activation (lead time >12 weeks, price increase >15%, quality issues), \
         qualification timeline (8-12 weeks for new Jetson Thor, 6-8 weeks for established MCUs). \
         Include approved vendor list (AVL) template with qualification status and 2025 supply chain resilience metrics.".to_string(),
-        vec![get_agent_id("Maya Nguyen"), get_agent_id("Leo Garcia")],
+        vec![get_agent_id("EMP013"), get_agent_id("EMP012")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1451,7 +1451,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy, \
         Jetson Thor software requirements (JetPack 7.x+). \
         Include configuration control board (CCB) charter, ECO template, and 2025 hardware roadmap alignment.".to_string(),
-        vec![get_agent_id("Tina Martinez"), get_agent_id("Quinn Rivera")],
+        vec![get_agent_id("EMP020"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1488,7 +1488,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         OpenOCD for STM32, pytest + ROS2 test frameworks. \
         - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and 2025 lead times. \
         Include step-by-step bring-up procedure, Thor-specific validation checklist, and migration guide from Orin.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP004"), get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1508,7 +1508,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         OpenOCD/ST-Link for STM32, pytest + gtest frameworks. \
         - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and 2025 lead times. \
         Include step-by-step bring-up procedure, validation checklist, and Thor upgrade path.".to_string(),
-        vec![get_agent_id("Emily Zhang"), get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP005"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1528,7 +1528,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         - Development workflow: Native development on Jetson, Thonny/Arduino IDE for RP2350, STM32CubeMX code generation. \
         - BOM with cost breakdown and volume pricing (100+, 1000+ unit discounts). \
         Include quick-start guide, common troubleshooting, and upgrade paths.".to_string(),
-        vec![get_agent_id("Emily Zhang"), get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP005"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1551,7 +1551,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         - Educational focus: Ideal for universities, maker spaces, prototyping, learning robotics (cost-effective at scale). \
         - BOM with Adafruit, SparkFun, CanaKit, Pimoroni part numbers (2025 availability). \
         Include beginner tutorial, troubleshooting guide, and upgrade path to Standard (Jetson Orin NX).".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Bob Martinez")],
+        vec![get_agent_id("EMP004"), get_agent_id("EMP002")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1577,7 +1577,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         RPi5 (immediate-2 weeks), MCUs (immediate-8 weeks depending on model). \
         - Future-proofing: Thor roadmap (expect updates through 2027+), Orin lifecycle (2028+ EOL), software support timelines. \
         Include decision tree flowchart, ROI calculator, and 2025 market trends analysis.".to_string(),
-        vec![get_agent_id("Tina Martinez"), get_agent_id("Sam Johnson")],
+        vec![get_agent_id("EMP020"), get_agent_id("EMP019")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1902,7 +1902,7 @@ Robo-1 is designed as a versatile home companion robot with capabilities in hous
 - Soft padding on contact surfaces
 "#.to_string(),
         file_extension: "md".to_string(),
-        created_by: "Alice Chen".to_string(),
+        created_by: "EMP001".to_string(),
         workspace: "Robo-1: Home Companion".to_string(),
     });
 
@@ -1981,7 +1981,7 @@ if __name__ == '__main__':
 "#
         .to_string(),
         file_extension: "py".to_string(),
-        created_by: "David Johnson".to_string(),
+        created_by: "EMP004".to_string(),
         workspace: "Robo-1: Home Companion".to_string(),
     });
 
@@ -2077,7 +2077,7 @@ mod tests {
 "#
         .to_string(),
         file_extension: "rs".to_string(),
-        created_by: "Henry Patel".to_string(),
+        created_by: "EMP008".to_string(),
         workspace: "Robo-2: Construction Assistant".to_string(),
     });
 
@@ -2152,7 +2152,7 @@ safety:
 "#
         .to_string(),
         file_extension: "yaml".to_string(),
-        created_by: "Emily Zhang".to_string(),
+        created_by: "EMP005".to_string(),
         workspace: "Robo-3: Rescue Operations".to_string(),
     });
 
@@ -2243,7 +2243,7 @@ wss://api.robotech.io/v1/ws/robots/{robot_id}
 "#
         .to_string(),
         file_extension: "md".to_string(),
-        created_by: "Sam Johnson".to_string(),
+        created_by: "EMP019".to_string(),
         workspace: "Product Strategy".to_string(),
     });
 
@@ -2326,7 +2326,7 @@ graph TB
 "#
         .to_string(),
         file_extension: "md".to_string(),
-        created_by: "Paul Chen".to_string(),
+        created_by: "EMP016".to_string(),
         workspace: "Executive Leadership".to_string(),
     });
 
@@ -2405,7 +2405,7 @@ primary_suppliers = ["AcmeTech Motors", "SensorCorp", "JetsonSupply"]
 "#
         .to_string(),
         file_extension: "toml".to_string(),
-        created_by: "Jack Thompson".to_string(),
+        created_by: "EMP010".to_string(),
         workspace: "Manufacturing Excellence".to_string(),
     });
 

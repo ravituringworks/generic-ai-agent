@@ -2,7 +2,7 @@
 
 ## Overview
 
-In the enhanced complex collaborative workspace, **ScalingEngineer_Bob** now contributes **4 out of 8 tasks** (50% of the workload), making them one of the most active agents in the project.
+In the enhanced complex collaborative workspace, **ScalingEngineer_EMP002** now contributes **4 out of 8 tasks** (50% of the workload), making them one of the most active agents in the project.
 
 ---
 
@@ -54,22 +54,22 @@ In the enhanced complex collaborative workspace, **ScalingEngineer_Bob** now con
 
 ### Phase 1 (3 tasks in parallel)
 ```
-SimulationEngineer_Alice → Environment Setup
+SimulationEngineer_EMP001 → Environment Setup
 ConfigSpecialist_Dana    → Robot Model
-ScalingEngineer_Bob      → Profiling Framework
+ScalingEngineer_EMP002      → Profiling Framework
 ```
 **Runtime**: ~60s (vs 90s sequential) - **33% faster**
 
 ### Phase 2 (2 tasks in parallel)
 ```
-SimulationEngineer_Alice → IK Controller
-ScalingEngineer_Bob      → Performance Optimization
+SimulationEngineer_EMP001 → IK Controller
+ScalingEngineer_EMP002      → Performance Optimization
 ```
 **Runtime**: ~60s (vs 60s if sequential) - **Parallel efficiency**
 
 ### Phase 3 (2 tasks, same agent)
 ```
-ScalingEngineer_Bob → Training Pipeline → Benchmark Suite
+ScalingEngineer_EMP002 → Training Pipeline → Benchmark Suite
 ```
 **Runtime**: ~60s (sequential, same agent)
 
@@ -183,10 +183,10 @@ class RobotBenchmarks:
 
 | Agent | Phase 1 | Phase 2 | Phase 3 | Phase 4 | **Total** |
 |-------|---------|---------|---------|---------|-----------|
-| **ScalingEngineer_Bob** | 1 | 1 | 2 | 0 | **4 tasks** |
-| SimulationEngineer_Alice | 1 | 1 | 0 | 0 | 2 tasks |
+| **ScalingEngineer_EMP002** | 1 | 1 | 2 | 0 | **4 tasks** |
+| SimulationEngineer_EMP001 | 1 | 1 | 0 | 0 | 2 tasks |
 | ConfigSpecialist_Dana | 1 | 0 | 0 | 0 | 1 task |
-| Coordinator_Charlie | 0 | 0 | 0 | 1 | 1 task |
+| Coordinator_EMP003 | 0 | 0 | 0 | 1 | 1 task |
 | **Total** | **3** | **2** | **2** | **1** | **8 tasks** |
 
 **ScalingEngineer handles 50% of all project tasks!**

@@ -23,7 +23,7 @@ CollaborativeAgent {
 ```rust
 let task = WorkspaceTask {
     description: "Create 3D robot simulation environment with physics engine",
-    assigned_to: "SimulationEngineer_Alice",
+    assigned_to: "SimulationEngineer_EMP001",
     // ... generic fields
 };
 

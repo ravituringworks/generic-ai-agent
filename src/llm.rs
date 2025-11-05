@@ -484,10 +484,10 @@ mod tests {
         let config = LlmConfig::default();
         let client = OllamaClient::new(config);
 
-        assert_eq!(client.api_url("chat"), "http://localhost:11434/api/chat");
+        assert_eq!(client.api_url("chat"), "http://127.0.0.1:11434/api/chat");
         assert_eq!(
             client.api_url("embeddings"),
-            "http://localhost:11434/api/embeddings"
+            "http://127.0.0.1:11434/api/embeddings"
         );
     }
 

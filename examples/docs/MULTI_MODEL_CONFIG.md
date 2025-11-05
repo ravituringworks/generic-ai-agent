@@ -14,10 +14,10 @@ Each agent uses a model best suited for their work:
 
 | Agent | Role | Model | Specialization |
 |-------|------|-------|----------------|
-| **SimulationEngineer_Alice** | Code Generation | `qwen3-coder:480b-cloud` | Python simulation code, physics engines |
-| **ScalingEngineer_Bob** | Performance & ML | `gpt-oss:120b-cloud` | Complex reasoning, distributed systems |
+| **SimulationEngineer_EMP001** | Code Generation | `qwen3-coder:480b-cloud` | Python simulation code, physics engines |
+| **ScalingEngineer_EMP002** | Performance & ML | `gpt-oss:120b-cloud` | Complex reasoning, distributed systems |
 | **ConfigSpecialist_Dana** | Configuration | `deepseek-v3.1:671b-cloud` | URDF/XML files, structured configs |
-| **Coordinator_Charlie** | Documentation | `gpt-oss:120b-cloud` | Integration reasoning, comprehensive reports |
+| **Coordinator_EMP003** | Documentation | `gpt-oss:120b-cloud` | Integration reasoning, comprehensive reports |
 
 ---
 
@@ -110,7 +110,7 @@ config_coord.llm.text_model = "gpt-oss:120b-cloud".to_string();
 
 // Create agents with specialized configs
 let sim_engineer = CollaborativeAgent::new(
-    "SimulationEngineer_Alice".to_string(),
+    "SimulationEngineer_EMP001".to_string(),
     AgentRole::SimulationEngineer,
     config_sim,
 ).await?;

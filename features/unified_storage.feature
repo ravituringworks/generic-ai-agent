@@ -1,5 +1,5 @@
 Feature: Unified Storage System
-  As a developer using the AI agent framework
+  As a developer using the Agency framework
   I want a unified storage system for all persistent data
   So that I can manage workflows, memory, traces, and evaluations consistently
 

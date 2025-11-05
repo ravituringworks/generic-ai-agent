@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
 
     // Mechanical Engineering Team
     let mech_lead = OrganizationAgent::new(
-        "Dr. Sarah Chen".to_string(),
+        "EMP027".to_string(),
         OrganizationRole::ManufacturingEngineer,
     );
     let mech_lead_id = org.add_agent(mech_lead);
@@ -80,41 +80,41 @@ async fn main() -> Result<()> {
 
     // Actuation & Controls Team
     let actuation_eng = OrganizationAgent::new(
-        "Dr. James Park".to_string(),
+        "EMP028".to_string(),
         OrganizationRole::RoboticsEngineerControlsTesting,
     );
     let actuation_eng_id = org.add_agent(actuation_eng);
 
     let electronics_eng = OrganizationAgent::new(
-        "Maya Patel".to_string(),
+        "EMP013 Patel".to_string(),
         OrganizationRole::SoftwareEngineerSimulation,
     );
     let electronics_eng_id = org.add_agent(electronics_eng);
 
     // Perception Team
     let perception_eng = OrganizationAgent::new(
-        "Dr. Lisa Wang".to_string(),
+        "EMP029".to_string(),
         OrganizationRole::ResearchEngineerScaling,
     );
     let perception_eng_id = org.add_agent(perception_eng);
 
     // Software & AI Team
     let software_lead = OrganizationAgent::new(
-        "Marcus Johnson".to_string(),
+        "EMP030".to_string(),
         OrganizationRole::SoftwareEngineerSimulation,
     );
     let software_lead_id = org.add_agent(software_lead);
 
     // Power Systems Team
     let power_eng = OrganizationAgent::new(
-        "Emily Zhang".to_string(),
+        "EMP005".to_string(),
         OrganizationRole::ManufacturingEngineer,
     );
     let power_eng_id = org.add_agent(power_eng);
 
     // Integration & Testing
     let integration_lead = OrganizationAgent::new(
-        "Dr. David Kumar".to_string(),
+        "Dr. EMP004 Kumar".to_string(),
         OrganizationRole::RoboticsEngineerControlsTesting,
     );
     let integration_lead_id = org.add_agent(integration_lead);
@@ -1156,8 +1156,8 @@ fn create_software_development_tasks(
               * Velocity and acceleration limits \
               * Torque saturation handling \
               * Emergency stop integration \
-            Implementation language: C++ with Eigen library. Include unit tests and simulation validation. \
-            Format as documented C++ classes with Doxygen comments.".to_string(),
+            Implementation language: Rust, C++ with Eigen library. Include unit tests and simulation validation. \
+            Format as documented Rust traits or C++ classes with Doxygen comments.".to_string(),
             vec![actuation_eng_id.to_string(), software_lead_id.to_string()],
         ).with_priority(TaskPriority::Critical),
 

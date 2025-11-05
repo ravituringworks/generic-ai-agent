@@ -205,7 +205,7 @@ impl SpecializedAgent {
         } else if task.contains("extract") {
             json!({
                 "type": "information_extraction",
-                "entities": ["Person: John Doe", "Date: 2024-01-01", "Amount: $1,000"],
+                "entities": ["Person: EMP031", "Date: 2024-01-01", "Amount: $1,000"],
                 "metadata": {
                     "confidence": 0.95,
                     "extraction_method": "nlp_enhanced"
