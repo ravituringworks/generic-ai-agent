@@ -9,7 +9,7 @@ use anyhow::Result;
 use chrono::Local;
 use std::fs;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use the_agency::{
     organization::{
         coordinator::AgentCoordinator, CollaborativeWorkspace, Organization, OrganizationAgent,
@@ -1464,7 +1464,7 @@ fn create_hardware_platform_tasks(
 
 // ===== WORK PRODUCT FILE GENERATION =====
 
-fn write_work_products(output_dir: &PathBuf) -> Result<()> {
+fn write_work_products(output_dir: &Path) -> Result<()> {
     let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S");
 
     // Write BOM files
@@ -1557,7 +1557,7 @@ fn write_file(path: &std::path::Path, content: &str) -> Result<()> {
 
 // ===== WORK PRODUCT MANIFEST GENERATION =====
 
-fn generate_work_products_manifest(output_dir: &PathBuf) -> Result<String> {
+fn generate_work_products_manifest(output_dir: &Path) -> Result<String> {
     let mut manifest = String::new();
     manifest.push_str(&format!("Output Directory: {}\n", output_dir.display()));
     manifest.push_str("\n=== PHASE DELIVERABLES ===\n\n");
@@ -1688,11 +1688,11 @@ fn generate_work_products_manifest(output_dir: &PathBuf) -> Result<String> {
 
     for (phase, title, deliverables) in phases {
         manifest.push_str(&format!("{}. {} - {}\n", phase, phase, title));
-        manifest.push_str(&format!("   Deliverables:\n"));
+        manifest.push_str("   Deliverables:\n");
         for (i, deliverable) in deliverables.iter().enumerate() {
             manifest.push_str(&format!("     [{}] {}\n", i + 1, deliverable));
         }
-        manifest.push_str("\n");
+        manifest.push('\n');
     }
 
     manifest.push_str("=== OUTPUT STRUCTURE ===\n\n");
@@ -1708,7 +1708,7 @@ fn generate_work_products_manifest(output_dir: &PathBuf) -> Result<String> {
     manifest.push_str("│   ├── documentation/ (Technical & User Manuals)\n");
     manifest.push_str("│   ├── hardware_analysis/ (Platform Comparisons)\n");
     manifest.push_str("│   └── architectures/ (Alternative Configurations)\n");
-    manifest.push_str("\n");
+    manifest.push('\n');
 
     manifest.push_str("=== KEY METRICS ===\n\n");
     manifest.push_str("Project Phases: 11\n");
@@ -1716,7 +1716,7 @@ fn generate_work_products_manifest(output_dir: &PathBuf) -> Result<String> {
     manifest.push_str("Agents: 8 (specialized engineering roles)\n");
     manifest.push_str("Workspaces: 6 (collaborative teams)\n");
     manifest.push_str("Total BOM Items: 200+\n");
-    manifest.push_str("\n");
+    manifest.push('\n');
 
     manifest.push_str("=== NEXT STEPS ===\n\n");
     manifest.push_str("1. Review work products in the output directory\n");

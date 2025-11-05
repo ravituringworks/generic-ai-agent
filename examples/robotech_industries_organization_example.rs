@@ -20,11 +20,10 @@
 //! - Real-world complexity: AI research, platform dev, hardware, strategy, customer success
 
 use anyhow::Result;
-use chrono;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use the_agency::{
     llm::connection_pool::OllamaConnectionPool,
@@ -1761,7 +1760,7 @@ async fn display_organization_state(coordinator: &AgentCoordinator) -> Result<()
 
 /// Generate summary report and save to files
 async fn generate_summary_report(
-    output_dir: &PathBuf,
+    output_dir: &Path,
     coordinator: &AgentCoordinator,
     artifacts: &[Artifact],
 ) -> Result<()> {
@@ -1834,7 +1833,7 @@ async fn generate_summary_report(
                 artifact.name, artifact.file_extension
             ));
         }
-        summary.push_str("\n");
+        summary.push('\n');
     }
 
     summary.push_str("\n## Mission: 3 Humanoid Robot Variants\n\n");
@@ -1861,10 +1860,9 @@ async fn generate_summary_report(
 
 /// Generate artifacts for each robot variant and workspace
 async fn generate_artifacts(_org: &Organization) -> Result<Vec<Artifact>> {
-    let mut artifacts = Vec::new();
-
+    let artifacts = vec![
     // Robo-1: Home Companion Artifacts
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo1_design_spec".to_string(),
         artifact_type: ArtifactType::DesignDocument,
         content: r#"# Robo-1 Home Companion Design Specification
@@ -1894,9 +1892,9 @@ Robo-1 is designed as a versatile home companion robot with capabilities in hous
         file_extension: "md".to_string(),
         created_by: "EMP001".to_string(),
         workspace: "Robo-1: Home Companion".to_string(),
-    });
+    },
 
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo1_control_system".to_string(),
         artifact_type: ArtifactType::PythonCode,
         content: r#"#!/usr/bin/env python3
@@ -1973,10 +1971,10 @@ if __name__ == '__main__':
         file_extension: "py".to_string(),
         created_by: "EMP004".to_string(),
         workspace: "Robo-1: Home Companion".to_string(),
-    });
+    },
 
     // Robo-2: Construction Assistant Artifacts
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo2_load_controller".to_string(),
         artifact_type: ArtifactType::RustCode,
         content: r#"//! Robo-2 Load Balancing Controller
@@ -2069,10 +2067,10 @@ mod tests {
         file_extension: "rs".to_string(),
         created_by: "EMP008".to_string(),
         workspace: "Robo-2: Construction Assistant".to_string(),
-    });
+    },
 
     // Robo-3: Rescue Operations Artifacts
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo3_rescue_config".to_string(),
         artifact_type: ArtifactType::YamlConfig,
         content: r#"# Robo-3 Rescue Operations Configuration
@@ -2144,10 +2142,10 @@ safety:
         file_extension: "yaml".to_string(),
         created_by: "EMP005".to_string(),
         workspace: "Robo-3: Rescue Operations".to_string(),
-    });
+    },
 
     // API Specification
-    artifacts.push(Artifact {
+    Artifact {
         name: "robot_control_api".to_string(),
         artifact_type: ArtifactType::ApiSpecification,
         content: r#"# RoboTech Industries Robot Control API v1.0
@@ -2235,10 +2233,10 @@ wss://api.robotech.io/v1/ws/robots/{robot_id}
         file_extension: "md".to_string(),
         created_by: "EMP019".to_string(),
         workspace: "Product Strategy".to_string(),
-    });
+    },
 
     // Architecture Diagram
-    artifacts.push(Artifact {
+    Artifact {
         name: "system_architecture".to_string(),
         artifact_type: ArtifactType::ArchitectureDiagram,
         content: r#"# RoboTech Industries System Architecture
@@ -2318,10 +2316,10 @@ graph TB
         file_extension: "md".to_string(),
         created_by: "EMP016".to_string(),
         workspace: "Executive Leadership".to_string(),
-    });
+    },
 
     // Manufacturing Configuration
-    artifacts.push(Artifact {
+    Artifact {
         name: "manufacturing_process".to_string(),
         artifact_type: ArtifactType::TomlConfig,
         content: r#"# Manufacturing Process Configuration
@@ -2397,13 +2395,14 @@ primary_suppliers = ["AcmeTech Motors", "SensorCorp", "JetsonSupply"]
         file_extension: "toml".to_string(),
         created_by: "EMP010".to_string(),
         workspace: "Manufacturing Excellence".to_string(),
-    });
+    },
+    ];
 
     Ok(artifacts)
 }
 
 /// Write artifacts to disk
-async fn write_artifacts(output_dir: &PathBuf, artifacts: &[Artifact]) -> Result<()> {
+async fn write_artifacts(output_dir: &Path, artifacts: &[Artifact]) -> Result<()> {
     for artifact in artifacts {
         let subdir = match artifact.artifact_type {
             ArtifactType::DesignDocument

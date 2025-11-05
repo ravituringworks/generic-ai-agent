@@ -25,23 +25,12 @@ impl std::fmt::Debug for LlmProviderWorld {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 struct ProviderConfig {
     fallback_enabled: bool,
     fallback_order: Vec<String>,
     task_model_map: HashMap<String, String>,
     streaming_enabled: bool,
-}
-
-impl Default for ProviderConfig {
-    fn default() -> Self {
-        Self {
-            fallback_enabled: false,
-            fallback_order: Vec::new(),
-            task_model_map: HashMap::new(),
-            streaming_enabled: false,
-        }
-    }
 }
 
 impl LlmProviderWorld {

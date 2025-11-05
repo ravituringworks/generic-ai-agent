@@ -539,7 +539,7 @@ proptest! {
             let mut resource_groups: HashMap<ResourceId, Vec<&SuspendedWorkflow>> = HashMap::new();
             for workflow in final_workflows.values() {
                 resource_groups.entry(workflow.resource_id.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(workflow);
             }
 
