@@ -1376,16 +1376,17 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let hw_task1 = WorkspaceTask::new(
         "Generate Compute Platform Trade-off Analysis".to_string(),
         "Create comprehensive compute platform comparison and trade-off analysis. Include: \
-        - Main compute options: NVIDIA Jetson family (AGX Orin 64GB: $1999, 275 TOPS, 60W; Orin NX 16GB: $699, 100 TOPS, 25W; \
-        Orin Nano 8GB: $499, 40 TOPS, 15W), Intel NUC 13 Pro (i7-1360P, $800-1200), AMD Ryzen Embedded V3000 ($600-900), \
-        Qualcomm RB5 ($499, 15 TOPS), Google Coral + Hailo-8 ($400 total). \
-        - Performance benchmarks: AI inference throughput (TOPS), latency, frame rates for vision tasks. \
-        - Power analysis: thermal design, battery runtime impact, cooling requirements. \
-        - Cost analysis: unit cost, volume pricing, development kit costs. \
-        - Software ecosystem: SDK maturity, library support (TensorRT, OpenVINO, TFLite), ease of development. \
-        - Supply chain: lead times, availability, EOL roadmaps. \
-        - Recommendation matrix: high-performance config ($2090), mid-range config ($754), budget config ($163). \
-        Include performance/watt and performance/dollar charts.".to_string(),
+        - Main compute options: NVIDIA Jetson family (AGX Thor: $2499, 2000 TOPS, 100W AI accelerator with Grace CPU, shipping 2025; \
+        AGX Orin 64GB: $1999, 275 TOPS, 60W; Orin NX 16GB: $699, 100 TOPS, 25W; Orin Nano 8GB: $499, 40 TOPS, 15W), \
+        Intel Core Ultra 9 Series (185H: $1000-1500, with dedicated AI NPU 30 TOPS), AMD Ryzen AI 9 HX 370 ($800-1200, 50 TOPS NPU), \
+        Qualcomm Snapdragon X Elite ($600-900, 45 TOPS NPU), Apple M4 (for dev comparison, not robotics), Google Coral + Hailo-8L ($450 total). \
+        - Performance benchmarks: AI inference throughput (TOPS), latency, frame rates for vision tasks, transformer performance. \
+        - Power analysis: thermal design, battery runtime impact, cooling requirements, peak vs sustained performance. \
+        - Cost analysis: unit cost, volume pricing (100+, 1000+), development kit costs, ecosystem costs. \
+        - Software ecosystem: SDK maturity, library support (TensorRT, OpenVINO, TFLite, ONNX Runtime), ease of development, ROS2 compatibility. \
+        - Supply chain: lead times, availability, EOL roadmaps, multi-sourcing options. \
+        - Recommendation matrix: flagship config with Thor ($2599), high-performance config ($2090), mid-range config ($754), budget config ($163). \
+        Include performance/watt and performance/dollar charts, 2025 market positioning.".to_string(),
         vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
     )
     .with_priority(TaskPriority::Critical);
@@ -1393,16 +1394,18 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let hw_task2 = WorkspaceTask::new(
         "Generate Microcontroller Selection & Sourcing Matrix".to_string(),
         "Create microcontroller selection guide and multi-vendor sourcing strategy. Include: \
-        - MCU options for motor control: STM32H7 (480MHz, $15-25), STM32F4 (180MHz, $8-15), STM32G4 (motor-focused, $5-10), \
-        NXP i.MX RT1170 (1GHz, $10-18), TI TMS320F28379D (DSP, $15-25), RP2350 (cost-optimized, $0.80-1.50). \
-        - MCU options for I/O: RP2040/RP2350 (dual-core, excellent for I/O), STM32F1 (legacy, $3-5), Teensy 4.1 ($30, prototyping). \
-        - Selection criteria: real-time performance (control loop frequency), peripheral count (timers, ADCs, CAN/EtherCAT), \
-        development tools (free IDEs, debugger costs), community support. \
-        - Configuration recommendations: High-perf (4× STM32H743 + 2× RP2350 + STM32G4), Mid-range (4× STM32F4 + 2× RP2040 + STM32F1), \
-        Budget (4× RP2350 + 2× RP2040 + STM32F1). \
-        - Dual-sourcing strategy: Primary (Mouser), Secondary (DigiKey), Tertiary (Newark/Avnet). \
-        - Lead time analysis and inventory planning (safety stock for long-lead items). \
-        Include pinout compatibility matrix for drop-in replacements.".to_string(),
+        - MCU options for motor control: STM32H7 (550MHz, $15-25), STM32U5 (ultra-low power, $8-18), STM32G4 (motor-focused, $5-10), \
+        NXP i.MX RT1180 (1.2GHz, dual Cortex-M7+M33, $12-20), NXP MCXN947 (150MHz, $6-12), TI TMS320F28P65 (200MHz DSP, $18-30), \
+        RP2350 (dual Cortex-M33 + RISC-V, $0.80-1.50, 2024 release), ESP32-C6 (RISC-V, WiFi 6, $2-4). \
+        - MCU options for I/O: RP2040/RP2350 (dual-core, excellent for I/O), STM32F1 (legacy, $3-5), STM32C0 (entry-level, $0.50-2), \
+        Teensy 4.1 ($30, prototyping), Arduino Portenta C33 ($25-35, dual-core). \
+        - Selection criteria: real-time performance (control loop frequency), peripheral count (timers, ADCs, CAN-FD/EtherCAT), \
+        development tools (free IDEs, debugger costs), community support, security features (TrustZone, secure boot). \
+        - Configuration recommendations: High-perf (4× STM32H7 + 2× RP2350 + STM32G4), Mid-range (4× STM32U5 + 2× RP2350 + NXP MCXN947), \
+        Budget (4× RP2350 + 2× ESP32-C6 + STM32C0). \
+        - Dual-sourcing strategy: Primary (Mouser), Secondary (DigiKey), Tertiary (Newark/Avnet), Direct (Raspberry Pi for RP2xxx). \
+        - Lead time analysis and inventory planning (safety stock for long-lead items, 2025 availability updates). \
+        Include pinout compatibility matrix for drop-in replacements and 2025 supply chain updates.".to_string(),
         vec![get_agent_id("Frank Wilson"), get_agent_id("Maya Nguyen")],
     )
     .with_priority(TaskPriority::Critical);
@@ -1410,18 +1413,22 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let hw_task3 = WorkspaceTask::new(
         "Generate Second-Source Qualification Plan".to_string(),
         "Create supplier qualification and second-sourcing procedures. Include: \
-        - Supplier qualification criteria: quality certifications (ISO 9001, AS9100), financial stability (Dun & Bradstreet rating), \
-        technical support responsiveness, RMA/warranty terms, conflict minerals compliance. \
-        - Dual-sourcing matrix by component category: Jetson modules (DigiKey primary, Arrow secondary, Mouser tertiary), \
-        STM32 MCUs (Mouser primary, DigiKey secondary, Newark tertiary), RP2040 (Raspberry Pi Direct, DigiKey, Adafruit), \
-        Connectors (Molex via McMaster, TE Connectivity via DigiKey, JST via Mouser), Passives (Yageo/DigiKey, Vishay/Mouser, Samsung/Arrow). \
-        - Second-source validation: electrical equivalence testing, software compatibility verification, reliability testing (sample lot evaluation). \
-        - Supply chain risk mitigation: geopolitical risk assessment, natural disaster contingencies, single-source risk identification, \
-        strategic inventory for critical components (6-12 month buffer). \
-        - Supplier performance monitoring: on-time delivery KPIs, quality PPM targets (<100 PPM), cost competitiveness reviews (quarterly). \
+        - Supplier qualification criteria: quality certifications (ISO 9001, AS9100, IATF 16949), financial stability (Dun & Bradstreet rating), \
+        technical support responsiveness, RMA/warranty terms, conflict minerals compliance, sustainability certifications (RoHS, REACH). \
+        - Dual-sourcing matrix by component category: Jetson modules including Thor (NVIDIA Direct/Partner Network, DigiKey, Arrow, Mouser), \
+        STM32 MCUs (Mouser primary, DigiKey secondary, Newark tertiary, direct from STMicroelectronics for volume), \
+        RP2040/RP2350 (Raspberry Pi Direct, DigiKey, Adafruit, SparkFun), \
+        Connectors (Molex via McMaster-Carr, TE Connectivity via DigiKey, JST via Mouser, Hirose via Newark), \
+        Passives (Yageo/DigiKey, Vishay/Mouser, Samsung/Arrow, Murata/DigiKey for MLCC). \
+        - Second-source validation: electrical equivalence testing, software compatibility verification, reliability testing (sample lot evaluation), \
+        thermal characterization, EMC/EMI compliance validation. \
+        - Supply chain risk mitigation: geopolitical risk assessment (2025 tariff implications), natural disaster contingencies, \
+        single-source risk identification, strategic inventory for critical components (6-12 month buffer for Jetson Thor, 3-6 months for MCUs). \
+        - Supplier performance monitoring: on-time delivery KPIs, quality PPM targets (<100 PPM), cost competitiveness reviews (quarterly), \
+        technology roadmap alignment reviews. \
         - Transition plan: when to trigger second-source activation (lead time >12 weeks, price increase >15%, quality issues), \
-        qualification timeline (6-8 weeks for electronics). \
-        Include approved vendor list (AVL) template with qualification status.".to_string(),
+        qualification timeline (8-12 weeks for new Jetson Thor, 6-8 weeks for established MCUs). \
+        Include approved vendor list (AVL) template with qualification status and 2025 supply chain resilience metrics.".to_string(),
         vec![get_agent_id("Maya Nguyen"), get_agent_id("Leo Garcia")],
     )
     .with_priority(TaskPriority::High);
@@ -1429,19 +1436,21 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let hw_task4 = WorkspaceTask::new(
         "Generate Hardware Configuration Management Strategy".to_string(),
         "Create variant BOM management and configuration control system. Include: \
-        - Hardware variant definitions: Premium config (Jetson AGX Orin 64GB, STM32H7, $2090 compute), \
-        Standard config (Jetson Orin NX 16GB, STM32F4, $754 compute), Economy config (RPi5 + Coral, RP2350, $163 compute). \
-        - BOM management system: PLM tool selection (Arena PLM, Fusion 360 Manage, or Odoo), part numbering scheme, \
-        revision control (ECO process), where-used analysis, obsolescence tracking. \
+        - Hardware variant definitions: Flagship config (Jetson AGX Thor, STM32H7, $2599 compute, 2025 latest), \
+        Premium config (Jetson AGX Orin 64GB, STM32H7, $2090 compute), \
+        Standard config (Jetson Orin NX 16GB, STM32U5, $754 compute), Economy config (RPi5 + Coral, RP2350, $163 compute). \
+        - BOM management system: PLM tool selection (Arena PLM, Fusion 360 Manage, PTC Windchill, or Odoo), part numbering scheme, \
+        revision control (ECO process), where-used analysis, obsolescence tracking, supplier lifecycle management. \
         - Configuration management: variant part matrix, build configurations (Robo-1/2/3 with different compute tiers), \
-        option codes (e.g., R1-STD-JNX = Robo-1, Standard, Jetson NX). \
+        option codes (e.g., R1-FLG-THR = Robo-1, Flagship, Jetson Thor; R1-STD-JNX = Robo-1, Standard, Jetson NX). \
         - Change control process: Engineering Change Order (ECO) workflow, change impact analysis, validation requirements, \
-        customer notification procedures for product updates. \
-        - Cost rollup by configuration: material cost, assembly labor, test time, warranty reserves. \
+        customer notification procedures for product updates, regulatory compliance tracking (FCC, CE, UL). \
+        - Cost rollup by configuration: material cost, assembly labor, test time, warranty reserves, volume discounts (100+, 1000+, 10K+). \
         - Supplier part cross-reference: alternate parts matrix (form-fit-function equivalents), preferred parts list, \
-        lifecycle status (active, NRND, obsolete). \
-        - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy. \
-        Include configuration control board (CCB) charter and ECO template.".to_string(),
+        lifecycle status (active, NRND, obsolete), 2025 semiconductor shortage mitigation. \
+        - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy, \
+        Jetson Thor software requirements (JetPack 7.x+). \
+        Include configuration control board (CCB) charter, ECO template, and 2025 hardware roadmap alignment.".to_string(),
         vec![get_agent_id("Tina Martinez"), get_agent_id("Quinn Rivera")],
     )
     .with_priority(TaskPriority::High);
@@ -1461,90 +1470,118 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     println!("==========================================================\n");
 
     let arch_task1 = WorkspaceTask::new(
-        "Generate Premium Architecture Buildout Plan (Jetson AGX Orin)".to_string(),
-        "Create complete buildout guide for premium configuration. Include: \
-        - Hardware architecture: NVIDIA Jetson AGX Orin 64GB ($1999), 4× STM32H743 ($80), 2× RP2350 ($3), STM32G4 ($8), Total: $2090. \
-        - Detailed assembly guide: Jetson carrier board selection (official dev kit vs custom), thermal solution (active cooling, \
-        40mm fan, heat sink with thermal pad), power supply (19V 6.3A, barrel connector or USB-C PD), M.2 NVMe storage (1TB Samsung 980 PRO). \
-        - MCU interconnect topology: Primary CAN bus (1 Mbps) for motor controllers, Secondary CAN (500 kbps) for sensors, \
-        EtherCAT for high-speed joint control (100 MHz cycle), I2C for auxiliary sensors, SPI for high-speed IMU. \
-        - Software stack: JetPack 5.x/6.x installation, ROS2 Humble/Iron setup, TensorRT for model optimization, \
-        CUDA/cuDNN for custom kernels, STM32CubeIDE for MCU development, real-time kernel (PREEMPT_RT patch). \
-        - Performance targets: Vision processing at 30 FPS (YOLO, semantic segmentation), Motor control at 1 kHz, \
-        AI inference <50ms latency, Power budget: 60W peak, 35W average. \
-        - Development workflow: Docker container for reproducible builds, VS Code with CUDA debugging, \
-        OpenOCD for STM32 debugging, unit test frameworks. \
-        - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and lead times. \
-        Include step-by-step bring-up procedure and validation checklist.".to_string(),
+        "Generate Flagship Architecture Buildout Plan (Jetson AGX Thor - 2025)".to_string(),
+        "Create complete buildout guide for flagship 2025 configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson AGX Thor ($2499, 2000 TOPS, Grace CPU + Blackwell GPU), 4× STM32H7 ($80), \
+        2× RP2350 ($3), STM32G4 ($8), Total: $2590. \
+        - Detailed assembly guide: Thor carrier board (official dev kit, custom carrier availability 2025), advanced thermal solution \
+        (dual-fan active cooling with vapor chamber, 120mm radiator option), power supply (48V 10A PoE++ or barrel, USB-C PD 240W), \
+        PCIe Gen5 NVMe storage (2TB Samsung 990 PRO), optional 10GbE network card. \
+        - MCU interconnect topology: Primary CAN-FD bus (5 Mbps) for motor controllers, Secondary CAN-FD (2 Mbps) for sensors, \
+        EtherCAT for high-speed joint control (1 GHz cycle), TSN (Time-Sensitive Networking) for deterministic comms, \
+        I2C for auxiliary sensors, SPI for high-speed IMU arrays. \
+        - Software stack: JetPack 7.x installation (Thor-optimized), ROS2 Jazzy/Rolling setup, TensorRT 10+ for transformer optimization, \
+        CUDA 13+ with Blackwell features, STM32CubeIDE 1.15+ for MCU, real-time kernel (PREEMPT_RT or Xenomai). \
+        - Performance targets: Vision at 60 FPS (YOLO v10, ViT transformers), Multi-modal AI (vision+language), Motor control at 2 kHz, \
+        AI inference <20ms latency for large models, Power budget: 100W peak, 60W average. \
+        - Development workflow: Docker/Podman containers, VS Code with CUDA 13 debugging, Nsight Systems profiling, \
+        OpenOCD for STM32, pytest + ROS2 test frameworks. \
+        - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and 2025 lead times. \
+        Include step-by-step bring-up procedure, Thor-specific validation checklist, and migration guide from Orin.".to_string(),
         vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
     )
     .with_priority(TaskPriority::Critical);
 
     let arch_task2 = WorkspaceTask::new(
-        "Generate Standard Architecture Buildout Plan (Jetson Orin NX)".to_string(),
-        "Create complete buildout guide for standard configuration. Include: \
-        - Hardware architecture: NVIDIA Jetson Orin NX 16GB ($699), 4× STM32F4 ($48), 2× RP2040 ($2), STM32F1 ($5), Total: $754. \
-        - Detailed assembly guide: Orin NX on official carrier or Seeed Studio J401, passive cooling (large heatsink, no fan for quieter operation), \
-        power via barrel jack (12V 5A) or PoE+ if supported, microSD card (256GB UHS-I) or optional M.2 NVMe. \
-        - MCU interconnect topology: Single CAN bus (500 kbps) for all motor control, I2C for sensors, UART for debug/telemetry, \
-        GPIO for safety interlocks (emergency stop, limit switches). \
-        - Software stack: JetPack 5.x, ROS2 Humble, TensorRT Lite for optimized models, OpenCV acceleration with CUDA, \
-        STM32CubeIDE for MCU, standard Linux kernel (not RT). \
-        - Performance targets: Vision at 20 FPS (MobileNet), Motor control at 500 Hz, AI inference <100ms, Power: 25W peak, 15W average. \
-        - Cost optimization strategies: Use MicroPython on RP2040 for rapid prototyping, leverage existing ROS2 packages \
-        instead of custom development, community-supported models (pre-trained weights). \
-        - Development workflow: Native development on Jetson, Thonny for RP2040, STM32CubeMX code generation. \
-        - BOM with cost breakdown and volume pricing (100+ unit discounts). \
-        Include quick-start guide and common troubleshooting.".to_string(),
+        "Generate Premium Architecture Buildout Plan (Jetson AGX Orin - 2025 Optimized)".to_string(),
+        "Create complete buildout guide for premium configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson AGX Orin 64GB ($1999), 4× STM32H7 ($80), 2× RP2350 ($3), STM32G4 ($8), Total: $2090. \
+        - Detailed assembly guide: Orin carrier board (official or ConnectTech Rogue-X), active cooling \
+        (40mm Noctua fan, copper heat sink), power supply (19V 6.3A barrel or USB-C PD 100W), M.2 NVMe storage (1TB Samsung 990 EVO). \
+        - MCU interconnect topology: Primary CAN-FD bus (2 Mbps) for motor controllers, Secondary CAN (500 kbps) for sensors, \
+        EtherCAT for high-speed joint control (100 MHz cycle), I2C for auxiliary sensors, SPI for high-speed IMU. \
+        - Software stack: JetPack 6.x installation, ROS2 Jazzy setup, TensorRT 9+ for model optimization, \
+        CUDA 12/cuDNN for custom kernels, STM32CubeIDE 1.15+ for MCU, real-time kernel (PREEMPT_RT patch). \
+        - Performance targets: Vision at 30 FPS (YOLO v8/v9, semantic segmentation), Motor control at 1 kHz, \
+        AI inference <50ms latency, Power budget: 60W peak, 35W average. \
+        - Development workflow: Docker containers for reproducible builds, VS Code with CUDA debugging, \
+        OpenOCD/ST-Link for STM32, pytest + gtest frameworks. \
+        - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and 2025 lead times. \
+        Include step-by-step bring-up procedure, validation checklist, and Thor upgrade path.".to_string(),
         vec![get_agent_id("Emily Zhang"), get_agent_id("Frank Wilson")],
     )
     .with_priority(TaskPriority::Critical);
 
     let arch_task3 = WorkspaceTask::new(
-        "Generate Budget Architecture Buildout Plan (Raspberry Pi + Coral)".to_string(),
-        "Create complete buildout guide for budget configuration. Include: \
-        - Hardware architecture: Raspberry Pi 5 8GB ($80), Google Coral USB Accelerator ($60), Hailo-8 M.2 ($250 alternative), \
-        4× RP2350 ($6), 2× RP2040 ($2), STM32F1 ($5), Total: $153-343 depending on AI accelerator choice. \
-        - Detailed assembly guide: RPi5 with official active cooler ($5), power via USB-C PD (5V 5A, 25W), NVMe via M.2 HAT \
-        (optional, $25 + $40 for 256GB), Coral plugged into USB3 port, RP2350 on custom PCB or breakout boards. \
-        - MCU interconnect topology: USB-to-CAN adapter for motor control, I2C over GPIO header for sensors, \
-        UART for RP2350 communication, SPI for additional peripherals. \
-        - Software stack: Raspberry Pi OS 64-bit (Debian Bookworm), ROS2 Humble (ARM64 build), TensorFlow Lite with Coral delegate, \
-        or Hailo SDK for Hailo-8, Arduino IDE or MicroPython for RP2350/RP2040, Python-based development (no C++ required). \
-        - Performance targets: Vision at 15 FPS (MobileNetV2 + Coral: 100 FPS inferences available but limited by camera), \
-        Motor control at 200 Hz, AI inference 10-30ms with Coral, Power: 15W total. \
-        - Limitations and workarounds: Limited RAM (use swap on NVMe), no hardware video encoding (use software codecs), \
-        single-threaded performance lower (optimize with NumPy/BLAS), USB bandwidth contention (prioritize Coral over other USB devices). \
-        - Development workflow: VS Code remote SSH, Jupyter notebooks for prototyping, GitHub Actions for CI/CD. \
-        - Educational focus: Great for learning, prototyping, university labs (cost-effective for multiple units). \
-        - BOM with Adafruit, SparkFun, and CanaKit part numbers. \
-        Include getting-started tutorial and upgrade path to Standard config.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Bob Martinez")],
+        "Generate Standard Architecture Buildout Plan (Jetson Orin NX - 2025)".to_string(),
+        "Create complete buildout guide for standard configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson Orin NX 16GB ($699), 4× STM32U5 ($52), 2× RP2350 ($3), NXP MCXN947 ($8), Total: $762. \
+        - Detailed assembly guide: Orin NX on official carrier or Seeed Studio Recomputer J401, passive cooling (low-profile heatsink), \
+        power via barrel jack (12V 5A) or PoE+ (802.3at), microSD card (256GB UHS-I) or optional M.2 2242 NVMe. \
+        - MCU interconnect topology: Single CAN-FD bus (1 Mbps) for motor control, I2C for sensors, UART for debug/telemetry, \
+        GPIO for safety interlocks (emergency stop, limit switches), USB-C for RP2350 programming. \
+        - Software stack: JetPack 6.x, ROS2 Jazzy, TensorRT 9+ for optimized models, OpenCV with CUDA acceleration, \
+        STM32CubeIDE for MCU, standard Linux 6.x kernel (not RT, but low-latency config). \
+        - Performance targets: Vision at 25 FPS (MobileNet v3, EfficientDet), Motor control at 500 Hz, AI inference <80ms, Power: 25W peak, 15W average. \
+        - Cost optimization: MicroPython on RP2350 for rapid I/O prototyping, leverage ROS2 Nav2/MoveIt packages, \
+        use quantized INT8 models (TensorRT), community pre-trained weights. \
+        - Development workflow: Native development on Jetson, Thonny/Arduino IDE for RP2350, STM32CubeMX code generation. \
+        - BOM with cost breakdown and volume pricing (100+, 1000+ unit discounts). \
+        Include quick-start guide, common troubleshooting, and upgrade paths.".to_string(),
+        vec![get_agent_id("Emily Zhang"), get_agent_id("Frank Wilson")],
     )
     .with_priority(TaskPriority::High);
 
     let arch_task4 = WorkspaceTask::new(
-        "Generate Alternative Architecture Comparison Matrix".to_string(),
-        "Create side-by-side comparison and migration guide between configurations. Include: \
-        - Comparison matrix: Performance (TOPS, FPS, latency), Power (peak, average, battery life impact), Cost (unit, volume, TCO), \
-        Development complexity (toolchain, learning curve, community support), Upgrade path (can Standard be upgraded to Premium?). \
-        - Use case recommendations: Premium for production deployment, research labs, commercial products; \
-        Standard for pilot programs, small-scale production, cost-sensitive applications; \
-        Budget for education, prototyping, proof-of-concept, hobbyist projects. \
-        - Migration guides: Budget to Standard (reuse RP2040/RP2350 I/O boards, upgrade compute and motor MCUs, \
-        software mostly compatible), Standard to Premium (mechanical fit requires redesign, software highly compatible, \
-        take advantage of extra compute for advanced features). \
-        - Software compatibility matrix: Which ROS2 packages work on all platforms, which require GPU (TensorRT vs TFLite), \
-        which require real-time kernel (motor control critical paths). \
-        - Hybrid configuration options: Mix and match (e.g., Jetson Orin NX with high-end STM32H7 for specific motor control needs). \
-        - Field upgrade procedures: How to swap compute module in production units (firmware compatibility, recalibration needs). \
-        - Supplier lead time comparison: Jetson (4-12 weeks), RPi (immediate-4 weeks), STM32 (immediate-8 weeks), RP2040 (immediate). \
-        Include decision tree flowchart for architecture selection.".to_string(),
-        vec![get_agent_id("Tina Martinez"), get_agent_id("Sam Johnson")],
+        "Generate Budget Architecture Buildout Plan (Raspberry Pi 5 + AI Accelerator)".to_string(),
+        "Create complete buildout guide for budget configuration. Include: \
+        - Hardware architecture: Raspberry Pi 5 8GB ($80), Google Coral USB ($60) or Hailo-8L M.2 ($299), \
+        4× RP2350 ($6), 2× ESP32-C6 ($6), STM32C0 ($1), Total: $153-392 depending on AI accelerator. \
+        - Detailed assembly guide: RPi5 with official active cooler ($5), USB-C PD (5V 5A, 27W official PSU), NVMe via M.2 HAT+ \
+        ($12 + $40 for 256GB WD SN740), Coral USB or Hailo-8L on M.2 slot, RP2350 on breadboard or custom PCB. \
+        - MCU interconnect topology: USB-to-CAN adapter (PEAK PCAN-USB, $150) for motor control, I2C over GPIO for sensors, \
+        UART for RP2350 communication, SPI for peripherals, WiFi 6 via ESP32-C6 for wireless telemetry. \
+        - Software stack: Raspberry Pi OS 64-bit (Debian Bookworm 12), ROS2 Jazzy (ARM64), TensorFlow Lite with Coral/Hailo delegate, \
+        Arduino IDE 2.3+ or MicroPython for RP2350/ESP32-C6, Python 3.11+ based development. \
+        - Performance targets: Vision at 20 FPS (MobileNetV3 + Coral achieves 100 FPS inference, camera-limited), \
+        Motor control at 250 Hz, AI inference 10-25ms with accelerator, Power: 15W total system. \
+        - Limitations & workarounds: Limited 8GB RAM (use 4GB swap on NVMe), no hardware H.265 encoding (use CPU), \
+        lower single-thread performance (optimize with NumPy + OpenBLAS), USB3 bandwidth sharing (prioritize Coral). \
+        - Development workflow: VS Code remote SSH, Jupyter Lab for ML prototyping, GitHub Actions CI/CD, Docker for deployment. \
+        - Educational focus: Ideal for universities, maker spaces, prototyping, learning robotics (cost-effective at scale). \
+        - BOM with Adafruit, SparkFun, CanaKit, Pimoroni part numbers (2025 availability). \
+        Include beginner tutorial, troubleshooting guide, and upgrade path to Standard (Jetson Orin NX).".to_string(),
+        vec![get_agent_id("David Johnson"), get_agent_id("Bob Martinez")],
     )
     .with_priority(TaskPriority::High);
 
-    let arch_tasks = vec![arch_task1, arch_task2, arch_task3, arch_task4];
+    let arch_task5 = WorkspaceTask::new(
+        "Generate 2025 Architecture Comparison & Migration Guide".to_string(),
+        "Create comprehensive comparison matrix and migration guide for all 2025 configurations. Include: \
+        - Comparison matrix: Performance (TOPS, FPS, latency, transformer throughput), Power (peak, average, battery runtime), \
+        Cost (unit cost at 1/100/1000/10K volumes, TCO over 3 years), Development complexity (toolchain maturity, learning curve, ecosystem). \
+        - Use case recommendations: Flagship (Jetson Thor) for cutting-edge AI products, high-end commercial robots, research institutions; \
+        Premium (AGX Orin) for production deployment, enterprise robotics, advanced autonomy; \
+        Standard (Orin NX) for pilot programs, mid-scale production, cost-performance balance; \
+        Budget (RPi5) for education, rapid prototyping, proof-of-concept, makerspaces. \
+        - Migration guides: Budget → Standard (reuse RP2350/ESP32-C6 I/O, upgrade compute+MCUs, 85% software compatible), \
+        Standard → Premium (carrier board redesign, software highly compatible, unlock advanced features), \
+        Premium → Flagship (Thor requires new carrier, JetPack 7.x, leverage 2000 TOPS for multi-modal AI, vision-language models). \
+        - Software compatibility: ROS2 packages (which work on all platforms), GPU requirements (TensorRT vs TFLite vs Hailo), \
+        RT kernel needs (motor control, sensor fusion), 2025 LLM/VLM support (Thor optimized for transformers). \
+        - Hybrid configs: Mix-and-match options (e.g., Orin NX with premium STM32H7 MCUs for specific needs, \
+        Thor with budget I/O boards for cost savings). \
+        - Field upgrade procedures: Compute module swap in deployed units (firmware compatibility, sensor recalibration, \
+        AI model retraining/quantization). \
+        - 2025 supply chain: Jetson Thor (12-20 weeks, limited early availability), AGX Orin (4-8 weeks), Orin NX (2-6 weeks), \
+        RPi5 (immediate-2 weeks), MCUs (immediate-8 weeks depending on model). \
+        - Future-proofing: Thor roadmap (expect updates through 2027+), Orin lifecycle (2028+ EOL), software support timelines. \
+        Include decision tree flowchart, ROI calculator, and 2025 market trends analysis.".to_string(),
+        vec![get_agent_id("Tina Martinez"), get_agent_id("Sam Johnson")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let arch_tasks = vec![arch_task1, arch_task2, arch_task3, arch_task4, arch_task5];
     let arch_buildout_results = coordinator
         .coordinate_workspace_project(&platform_ws_id, arch_tasks)
         .await?;

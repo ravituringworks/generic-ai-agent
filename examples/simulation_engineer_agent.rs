@@ -176,15 +176,18 @@ impl SimulationEngineerAgent {
     /// Prototype new robot hardware in simulation
     pub async fn prototype_hardware(&mut self, hardware_spec: &str) -> Result<String> {
         let prompt = format!(
-            "Prototype the following robot hardware in simulation:\n\
+            "Prototype the following robot hardware in simulation (using 2025 latest hardware platforms):\n\
             {}\n\n\
+            Consider 2025 compute options: NVIDIA Jetson AGX Thor (2000 TOPS), AGX Orin (275 TOPS), Orin NX (100 TOPS), \
+            RPi5 + AI accelerators. MCU options: STM32H7, STM32U5, RP2350, ESP32-C6, NXP i.MX RT1180.\n\n\
             Provide:\n\
-            1. URDF/MJCF model specification\n\
-            2. Actuator and sensor models\n\
+            1. URDF/MJCF model specification with realistic 2025 hardware\n\
+            2. Actuator and sensor models (include modern sensors: OAK-D Pro, Livox LIDAR, etc.)\n\
             3. Collision geometry and inertial properties\n\
-            4. Simulation testing protocol\n\
+            4. Simulation testing protocol (MuJoCo 3.x, PyBullet, Isaac Sim 4.x)\n\
             5. Expected behavior and validation criteria\n\
-            6. Code example for loading and testing the model",
+            6. Code example for loading and testing the model (Python 3.11+, ROS2 Jazzy)\n\
+            7. Hardware-in-the-loop (HIL) integration strategy for 2025 platforms",
             hardware_spec
         );
 

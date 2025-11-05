@@ -1442,19 +1442,21 @@ fn create_hardware_platform_tasks(
         WorkspaceTask::new(
             "Generate Hardware Configuration Management Strategy".to_string(),
             "Create variant BOM management and configuration control system. Include: \
-            - Hardware variant definitions: Premium config (Jetson AGX Orin 64GB, STM32H7, $2090 compute), \
-            Standard config (Jetson Orin NX 16GB, STM32F4, $754 compute), Economy config (RPi5 + Coral, RP2350, $163 compute). \
-            - BOM management system: PLM tool selection (Arena PLM, Fusion 360 Manage, or Odoo), part numbering scheme, \
-            revision control (ECO process), where-used analysis, obsolescence tracking. \
-            - Configuration management: variant part matrix, build configurations with different compute tiers, \
-            option codes for product variants. \
+            - Hardware variant definitions: Flagship config (Jetson AGX Thor, STM32H7, $2590 compute, 2025 latest with 2000 TOPS), \
+            Premium config (Jetson AGX Orin 64GB, STM32H7, $2090 compute), \
+            Standard config (Jetson Orin NX 16GB, STM32U5, $762 compute), Economy config (RPi5 + Coral, RP2350, $153-392 compute). \
+            - BOM management system: PLM tool selection (Arena PLM, Fusion 360 Manage, PTC Windchill, or Odoo), part numbering scheme, \
+            revision control (ECO process), where-used analysis, obsolescence tracking, 2025 supply chain resilience. \
+            - Configuration management: variant part matrix, build configurations with different compute tiers (Flagship/Premium/Standard/Economy), \
+            option codes for product variants (e.g., HUM-FLG-THR for Humanoid Flagship with Thor). \
             - Change control process: Engineering Change Order (ECO) workflow, change impact analysis, validation requirements, \
-            customer notification procedures for product updates. \
-            - Cost rollup by configuration: material cost, assembly labor, test time, warranty reserves. \
+            customer notification procedures for product updates, regulatory compliance tracking (FCC, CE, RoHS). \
+            - Cost rollup by configuration: material cost, assembly labor, test time, warranty reserves, volume pricing (100+, 1000+, 10K+). \
             - Supplier part cross-reference: alternate parts matrix (form-fit-function equivalents), preferred parts list, \
-            lifecycle status (active, NRND, obsolete). \
-            - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy. \
-            Include configuration control board (CCB) charter and ECO template.".to_string(),
+            lifecycle status (active, NRND, obsolete), 2025 tariff and geopolitical considerations. \
+            - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy, \
+            Jetson Thor requires JetPack 7.x+, multi-modal AI capabilities. \
+            Include configuration control board (CCB) charter, ECO template, and 2025 hardware roadmap alignment.".to_string(),
             vec![mech_lead_id.to_string()],
         ).with_priority(TaskPriority::High),
     ]
@@ -1484,7 +1486,7 @@ fn write_work_products(output_dir: &PathBuf) -> Result<()> {
     // Write design documentation
     write_file(
         &output_dir.join("work_products/designs/design_summary.txt"),
-        &format!("HUMANOID ROBOT PROJECT - DESIGN SUMMARY\n\nGenerated: {}\n\nMECHANICAL DESIGN:\n- Overall Height: 1.2m\n- Frame Material: Aluminum 6061-T6\n- Degrees of Freedom: 25-30\n- Weight Capacity: 25-30 kg body + 5kg payload\n\nACTUATION:\n- Primary Motors: T-Motor Brushless DC with Harmonic Drives\n- Control Electronics: STM32H7 MCUs + Motor drivers\n- Real-time Control Loop: 1 kHz\n\nPERCEPTION:\n- Primary Camera: Intel RealSense D455\n- IMU: Bosch BNO085\n- Optional LIDAR: RPLIDAR A3\n\nCOMPUTE PLATFORM:\n- Main: NVIDIA Jetson AGX Orin 64GB (gpt-oss:120b-cloud optimized)\n- Microcontrollers: 4x STM32H7 + 2x RP2350\n- Runtime OS: Ubuntu 22.04 with ROS2 Humble\n\nPOWER SYSTEM:\n- Battery: 12S4P Lithium-ion (48V nominal)\n- Capacity: ~14Ah (672Wh)\n- Peak Power: 2000W\n- Continuous: 1000W\n", timestamp),
+        &format!("HUMANOID ROBOT PROJECT - DESIGN SUMMARY (2025)\n\nGenerated: {}\n\nMECHANICAL DESIGN:\n- Overall Height: 1.2m\n- Frame Material: Aluminum 6061-T6\n- Degrees of Freedom: 25-30\n- Weight Capacity: 25-30 kg body + 5kg payload\n\nACTUATION:\n- Primary Motors: T-Motor Brushless DC with Harmonic Drives\n- Control Electronics: STM32H7 or STM32U5 MCUs + Motor drivers\n- Real-time Control Loop: 1-2 kHz\n\nPERCEPTION:\n- Primary Camera: Intel RealSense D455 or OAK-D Pro\n- IMU: Bosch BNO085\n- Optional LIDAR: RPLIDAR A3 or Livox Mid-360\n\nCOMPUTE PLATFORM OPTIONS (2025):\n- Flagship: NVIDIA Jetson AGX Thor (2000 TOPS, $2499, Grace CPU + Blackwell GPU)\n- Premium: NVIDIA Jetson AGX Orin 64GB (275 TOPS, $1999)\n- Standard: NVIDIA Jetson Orin NX 16GB (100 TOPS, $699)\n- Economy: Raspberry Pi 5 + AI Accelerator ($153-392)\n- Microcontrollers: 4x STM32H7/U5 + 2x RP2350\n- Runtime OS: Ubuntu 22.04/24.04 with ROS2 Jazzy\n\nPOWER SYSTEM:\n- Battery: 12S4P Lithium-ion (48V nominal)\n- Capacity: ~14Ah (672Wh)\n- Peak Power: 2000W (Flagship), 1500W (Premium), 1000W (Standard/Economy)\n- Continuous: 1000W (Flagship/Premium), 750W (Standard), 500W (Economy)\n\n2025 ENHANCEMENTS:\n- Multi-modal AI support (vision-language models on Thor/Orin)\n- Enhanced security (TrustZone, secure boot on all MCUs)\n- Improved power efficiency with STM32U5 ultra-low-power MCUs\n- WiFi 6/6E and 5G cellular options for connectivity\n", timestamp),
     )?;
 
     // Write manufacturing work orders
@@ -1540,12 +1542,7 @@ COMMUNICATION:\n- Internal: ROS2 topics/services\n- Motor control: CAN bus (1 Mb
     // Write hardware analysis
     write_file(
         &output_dir.join("work_products/hardware_analysis/platform_comparison.txt"),
-        "COMPUTE PLATFORM COMPARISON MATRIX\n\n=== PREMIUM CONFIGURATION ===\nJetson AGX Orin 64GB: $1,999\n- 275 TOPS AI performance\n- 60W peak power\n- 12-core ARM CPU\n- 20 GB shared GPU memory\n- Best for: Production deployments, maximum performance\n- AI Inference: <50ms latency\n- Vision Processing: 30 FPS real-time\n
-=== STANDARD CONFIGURATION ===\nJetson Orin NX 16GB: $699\n- 100 TOPS AI performance\n- 25W peak power\n- 8-core ARM CPU\n- Passive cooling capable\n- Best for: Pilot programs, cost-sensitive\n- AI Inference: <100ms latency\n- Vision Processing: 20 FPS\n
-=== BUDGET CONFIGURATION ===\nRaspberry Pi 5 + Coral: $80-140\n- 15 TOPS (USB Coral)\n- 15W total power\n- 8 GB RAM\n- Educational/prototyping focus\n- Best for: Learning, proof-of-concept\n- AI Inference: 10-30ms with Coral\n- Vision Processing: 15 FPS\n
-=== RECOMMENDATION ===\n
-For production humanoid robot: PREMIUM (Jetson AGX Orin)\n- Provides headroom for complex AI tasks\n- Supports 30+ concurrent ROS2 nodes\n- Real-time performance for control loops\n- Enables on-device model training\n
-",
+        "COMPUTE PLATFORM COMPARISON MATRIX (2025)\n\n=== FLAGSHIP CONFIGURATION (NEW 2025) ===\nJetson AGX Thor: $2,499\n- 2000 TOPS AI performance\n- 100W peak power (60W average)\n- Grace CPU (ARM) + Blackwell GPU architecture\n- 64 GB unified memory\n- Best for: Cutting-edge AI, multi-modal models, research\n- AI Inference: <20ms latency for large models\n- Vision Processing: 60 FPS real-time\n- Multi-modal: Vision-language models, transformers\n- Availability: 2025, 12-20 week lead time\n\n=== PREMIUM CONFIGURATION ===\nJetson AGX Orin 64GB: $1,999\n- 275 TOPS AI performance\n- 60W peak power (35W average)\n- 12-core ARM Cortex-A78AE CPU\n- 64 GB shared GPU memory\n- Best for: Production deployments, enterprise robotics\n- AI Inference: <50ms latency\n- Vision Processing: 30 FPS real-time\n- Mature ecosystem, 4-8 week lead time\n\n=== STANDARD CONFIGURATION ===\nJetson Orin NX 16GB: $699\n- 100 TOPS AI performance\n- 25W peak power (15W average)\n- 8-core ARM CPU\n- Passive cooling capable\n- Best for: Pilot programs, mid-scale production\n- AI Inference: <80ms latency\n- Vision Processing: 25 FPS\n- Good balance, 2-6 week lead time\n\n=== BUDGET CONFIGURATION ===\nRaspberry Pi 5 + AI Accelerator: $153-392\n- 15-50 TOPS (Coral USB: 15 TOPS, Hailo-8L: 50 TOPS)\n- 15W total power\n- 8 GB RAM\n- Educational/prototyping focus\n- Best for: Learning, proof-of-concept, makerspaces\n- AI Inference: 10-25ms with accelerator\n- Vision Processing: 20 FPS\n- Immediate availability\n\n=== 2025 RECOMMENDATIONS ===\n\nFor cutting-edge research & flagship products: FLAGSHIP (Thor)\n- 2000 TOPS enables large vision-language models\n- Multi-modal AI for natural interaction\n- Future-proof through 2027+\n\nFor production humanoid robot: PREMIUM (AGX Orin)\n- Proven platform with mature ecosystem\n- Supports 30+ concurrent ROS2 nodes\n- Real-time performance for control loops\n- Lower risk than Thor early adoption\n\nFor pilot programs: STANDARD (Orin NX)\n- Excellent cost-performance ratio\n- Easy upgrade path to Premium\n- Sufficient for most robotics applications\n\nFor education & prototyping: BUDGET (RPi5)\n- Cost-effective for learning\n- Large community support\n- Clear upgrade path to Jetson family\n\n",
     )?;
 
     Ok(())
