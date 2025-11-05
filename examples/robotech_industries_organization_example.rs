@@ -269,10 +269,8 @@ async fn create_organization() -> Result<Organization> {
     org.add_agent(quinn);
 
     // Product & Strategy
-    let rachel = OrganizationAgent::new(
-        "EMP018".to_string(),
-        OrganizationRole::ChiefProductOfficer,
-    );
+    let rachel =
+        OrganizationAgent::new("EMP018".to_string(), OrganizationRole::ChiefProductOfficer);
     org.add_agent(rachel);
 
     let sam = OrganizationAgent::new(
@@ -301,10 +299,7 @@ async fn create_organization() -> Result<Organization> {
     );
     org.add_agent(wendy);
 
-    let xavier = OrganizationAgent::new(
-        "EMP024".to_string(),
-        OrganizationRole::SolutionsArchitect,
-    );
+    let xavier = OrganizationAgent::new("EMP024".to_string(), OrganizationRole::SolutionsArchitect);
     org.add_agent(xavier);
 
     // Marketing & Design
@@ -336,11 +331,11 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign cross-functional team for Robo-1
     let agent_names = [
-        "EMP001",    // AI/Autonomy
+        "EMP001", // AI/Autonomy
         "EMP004", // Simulation
-        "EMP007",     // Electrical
+        "EMP007", // Electrical
         "EMP009", // Mechanical
-        "EMP019",   // Product Manager
+        "EMP019", // Product Manager
     ];
     for name in agent_names {
         let agent_id = org
@@ -363,11 +358,11 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign team for Robo-2 (inherits from Robo-1)
     let agent_names = [
-        "EMP002",  // Autonomy for load handling
-        "EMP008",   // Robotics Controls
+        "EMP002", // Autonomy for load handling
+        "EMP008", // Robotics Controls
         "EMP009", // Mechanical (heavy-duty)
         "EMP010", // Manufacturing
-        "EMP013",   // NPI Planning
+        "EMP013", // NPI Planning
     ];
     for name in agent_names {
         let agent_id = org
@@ -390,12 +385,12 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign elite team for Robo-3 (most advanced)
     let agent_names = [
-        "EMP003",    // World Models for rescue
-        "EMP005",  // Platform software
+        "EMP003", // World Models for rescue
+        "EMP005", // Platform software
         "EMP006", // Embedded systems
-        "EMP008",  // Advanced controls
-        "EMP011",   // Automation
-        "EMP012",   // Quality for safety
+        "EMP008", // Advanced controls
+        "EMP011", // Automation
+        "EMP012", // Quality for safety
     ];
     for name in agent_names {
         let agent_id = org
@@ -501,12 +496,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(customer_ws);
 
     // Assign customer success and sales team
-    let agent_names = [
-        "EMP022",
-        "EMP023",
-        "EMP024",
-        "EMP025",
-    ];
+    let agent_names = ["EMP022", "EMP023", "EMP024", "EMP025"];
     for name in agent_names {
         let agent_id = org
             .agents

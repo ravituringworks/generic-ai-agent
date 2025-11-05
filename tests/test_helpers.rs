@@ -1,6 +1,5 @@
 //! Test helpers and utilities for The Agency test suite
 
-use std::path::PathBuf;
 use tempfile::TempDir;
 use the_agency::AgentConfig;
 
@@ -135,7 +134,10 @@ pub fn create_test_workflow_context() -> the_agency::workflow::WorkflowContext {
 }
 
 /// Creates test resource ID for storage tests
-pub fn create_test_resource_id(namespace: &str, id: &str) -> the_agency::unified_storage::ResourceId {
+pub fn create_test_resource_id(
+    namespace: &str,
+    id: &str,
+) -> the_agency::unified_storage::ResourceId {
     the_agency::unified_storage::ResourceId::new(namespace, id)
 }
 

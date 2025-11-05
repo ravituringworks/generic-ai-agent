@@ -3,6 +3,8 @@
 //! This file configures and runs all BDD tests for the framework.
 //! Run with: `cargo test --test cucumber_runner`
 
+use cucumber::World;
+
 mod bdd_steps;
 mod llm_provider_bdd;
 
