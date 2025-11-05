@@ -139,12 +139,27 @@ async fn main() -> Result<()> {
     println!("📊 Output files:");
     println!("   Reports:");
     println!("   - {}/reports/summary.md", output_dir.display());
-    println!("   - {}/reports/organization_state.json", output_dir.display());
+    println!(
+        "   - {}/reports/organization_state.json",
+        output_dir.display()
+    );
     println!("\n   Artifacts ({} files):", artifacts.len());
-    println!("   - {}/artifacts/design_docs/ (design specifications)", output_dir.display());
-    println!("   - {}/artifacts/code/ (Python, Rust implementations)", output_dir.display());
-    println!("   - {}/artifacts/configs/ (YAML, TOML configurations)", output_dir.display());
-    println!("   - {}/artifacts/diagrams/ (architecture diagrams)", output_dir.display());
+    println!(
+        "   - {}/artifacts/design_docs/ (design specifications)",
+        output_dir.display()
+    );
+    println!(
+        "   - {}/artifacts/code/ (Python, Rust implementations)",
+        output_dir.display()
+    );
+    println!(
+        "   - {}/artifacts/configs/ (YAML, TOML configurations)",
+        output_dir.display()
+    );
+    println!(
+        "   - {}/artifacts/diagrams/ (architecture diagrams)",
+        output_dir.display()
+    );
     println!("\n");
 
     Ok(())
@@ -907,16 +922,648 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         cust_results.len()
     );
 
+    // ===== ADVANCED DEVELOPMENT PHASES =====
+    println!("\n🏭 PHASE 10: Manufacturing Work Orders (Supplier-Ready)\n");
+    println!("==========================================================\n");
+
+    let mfg_task1 = WorkspaceTask::new(
+        "Generate CNC Manufacturing Work Orders".to_string(),
+        "Create supplier-ready CNC machining work orders with GD&T drawings, material specs (Al 6061-T6), \
+        tolerances (±0.001\" for bearing fits), STEP/DXF files, and complete specifications ready for Xometry, \
+        Protolabs, or local CNC shops.".to_string(),
+        vec![get_agent_id("Iris Anderson")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let mfg_task2 = WorkspaceTask::new(
+        "Generate PCB Fabrication Orders".to_string(),
+        "Create complete PCB fabrication packages with Gerber files, drill files, BOM in CSV format, \
+        pick-and-place files, and assembly notes ready for PCBWay, JLCPCB, or OSH Park.".to_string(),
+        vec![get_agent_id("Grace Lee")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let mfg_ws_id = org
+        .workspaces
+        .values()
+        .find(|w| w.name == "Manufacturing Excellence")
+        .map(|w| w.id.clone())
+        .unwrap();
+
+    let mfg_tasks = vec![mfg_task1, mfg_task2];
+    let mfg_wo_results = coordinator
+        .coordinate_workspace_project(&mfg_ws_id, mfg_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} manufacturing work order packages\n",
+        mfg_wo_results.len()
+    );
+
+    // Phase 11: Assembly Procedures
+    println!("🔩 PHASE 11: Assembly Procedures & Unit Testing\n");
+    println!("==========================================================\n");
+
+    let asm_task1 = WorkspaceTask::new(
+        "Generate Mechanical Assembly Procedures".to_string(),
+        "Create comprehensive assembly procedures with step-by-step instructions, torque specifications \
+        (M4: 2.8 N·m, M6: 8 N·m), bearing installation procedures, alignment checks, and unit testing \
+        protocols with acceptance criteria.".to_string(),
+        vec![get_agent_id("Jack Thompson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let asm_task2 = WorkspaceTask::new(
+        "Generate Actuation System Assembly Procedures".to_string(),
+        "Create detailed actuation assembly documentation with motor-to-gearbox mounting, encoder calibration, \
+        wiring color codes, and unit testing (no-load current <500mA, position control ±1°, thermal test 30min <80°C).".to_string(),
+        vec![get_agent_id("Henry Patel")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let asm_tasks = vec![asm_task1, asm_task2];
+    let asm_results = coordinator
+        .coordinate_workspace_project(&mfg_ws_id, asm_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} assembly procedure documents\n",
+        asm_results.len()
+    );
+
+    // Phase 12: Validation Testing
+    println!("🧪 PHASE 12: Validation & Performance Testing\n");
+    println!("==========================================================\n");
+
+    let val_task1 = WorkspaceTask::new(
+        "Generate System Validation Test Plan".to_string(),
+        "Create comprehensive system validation with test environment setup, pre-test checklists, \
+        system bring-up procedures, subsystem integration tests (power, communications, sensors), \
+        and safety system validation (emergency stop <100ms)."
+            .to_string(),
+        vec![get_agent_id("Leo Garcia")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let val_task2 = WorkspaceTask::new(
+        "Generate Locomotion Testing Protocol".to_string(),
+        "Create detailed locomotion testing with progressive sequence (static balance 30s, weight shifting, \
+        single-leg stance 10s, forward walking 1 m/s, obstacle negotiation), performance metrics (step length, \
+        stride frequency, energy consumption), and failure mode testing.".to_string(),
+        vec![get_agent_id("Henry Patel")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let val_tasks = vec![val_task1, val_task2];
+    let val_results = coordinator
+        .coordinate_workspace_project(&platform_ws_id, val_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} validation test protocols\n",
+        val_results.len()
+    );
+
+    // Phase 13: Software Development
+    println!("💻 PHASE 13: Software Development & Control Systems\n");
+    println!("==========================================================\n");
+
+    let sw_task1 = WorkspaceTask::new(
+        "Develop ROS2 Software Architecture".to_string(),
+        "Create complete ROS2 workspace with robot_description, robot_bringup, robot_control packages. \
+        Include URDF/XACRO files with complete kinematic chain, launch files for simulation/hardware, \
+        parameter files (PID gains, sensor configs), and Docker container setup.".to_string(),
+        vec![get_agent_id("David Johnson"), get_agent_id("Emily Zhang")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let sw_task2 = WorkspaceTask::new(
+        "Implement Low-Level Control Algorithms".to_string(),
+        "Develop real-time control algorithms: PID position/velocity/torque control (500Hz loop), \
+        inverse kinematics solvers, balance controller (ZMP, LIPM, CoM planning), gait generation \
+        (footstep planning, phase state machine), and compliance control for manipulation."
+            .to_string(),
+        vec![get_agent_id("Henry Patel"), get_agent_id("Frank Wilson")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let sw_task3 = WorkspaceTask::new(
+        "Develop Perception Pipeline".to_string(),
+        "Create perception software stack with sensor drivers (RealSense, IMU, LIDAR), sensor fusion (EKF), \
+        computer vision pipeline (YOLO, semantic segmentation, depth processing), SLAM implementation, \
+        and GPU acceleration (CUDA/TensorRT).".to_string(),
+        vec![get_agent_id("Alice Chen"), get_agent_id("Bob Martinez")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let sw_task4 = WorkspaceTask::new(
+        "Develop AI/ML Models".to_string(),
+        "Create ML models for behaviors: MoveIt2 integration, RL framework (PPO/SAC algorithms), \
+        imitation learning, vision-based learning (grasp pose estimation), model deployment (ONNX/TensorRT), \
+        and training infrastructure.".to_string(),
+        vec![get_agent_id("Carol Kim"), get_agent_id("Alice Chen")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let sw_tasks = vec![sw_task1, sw_task2, sw_task3, sw_task4];
+    let sw_results = coordinator
+        .coordinate_workspace_project(&platform_ws_id, sw_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} software development modules\n",
+        sw_results.len()
+    );
+
+    // Phase 14: Documentation & Handoff
+    println!("📚 PHASE 14: Documentation & Project Handoff\n");
+    println!("==========================================================\n");
+
+    let doc_task1 = WorkspaceTask::new(
+        "Generate Technical Documentation Package".to_string(),
+        "Create comprehensive technical documentation: system architecture diagrams, design rationale, \
+        consolidated BOM with suppliers, assembly documentation, test results and validation data, \
+        change log, and safety documentation (FMEA, risk assessment). Export as PDF with searchable text.".to_string(),
+        vec![get_agent_id("Tina Martinez"), get_agent_id("Quinn Rivera")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let doc_task2 = WorkspaceTask::new(
+        "Generate User Operation Manual".to_string(),
+        "Create user-friendly operation manual with quick start guide, operation modes (manual/semi-autonomous/autonomous), \
+        safety procedures, basic troubleshooting, operational limits, and software interface guide. \
+        Export as PDF and interactive HTML.".to_string(),
+        vec![get_agent_id("Wendy Anderson"), get_agent_id("Xavier Lopez")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let doc_task3 = WorkspaceTask::new(
+        "Generate Maintenance and Service Manual".to_string(),
+        "Create detailed maintenance manual with preventive maintenance schedule (daily/weekly/monthly/annual), \
+        component replacement procedures, lubrication guide, diagnostic procedures, calibration procedures, \
+        spare parts list, and safety for technicians. Export as PDF with laminated quick-reference sheets.".to_string(),
+        vec![get_agent_id("Leo Garcia"), get_agent_id("Jack Thompson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let doc_tasks = vec![doc_task1, doc_task2, doc_task3];
+    let doc_results = coordinator
+        .coordinate_workspace_project(&prod_ws_id, doc_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} documentation packages\n",
+        doc_results.len()
+    );
+
+    // Phase 15: Regulatory & Compliance
+    println!("\n⚖️ PHASE 15: Regulatory & Compliance\n");
+    println!("==========================================================\n");
+
+    let reg_task1 = WorkspaceTask::new(
+        "Generate Safety Certification Package".to_string(),
+        "Create comprehensive safety certification documentation for UL, CE, FCC compliance. Include: \
+        safety analysis (FMEA, FTA), hazard identification, risk assessment matrix, safety requirements traceability, \
+        test plans for electrical safety (UL 60950, IEC 62368), EMC testing (FCC Part 15, EN 55032), \
+        mechanical safety (ISO 13849, ISO 12100), functional safety analysis, safety test reports, \
+        declaration of conformity templates, and technical construction files for CE marking.".to_string(),
+        vec![get_agent_id("Leo Garcia"), get_agent_id("Quinn Rivera")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let reg_task2 = WorkspaceTask::new(
+        "Generate IP Protection Strategy".to_string(),
+        "Create intellectual property protection package including: patent landscape analysis, \
+        patentability search results, provisional/utility patent applications for key innovations \
+        (novel actuation mechanisms, control algorithms, sensor fusion methods), trade secret identification \
+        and protection procedures, trademark registrations (brand, logos), copyright protection for software, \
+        IP licensing strategy, freedom-to-operate analysis, and defensive publication strategy.".to_string(),
+        vec![get_agent_id("Paul Chen"), get_agent_id("Rachel Kim")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let reg_task3 = WorkspaceTask::new(
+        "Generate Environmental Compliance Package".to_string(),
+        "Create environmental compliance documentation including: RoHS compliance declaration, \
+        material disclosure statements, restricted substance testing reports (lead, mercury, cadmium, hexavalent chromium), \
+        REACH SVHC declaration, conflict minerals reporting, WEEE compliance and recycling procedures, \
+        packaging material declarations, battery disposal procedures (EPA, state regulations), \
+        California Prop 65 warnings if applicable, and supplier environmental compliance verification.".to_string(),
+        vec![get_agent_id("Maya Nguyen"), get_agent_id("Leo Garcia")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let reg_tasks = vec![reg_task1, reg_task2, reg_task3];
+    let reg_results = coordinator
+        .coordinate_workspace_project(&prod_ws_id, reg_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} regulatory compliance packages\n",
+        reg_results.len()
+    );
+
+    // Phase 16: Environmental & Durability Testing
+    println!("🌡️ PHASE 16: Environmental & Durability Testing\n");
+    println!("==========================================================\n");
+
+    let env_task1 = WorkspaceTask::new(
+        "Generate Environmental Test Plan".to_string(),
+        "Create comprehensive environmental testing protocol including: temperature cycling (-40°C to +85°C, \
+        MIL-STD-810 or IEC 60068-2-14), thermal shock testing, humidity testing (85% RH at 85°C, IEC 60068-2-78), \
+        salt spray corrosion testing (ASTM B117, 48-96 hours), altitude testing (low pressure), sand and dust \
+        ingress testing (IP6X), water ingress testing (IPX7/IPX8), UV exposure and weathering (ASTM G154), \
+        test setup procedures, acceptance criteria, data collection templates, and failure analysis procedures.".to_string(),
+        vec![get_agent_id("Leo Garcia"), get_agent_id("Iris Anderson")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let env_task2 = WorkspaceTask::new(
+        "Generate Mechanical Durability Test Plan".to_string(),
+        "Create mechanical durability testing protocol including: vibration testing (random, sinusoidal, \
+        MIL-STD-810 or IEC 60068-2-64), mechanical shock testing (half-sine, saw-tooth, IEC 60068-2-27), \
+        drop testing (various heights, orientations, surfaces), repetitive stress testing (joint cycling 100k+ cycles), \
+        wear testing for contact surfaces, fatigue analysis and accelerated life testing, packaging drop testing \
+        (ISTA procedures), transportation simulation, acceptance criteria based on functional requirements, \
+        and MTBF/MTTF calculation methodology.".to_string(),
+        vec![get_agent_id("Iris Anderson"), get_agent_id("Henry Patel")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let env_task3 = WorkspaceTask::new(
+        "Generate EMI/EMC Test Plan".to_string(),
+        "Create electromagnetic compatibility testing protocol including: conducted emissions (FCC Part 15B, \
+        CISPR 32), radiated emissions (30 MHz - 6 GHz), conducted immunity (IEC 61000-4-6), radiated immunity \
+        (IEC 61000-4-3, 80 MHz - 6 GHz, 3-10 V/m), ESD immunity (IEC 61000-4-2, contact/air discharge), \
+        electrical fast transient/burst (IEC 61000-4-4), surge immunity (IEC 61000-4-5), power frequency magnetic field \
+        (IEC 61000-4-8), test lab selection and scheduling, pre-compliance testing procedures, and remediation strategies.".to_string(),
+        vec![get_agent_id("Grace Lee"), get_agent_id("Frank Wilson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let env_tasks = vec![env_task1, env_task2, env_task3];
+    let env_results = coordinator
+        .coordinate_workspace_project(&hw_ws_id, env_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} environmental test plans\n",
+        env_results.len()
+    );
+
+    // Phase 17: Production Scaling
+    println!("🏭 PHASE 17: Production Scaling & Manufacturing Ramp\n");
+    println!("==========================================================\n");
+
+    let scale_task1 = WorkspaceTask::new(
+        "Generate Pilot Production Plan".to_string(),
+        "Create pilot production (10-100 units) plan including: pilot run objectives and success criteria, \
+        production line layout and workstation design, takt time analysis and capacity planning, \
+        assembly sequence optimization, tooling and fixture requirements, worker training curriculum and certification, \
+        quality control checkpoints (in-process inspection, final QA), yield analysis and defect tracking (Pareto analysis), \
+        design for manufacturing (DFM) recommendations, cost analysis (labor, material, overhead), \
+        lessons learned documentation, and readiness criteria for volume production.".to_string(),
+        vec![get_agent_id("Jack Thompson"), get_agent_id("Kate Brown")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let scale_task2 = WorkspaceTask::new(
+        "Generate Volume Manufacturing Plan".to_string(),
+        "Create volume manufacturing (1000+ units) plan including: production capacity analysis (units/month), \
+        manufacturing automation strategy (pick-and-place machines, AOI, automated test equipment), \
+        line balancing and bottleneck analysis, inventory management strategy (JIT, safety stock levels), \
+        supplier qualification and dual-sourcing strategy, statistical process control (SPC) implementation \
+        (Cp, Cpk targets), lean manufacturing initiatives (5S, kaizen, waste reduction), production scheduling \
+        and MRP system, quality management system (ISO 9001), continuous improvement program, and cost reduction roadmap.".to_string(),
+        vec![get_agent_id("Kate Brown"), get_agent_id("Maya Nguyen")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let scale_task3 = WorkspaceTask::new(
+        "Generate Supplier Management Strategy".to_string(),
+        "Create supplier management framework including: supplier selection criteria and scorecard, \
+        approved vendor list (AVL) with qualification status, supplier audit procedures and checklists, \
+        quality agreements and SLAs, supplier performance monitoring (on-time delivery, quality PPM, responsiveness), \
+        supplier development programs, cost reduction partnerships (should-cost modeling), \
+        supply chain risk assessment (single-source risks, geopolitical risks, natural disaster contingencies), \
+        second-source development timeline, contract manufacturing (CM) evaluation if applicable, \
+        and supplier relationship management (SRM) procedures.".to_string(),
+        vec![get_agent_id("Maya Nguyen"), get_agent_id("Jack Thompson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let scale_tasks = vec![scale_task1, scale_task2, scale_task3];
+    let scale_results = coordinator
+        .coordinate_workspace_project(&hw_ws_id, scale_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} production scaling plans\n",
+        scale_results.len()
+    );
+
+    // Phase 18: Field Deployment & Operations
+    println!("🚀 PHASE 18: Field Deployment & Operations\n");
+    println!("==========================================================\n");
+
+    let deploy_task1 = WorkspaceTask::new(
+        "Generate Deployment & Installation Procedures".to_string(),
+        "Create field deployment package including: pre-shipment inspection checklist, \
+        packaging specifications (foam inserts, anti-static protection, shock indicators), \
+        shipping procedures and carrier selection (temperature-controlled if needed), \
+        customs documentation and HS codes, installation procedures (site assessment, unpacking, assembly), \
+        commissioning checklist (power-on sequence, network configuration, sensor calibration verification), \
+        customer acceptance testing (CAT) procedures, installation troubleshooting guide, \
+        field service technician training materials, and installation time estimates.".to_string(),
+        vec![get_agent_id("Xavier Lopez"), get_agent_id("Jack Thompson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let deploy_task2 = WorkspaceTask::new(
+        "Generate Fleet Management System Design".to_string(),
+        "Create fleet management platform architecture including: cloud infrastructure design (AWS/Azure/GCP), \
+        robot telemetry data collection (health metrics, performance KPIs, usage patterns), \
+        real-time monitoring dashboard (status, location, alerts), remote diagnostics and log collection, \
+        OTA software update system (staged rollout, rollback capability), fleet-wide analytics and reporting, \
+        predictive maintenance algorithms (anomaly detection, failure prediction), multi-tenancy architecture \
+        for multiple customers, data security and privacy controls, API design for third-party integrations, \
+        and scalability planning (support 10k+ robots).".to_string(),
+        vec![get_agent_id("Emily Zhang"), get_agent_id("David Johnson")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let deploy_task3 = WorkspaceTask::new(
+        "Generate Customer Support Infrastructure".to_string(),
+        "Create customer support framework including: helpdesk system setup (Zendesk, Salesforce Service Cloud), \
+        tiered support structure (L1: basic troubleshooting, L2: advanced technical, L3: engineering escalation), \
+        support SLAs (response time: 4 hours critical, 24 hours high, resolution time targets), \
+        knowledge base and FAQ documentation, ticketing workflow and escalation procedures, \
+        remote support tools (VPN access, screen sharing), warranty claim procedures and RMA process, \
+        spare parts inventory planning (critical components, lead times), field service dispatch system, \
+        customer satisfaction tracking (CSAT, NPS), and support cost analysis.".to_string(),
+        vec![get_agent_id("Wendy Anderson"), get_agent_id("Xavier Lopez")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let deploy_tasks = vec![deploy_task1, deploy_task2, deploy_task3];
+    let deploy_results = coordinator
+        .coordinate_workspace_project(&cust_ws_id, deploy_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} deployment and operations packages\n",
+        deploy_results.len()
+    );
+
+    // Phase 19: Cybersecurity
+    println!("🔒 PHASE 19: Cybersecurity & Data Protection\n");
+    println!("==========================================================\n");
+
+    let cyber_task1 = WorkspaceTask::new(
+        "Generate Cybersecurity Threat Model".to_string(),
+        "Create comprehensive threat modeling and security analysis including: asset identification \
+        (robot firmware, sensor data, customer data, cloud services), threat actor profiling (nation states, \
+        hacktivists, criminals, insiders), attack surface analysis (network interfaces, USB ports, wireless protocols), \
+        attack tree analysis (denial of service, unauthorized control, data exfiltration, tampering), \
+        STRIDE threat modeling (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, \
+        Elevation of Privilege), risk scoring (likelihood × impact), threat mitigation strategies, \
+        security requirements traceability matrix, and incident response scenarios.".to_string(),
+        vec![get_agent_id("Frank Wilson"), get_agent_id("Emily Zhang")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let cyber_task2 = WorkspaceTask::new(
+        "Generate Security Architecture & Implementation".to_string(),
+        "Create security architecture design including: secure boot implementation (signed bootloader, verified firmware), \
+        cryptographic key management (TPM/secure element, key hierarchy, rotation policies), \
+        secure communication protocols (TLS 1.3, certificate management, mutual authentication), \
+        network security architecture (firewall rules, network segmentation, VPN for remote access), \
+        access control and authentication (multi-factor authentication, role-based access control), \
+        secure software update mechanism (signed updates, anti-rollback protection), \
+        data encryption (at-rest: AES-256, in-transit: TLS), intrusion detection/prevention system (IDS/IPS), \
+        security logging and audit trails, and vulnerability management process.".to_string(),
+        vec![get_agent_id("Frank Wilson"), get_agent_id("David Johnson")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let cyber_task3 = WorkspaceTask::new(
+        "Generate Security Testing & Compliance Plan".to_string(),
+        "Create security validation framework including: penetration testing procedures (OWASP methodology, \
+        automated scanners, manual testing), fuzzing test plans for input validation, code security review \
+        (static analysis tools: SonarQube, Coverity; manual code review), vulnerability scanning (Nessus, Qualys), \
+        security regression testing, red team exercises, bug bounty program design, privacy impact assessment (PIA), \
+        GDPR/CCPA compliance documentation (data inventory, processing activities, privacy notices, data subject rights), \
+        security certification (IEC 62443 for industrial systems if applicable), incident response plan \
+        (detection, containment, eradication, recovery, lessons learned), and security awareness training for developers.".to_string(),
+        vec![get_agent_id("Emily Zhang"), get_agent_id("Quinn Rivera")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let cyber_tasks = vec![cyber_task1, cyber_task2, cyber_task3];
+    let cyber_results = coordinator
+        .coordinate_workspace_project(&platform_ws_id, cyber_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} cybersecurity packages\n",
+        cyber_results.len()
+    );
+
+    // Phase 20: Compute Platform Analysis & Multi-Vendor Sourcing
+    println!("💻 PHASE 20: Compute Platform Analysis & Multi-Vendor Hardware Sourcing\n");
+    println!("==========================================================\n");
+
+    let hw_task1 = WorkspaceTask::new(
+        "Generate Compute Platform Trade-off Analysis".to_string(),
+        "Create comprehensive compute platform comparison and trade-off analysis. Include: \
+        - Main compute options: NVIDIA Jetson family (AGX Orin 64GB: $1999, 275 TOPS, 60W; Orin NX 16GB: $699, 100 TOPS, 25W; \
+        Orin Nano 8GB: $499, 40 TOPS, 15W), Intel NUC 13 Pro (i7-1360P, $800-1200), AMD Ryzen Embedded V3000 ($600-900), \
+        Qualcomm RB5 ($499, 15 TOPS), Google Coral + Hailo-8 ($400 total). \
+        - Performance benchmarks: AI inference throughput (TOPS), latency, frame rates for vision tasks. \
+        - Power analysis: thermal design, battery runtime impact, cooling requirements. \
+        - Cost analysis: unit cost, volume pricing, development kit costs. \
+        - Software ecosystem: SDK maturity, library support (TensorRT, OpenVINO, TFLite), ease of development. \
+        - Supply chain: lead times, availability, EOL roadmaps. \
+        - Recommendation matrix: high-performance config ($2090), mid-range config ($754), budget config ($163). \
+        Include performance/watt and performance/dollar charts.".to_string(),
+        vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let hw_task2 = WorkspaceTask::new(
+        "Generate Microcontroller Selection & Sourcing Matrix".to_string(),
+        "Create microcontroller selection guide and multi-vendor sourcing strategy. Include: \
+        - MCU options for motor control: STM32H7 (480MHz, $15-25), STM32F4 (180MHz, $8-15), STM32G4 (motor-focused, $5-10), \
+        NXP i.MX RT1170 (1GHz, $10-18), TI TMS320F28379D (DSP, $15-25), RP2350 (cost-optimized, $0.80-1.50). \
+        - MCU options for I/O: RP2040/RP2350 (dual-core, excellent for I/O), STM32F1 (legacy, $3-5), Teensy 4.1 ($30, prototyping). \
+        - Selection criteria: real-time performance (control loop frequency), peripheral count (timers, ADCs, CAN/EtherCAT), \
+        development tools (free IDEs, debugger costs), community support. \
+        - Configuration recommendations: High-perf (4× STM32H743 + 2× RP2350 + STM32G4), Mid-range (4× STM32F4 + 2× RP2040 + STM32F1), \
+        Budget (4× RP2350 + 2× RP2040 + STM32F1). \
+        - Dual-sourcing strategy: Primary (Mouser), Secondary (DigiKey), Tertiary (Newark/Avnet). \
+        - Lead time analysis and inventory planning (safety stock for long-lead items). \
+        Include pinout compatibility matrix for drop-in replacements.".to_string(),
+        vec![get_agent_id("Frank Wilson"), get_agent_id("Maya Nguyen")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let hw_task3 = WorkspaceTask::new(
+        "Generate Second-Source Qualification Plan".to_string(),
+        "Create supplier qualification and second-sourcing procedures. Include: \
+        - Supplier qualification criteria: quality certifications (ISO 9001, AS9100), financial stability (Dun & Bradstreet rating), \
+        technical support responsiveness, RMA/warranty terms, conflict minerals compliance. \
+        - Dual-sourcing matrix by component category: Jetson modules (DigiKey primary, Arrow secondary, Mouser tertiary), \
+        STM32 MCUs (Mouser primary, DigiKey secondary, Newark tertiary), RP2040 (Raspberry Pi Direct, DigiKey, Adafruit), \
+        Connectors (Molex via McMaster, TE Connectivity via DigiKey, JST via Mouser), Passives (Yageo/DigiKey, Vishay/Mouser, Samsung/Arrow). \
+        - Second-source validation: electrical equivalence testing, software compatibility verification, reliability testing (sample lot evaluation). \
+        - Supply chain risk mitigation: geopolitical risk assessment, natural disaster contingencies, single-source risk identification, \
+        strategic inventory for critical components (6-12 month buffer). \
+        - Supplier performance monitoring: on-time delivery KPIs, quality PPM targets (<100 PPM), cost competitiveness reviews (quarterly). \
+        - Transition plan: when to trigger second-source activation (lead time >12 weeks, price increase >15%, quality issues), \
+        qualification timeline (6-8 weeks for electronics). \
+        Include approved vendor list (AVL) template with qualification status.".to_string(),
+        vec![get_agent_id("Maya Nguyen"), get_agent_id("Leo Garcia")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let hw_task4 = WorkspaceTask::new(
+        "Generate Hardware Configuration Management Strategy".to_string(),
+        "Create variant BOM management and configuration control system. Include: \
+        - Hardware variant definitions: Premium config (Jetson AGX Orin 64GB, STM32H7, $2090 compute), \
+        Standard config (Jetson Orin NX 16GB, STM32F4, $754 compute), Economy config (RPi5 + Coral, RP2350, $163 compute). \
+        - BOM management system: PLM tool selection (Arena PLM, Fusion 360 Manage, or Odoo), part numbering scheme, \
+        revision control (ECO process), where-used analysis, obsolescence tracking. \
+        - Configuration management: variant part matrix, build configurations (Robo-1/2/3 with different compute tiers), \
+        option codes (e.g., R1-STD-JNX = Robo-1, Standard, Jetson NX). \
+        - Change control process: Engineering Change Order (ECO) workflow, change impact analysis, validation requirements, \
+        customer notification procedures for product updates. \
+        - Cost rollup by configuration: material cost, assembly labor, test time, warranty reserves. \
+        - Supplier part cross-reference: alternate parts matrix (form-fit-function equivalents), preferred parts list, \
+        lifecycle status (active, NRND, obsolete). \
+        - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy. \
+        Include configuration control board (CCB) charter and ECO template.".to_string(),
+        vec![get_agent_id("Tina Martinez"), get_agent_id("Quinn Rivera")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let hw_tasks = vec![hw_task1, hw_task2, hw_task3, hw_task4];
+    let hw_platform_results = coordinator
+        .coordinate_workspace_project(&hw_ws_id, hw_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} hardware platform analysis packages\n",
+        hw_platform_results.len()
+    );
+
+    // Phase 21: Alternative Architecture Buildout Plans
+    println!("🏗️ PHASE 21: Alternative Architecture Buildout Plans\n");
+    println!("==========================================================\n");
+
+    let arch_task1 = WorkspaceTask::new(
+        "Generate Premium Architecture Buildout Plan (Jetson AGX Orin)".to_string(),
+        "Create complete buildout guide for premium configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson AGX Orin 64GB ($1999), 4× STM32H743 ($80), 2× RP2350 ($3), STM32G4 ($8), Total: $2090. \
+        - Detailed assembly guide: Jetson carrier board selection (official dev kit vs custom), thermal solution (active cooling, \
+        40mm fan, heat sink with thermal pad), power supply (19V 6.3A, barrel connector or USB-C PD), M.2 NVMe storage (1TB Samsung 980 PRO). \
+        - MCU interconnect topology: Primary CAN bus (1 Mbps) for motor controllers, Secondary CAN (500 kbps) for sensors, \
+        EtherCAT for high-speed joint control (100 MHz cycle), I2C for auxiliary sensors, SPI for high-speed IMU. \
+        - Software stack: JetPack 5.x/6.x installation, ROS2 Humble/Iron setup, TensorRT for model optimization, \
+        CUDA/cuDNN for custom kernels, STM32CubeIDE for MCU development, real-time kernel (PREEMPT_RT patch). \
+        - Performance targets: Vision processing at 30 FPS (YOLO, semantic segmentation), Motor control at 1 kHz, \
+        AI inference <50ms latency, Power budget: 60W peak, 35W average. \
+        - Development workflow: Docker container for reproducible builds, VS Code with CUDA debugging, \
+        OpenOCD for STM32 debugging, unit test frameworks. \
+        - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and lead times. \
+        Include step-by-step bring-up procedure and validation checklist.".to_string(),
+        vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let arch_task2 = WorkspaceTask::new(
+        "Generate Standard Architecture Buildout Plan (Jetson Orin NX)".to_string(),
+        "Create complete buildout guide for standard configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson Orin NX 16GB ($699), 4× STM32F4 ($48), 2× RP2040 ($2), STM32F1 ($5), Total: $754. \
+        - Detailed assembly guide: Orin NX on official carrier or Seeed Studio J401, passive cooling (large heatsink, no fan for quieter operation), \
+        power via barrel jack (12V 5A) or PoE+ if supported, microSD card (256GB UHS-I) or optional M.2 NVMe. \
+        - MCU interconnect topology: Single CAN bus (500 kbps) for all motor control, I2C for sensors, UART for debug/telemetry, \
+        GPIO for safety interlocks (emergency stop, limit switches). \
+        - Software stack: JetPack 5.x, ROS2 Humble, TensorRT Lite for optimized models, OpenCV acceleration with CUDA, \
+        STM32CubeIDE for MCU, standard Linux kernel (not RT). \
+        - Performance targets: Vision at 20 FPS (MobileNet), Motor control at 500 Hz, AI inference <100ms, Power: 25W peak, 15W average. \
+        - Cost optimization strategies: Use MicroPython on RP2040 for rapid prototyping, leverage existing ROS2 packages \
+        instead of custom development, community-supported models (pre-trained weights). \
+        - Development workflow: Native development on Jetson, Thonny for RP2040, STM32CubeMX code generation. \
+        - BOM with cost breakdown and volume pricing (100+ unit discounts). \
+        Include quick-start guide and common troubleshooting.".to_string(),
+        vec![get_agent_id("Emily Zhang"), get_agent_id("Frank Wilson")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let arch_task3 = WorkspaceTask::new(
+        "Generate Budget Architecture Buildout Plan (Raspberry Pi + Coral)".to_string(),
+        "Create complete buildout guide for budget configuration. Include: \
+        - Hardware architecture: Raspberry Pi 5 8GB ($80), Google Coral USB Accelerator ($60), Hailo-8 M.2 ($250 alternative), \
+        4× RP2350 ($6), 2× RP2040 ($2), STM32F1 ($5), Total: $153-343 depending on AI accelerator choice. \
+        - Detailed assembly guide: RPi5 with official active cooler ($5), power via USB-C PD (5V 5A, 25W), NVMe via M.2 HAT \
+        (optional, $25 + $40 for 256GB), Coral plugged into USB3 port, RP2350 on custom PCB or breakout boards. \
+        - MCU interconnect topology: USB-to-CAN adapter for motor control, I2C over GPIO header for sensors, \
+        UART for RP2350 communication, SPI for additional peripherals. \
+        - Software stack: Raspberry Pi OS 64-bit (Debian Bookworm), ROS2 Humble (ARM64 build), TensorFlow Lite with Coral delegate, \
+        or Hailo SDK for Hailo-8, Arduino IDE or MicroPython for RP2350/RP2040, Python-based development (no C++ required). \
+        - Performance targets: Vision at 15 FPS (MobileNetV2 + Coral: 100 FPS inferences available but limited by camera), \
+        Motor control at 200 Hz, AI inference 10-30ms with Coral, Power: 15W total. \
+        - Limitations and workarounds: Limited RAM (use swap on NVMe), no hardware video encoding (use software codecs), \
+        single-threaded performance lower (optimize with NumPy/BLAS), USB bandwidth contention (prioritize Coral over other USB devices). \
+        - Development workflow: VS Code remote SSH, Jupyter notebooks for prototyping, GitHub Actions for CI/CD. \
+        - Educational focus: Great for learning, prototyping, university labs (cost-effective for multiple units). \
+        - BOM with Adafruit, SparkFun, and CanaKit part numbers. \
+        Include getting-started tutorial and upgrade path to Standard config.".to_string(),
+        vec![get_agent_id("David Johnson"), get_agent_id("Bob Martinez")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let arch_task4 = WorkspaceTask::new(
+        "Generate Alternative Architecture Comparison Matrix".to_string(),
+        "Create side-by-side comparison and migration guide between configurations. Include: \
+        - Comparison matrix: Performance (TOPS, FPS, latency), Power (peak, average, battery life impact), Cost (unit, volume, TCO), \
+        Development complexity (toolchain, learning curve, community support), Upgrade path (can Standard be upgraded to Premium?). \
+        - Use case recommendations: Premium for production deployment, research labs, commercial products; \
+        Standard for pilot programs, small-scale production, cost-sensitive applications; \
+        Budget for education, prototyping, proof-of-concept, hobbyist projects. \
+        - Migration guides: Budget to Standard (reuse RP2040/RP2350 I/O boards, upgrade compute and motor MCUs, \
+        software mostly compatible), Standard to Premium (mechanical fit requires redesign, software highly compatible, \
+        take advantage of extra compute for advanced features). \
+        - Software compatibility matrix: Which ROS2 packages work on all platforms, which require GPU (TensorRT vs TFLite), \
+        which require real-time kernel (motor control critical paths). \
+        - Hybrid configuration options: Mix and match (e.g., Jetson Orin NX with high-end STM32H7 for specific motor control needs). \
+        - Field upgrade procedures: How to swap compute module in production units (firmware compatibility, recalibration needs). \
+        - Supplier lead time comparison: Jetson (4-12 weeks), RPi (immediate-4 weeks), STM32 (immediate-8 weeks), RP2040 (immediate). \
+        Include decision tree flowchart for architecture selection.".to_string(),
+        vec![get_agent_id("Tina Martinez"), get_agent_id("Sam Johnson")],
+    )
+    .with_priority(TaskPriority::High);
+
+    let arch_tasks = vec![arch_task1, arch_task2, arch_task3, arch_task4];
+    let arch_buildout_results = coordinator
+        .coordinate_workspace_project(&platform_ws_id, arch_tasks)
+        .await?;
+
+    println!(
+        "   ✅ Completed {} architecture buildout plans\n",
+        arch_buildout_results.len()
+    );
+
     // Summary
     println!("\n==========================================================\n");
     println!("✅ All Projects Completed Across Organization!");
-    println!("\n📊 Project Summary:\n");
+    println!("\n📈 Project Summary:\n");
     println!(
         "   🏠 Robo-1 Development: {} tasks (Critical)",
         robo1_results.len()
     );
     println!(
-        "   🏗️ Robo-2 Development: {} tasks (Critical)",
+        "   🏭 Robo-2 Development: {} tasks (Critical)",
         robo2_results.len()
     );
     println!(
@@ -936,7 +1583,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         hw_results.len()
     );
     println!(
-        "   📊 Executive Strategy: {} tasks (Medium)",
+        "   📈 Executive Strategy: {} tasks (Medium)",
         exec_results.len()
     );
     println!(
@@ -944,6 +1591,56 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         prod_results.len()
     );
     println!("   🤝 Customer Success: {} tasks (Low)", cust_results.len());
+    println!("\n🛠️  Advanced Development Phases:\n");
+    println!(
+        "   🏭 Manufacturing Work Orders: {} packages (Critical)",
+        mfg_wo_results.len()
+    );
+    println!(
+        "   🔩 Assembly Procedures: {} documents (High)",
+        asm_results.len()
+    );
+    println!(
+        "   🧪 Validation Testing: {} protocols (Critical)",
+        val_results.len()
+    );
+    println!(
+        "   💻 Software Development: {} modules (Critical)",
+        sw_results.len()
+    );
+    println!(
+        "   📚 Documentation & Handoff: {} packages (Critical)",
+        doc_results.len()
+    );
+    println!("\n🌎 Production & Commercialization Phases:\n");
+    println!(
+        "   ⚖️ Regulatory & Compliance: {} packages (Critical)",
+        reg_results.len()
+    );
+    println!(
+        "   🌡️ Environmental & Durability Testing: {} plans (Critical)",
+        env_results.len()
+    );
+    println!(
+        "   🏭 Production Scaling: {} plans (Critical)",
+        scale_results.len()
+    );
+    println!(
+        "   🚀 Field Deployment & Operations: {} packages (High)",
+        deploy_results.len()
+    );
+    println!(
+        "   🔒 Cybersecurity & Data Protection: {} packages (Critical)",
+        cyber_results.len()
+    );
+    println!(
+        "   💻 Compute Platform Analysis: {} packages (Critical)",
+        hw_platform_results.len()
+    );
+    println!(
+        "   🏗️ Alternative Architecture Buildouts: {} plans (Critical)",
+        arch_buildout_results.len()
+    );
 
     let total_tasks = robo1_results.len()
         + robo2_results.len()
@@ -953,13 +1650,27 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         + hw_results.len()
         + exec_results.len()
         + prod_results.len()
-        + cust_results.len();
+        + cust_results.len()
+        + mfg_wo_results.len()
+        + asm_results.len()
+        + val_results.len()
+        + sw_results.len()
+        + doc_results.len()
+        + reg_results.len()
+        + env_results.len()
+        + scale_results.len()
+        + deploy_results.len()
+        + cyber_results.len()
+        + hw_platform_results.len()
+        + arch_buildout_results.len();
 
     println!("\n   📈 Total Tasks Executed: {}", total_tasks);
     println!(
-        "   🧠 Knowledge Captured: {} experiences stored in agent memories\n",
+        "   🧠 Knowledge Captured: {} experiences stored in agent memories",
         total_tasks
     );
+    println!("\n🎉 Complete Product Lifecycle - Concept to Commercialization!");
+    println!("   Design → Manufacturing → Testing → Software → Compliance → Production → Deployment → Security → Multi-Vendor Sourcing\n");
 
     Ok(())
 }
@@ -1022,18 +1733,31 @@ async fn display_organization_state(coordinator: &AgentCoordinator) -> Result<()
 }
 
 /// Generate summary report and save to files
-async fn generate_summary_report(output_dir: &PathBuf, coordinator: &AgentCoordinator, artifacts: &[Artifact]) -> Result<()> {
+async fn generate_summary_report(
+    output_dir: &PathBuf,
+    coordinator: &AgentCoordinator,
+    artifacts: &[Artifact],
+) -> Result<()> {
     let org = coordinator.get_organization().await;
 
     // Generate markdown summary
     let mut summary = String::new();
     summary.push_str("# RoboTech Industries Organization Demo Report\n\n");
-    summary.push_str(&format!("**Generated:** {}\n\n", chrono::Utc::now().to_rfc3339()));
+    summary.push_str(&format!(
+        "**Generated:** {}\n\n",
+        chrono::Utc::now().to_rfc3339()
+    ));
     summary.push_str("## Organization Overview\n\n");
     summary.push_str(&format!("- **Organization Name:** {}\n", org.name));
     summary.push_str(&format!("- **Total Agents:** {}\n", org.agents.len()));
-    summary.push_str(&format!("- **Total Workspaces:** {}\n", org.workspaces.len()));
-    summary.push_str(&format!("- **Artifacts Generated:** {}\n\n", artifacts.len()));
+    summary.push_str(&format!(
+        "- **Total Workspaces:** {}\n",
+        org.workspaces.len()
+    ));
+    summary.push_str(&format!(
+        "- **Artifacts Generated:** {}\n\n",
+        artifacts.len()
+    ));
 
     summary.push_str("## Agents by Role\n\n");
     for (_, agent) in org.agents.iter() {
@@ -1044,12 +1768,21 @@ async fn generate_summary_report(output_dir: &PathBuf, coordinator: &AgentCoordi
     for (_, workspace) in org.workspaces.iter() {
         summary.push_str(&format!("### {}\n", workspace.name));
         summary.push_str(&format!("**Description:** {}\n\n", workspace.description));
-        summary.push_str(&format!("**Team Members:** {}\n\n", workspace.member_agents.len()));
+        summary.push_str(&format!(
+            "**Team Members:** {}\n\n",
+            workspace.member_agents.len()
+        ));
 
-        let completed = workspace.tasks.iter()
+        let completed = workspace
+            .tasks
+            .iter()
             .filter(|t| matches!(t.status, the_agency::TaskStatus::Completed))
             .count();
-        summary.push_str(&format!("**Tasks:** {}/{} completed\n\n", completed, workspace.tasks.len()));
+        summary.push_str(&format!(
+            "**Tasks:** {}/{} completed\n\n",
+            completed,
+            workspace.tasks.len()
+        ));
     }
 
     summary.push_str("\n## Generated Artifacts\n\n");
@@ -1064,9 +1797,15 @@ async fn generate_summary_report(output_dir: &PathBuf, coordinator: &AgentCoordi
     for (artifact_type, items) in by_type.iter() {
         summary.push_str(&format!("### {}\n", artifact_type));
         for artifact in items {
-            summary.push_str(&format!("- **{}** (by {})\n", artifact.name, artifact.created_by));
+            summary.push_str(&format!(
+                "- **{}** (by {})\n",
+                artifact.name, artifact.created_by
+            ));
             summary.push_str(&format!("  - Workspace: {}\n", artifact.workspace));
-            summary.push_str(&format!("  - File: `artifacts/{}.{}`\n", artifact.name, artifact.file_extension));
+            summary.push_str(&format!(
+                "  - File: `artifacts/{}.{}`\n",
+                artifact.name, artifact.file_extension
+            ));
         }
         summary.push_str("\n");
     }
@@ -1202,7 +1941,8 @@ if __name__ == '__main__':
         controller.run()
     except rospy.ROSInterruptException:
         pass
-"#.to_string(),
+"#
+        .to_string(),
         file_extension: "py".to_string(),
         created_by: "David Johnson".to_string(),
         workspace: "Robo-1: Home Companion".to_string(),
@@ -1297,7 +2037,8 @@ mod tests {
         assert!(result.is_err());
     }
 }
-"#.to_string(),
+"#
+        .to_string(),
         file_extension: "rs".to_string(),
         created_by: "Henry Patel".to_string(),
         workspace: "Robo-2: Construction Assistant".to_string(),
@@ -1371,7 +2112,8 @@ safety:
       - "battery < 20%"
       - "temperature > 400C"
       - "structural instability detected"
-"#.to_string(),
+"#
+        .to_string(),
         file_extension: "yaml".to_string(),
         created_by: "Emily Zhang".to_string(),
         workspace: "Robo-3: Rescue Operations".to_string(),
@@ -1461,7 +2203,8 @@ wss://api.robotech.io/v1/ws/robots/{robot_id}
 ## Rate Limits
 - 100 requests per minute per API token
 - WebSocket: 1 connection per robot
-"#.to_string(),
+"#
+        .to_string(),
         file_extension: "md".to_string(),
         created_by: "Sam Johnson".to_string(),
         workspace: "Product Strategy".to_string(),
@@ -1543,7 +2286,8 @@ graph TB
 - Robot ↔ Cloud: MQTT over TLS
 - Cloud ↔ Clients: HTTPS/WSS
 - Inter-robot: Direct mesh networking
-"#.to_string(),
+"#
+        .to_string(),
         file_extension: "md".to_string(),
         created_by: "Paul Chen".to_string(),
         workspace: "Executive Leadership".to_string(),
@@ -1621,7 +2365,8 @@ pass_criteria = "Boot time < 30s, all systems green"
 lead_time_days = 45
 safety_stock_weeks = 4
 primary_suppliers = ["AcmeTech Motors", "SensorCorp", "JetsonSupply"]
-"#.to_string(),
+"#
+        .to_string(),
         file_extension: "toml".to_string(),
         created_by: "Jack Thompson".to_string(),
         workspace: "Manufacturing Excellence".to_string(),
@@ -1634,25 +2379,28 @@ primary_suppliers = ["AcmeTech Motors", "SensorCorp", "JetsonSupply"]
 async fn write_artifacts(output_dir: &PathBuf, artifacts: &[Artifact]) -> Result<()> {
     for artifact in artifacts {
         let subdir = match artifact.artifact_type {
-            ArtifactType::DesignDocument | ArtifactType::ApiSpecification | ArtifactType::TechnicalReport => "design_docs",
+            ArtifactType::DesignDocument
+            | ArtifactType::ApiSpecification
+            | ArtifactType::TechnicalReport => "design_docs",
             ArtifactType::PythonCode | ArtifactType::RustCode => "code",
             ArtifactType::YamlConfig | ArtifactType::TomlConfig => "configs",
             ArtifactType::ArchitectureDiagram => "diagrams",
         };
-        
+
         let file_path = output_dir
             .join("artifacts")
             .join(subdir)
             .join(format!("{}.{}", artifact.name, artifact.file_extension));
-        
+
         fs::write(&file_path, &artifact.content)?;
-        println!("  📄 {}/{}/{}.{}", 
+        println!(
+            "  📄 {}/{}/{}.{}",
             output_dir.join("artifacts").display(),
             subdir,
-            artifact.name, 
+            artifact.name,
             artifact.file_extension
         );
     }
-    
+
     Ok(())
 }

@@ -7,9 +7,8 @@ use anyhow::Result;
 use std::sync::Arc;
 use the_agency::{
     organization::{
-        coordinator::AgentCoordinator,
-        CollaborativeWorkspace, Organization, OrganizationAgent, OrganizationRole, TaskPriority,
-        WorkspaceTask,
+        coordinator::AgentCoordinator, CollaborativeWorkspace, Organization, OrganizationAgent,
+        OrganizationRole, TaskPriority, WorkspaceTask,
     },
     AgentConfig,
 };

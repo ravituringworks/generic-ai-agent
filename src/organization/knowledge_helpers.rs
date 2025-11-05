@@ -185,12 +185,8 @@ pub fn find_similar_tasks(
         .iter()
         .filter(|m| {
             // Filter by task type if it matches
-            m.metadata
-                .get("task_type")
-                .is_some_and(|t| t == task_type)
-                || m.metadata
-                    .get("task_type")
-                    .is_some_and(|t| t == "general")
+            m.metadata.get("task_type").is_some_and(|t| t == task_type)
+                || m.metadata.get("task_type").is_some_and(|t| t == "general")
         })
         .map(|memory| {
             let content_lower = memory.content.to_lowercase();
@@ -222,7 +218,6 @@ pub fn find_similar_tasks(
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     #[test]
     fn test_extract_task_type() {

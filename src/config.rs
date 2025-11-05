@@ -479,7 +479,7 @@ impl Default for LlmConfig {
             embedding_model: "nomic-embed-text".to_string(),
             max_tokens: 4096,
             temperature: 0.7,
-            timeout: 600,  // 10 minutes to allow for model loading and inference with Ollama
+            timeout: 600, // 10 minutes to allow for model loading and inference with Ollama
             stream: false,
             task_models: HashMap::new(),
             cache: LlmCacheConfig::default(),

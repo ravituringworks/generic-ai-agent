@@ -1,9 +1,9 @@
-use the_agency::{
-    AgentConfig, Organization, OrganizationAgent, OrganizationRole,
-    CollaborativeWorkspace, WorkspaceTask, TaskPriority,
-};
-use the_agency::organization::coordinator::AgentCoordinator;
 use anyhow::Result;
+use the_agency::organization::coordinator::AgentCoordinator;
+use the_agency::{
+    AgentConfig, CollaborativeWorkspace, Organization, OrganizationAgent, OrganizationRole,
+    TaskPriority, WorkspaceTask,
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -33,10 +33,8 @@ async fn main() -> Result<()> {
     org.add_agent(bob);
 
     // Create workspace
-    let workspace = CollaborativeWorkspace::new(
-        "Test Workspace".to_string(),
-        "Simple test".to_string(),
-    );
+    let workspace =
+        CollaborativeWorkspace::new("Test Workspace".to_string(), "Simple test".to_string());
     let ws_id = workspace.id.clone();
     org.create_workspace(workspace);
     org.assign_agent_to_workspace(&alice_id, &ws_id)?;
@@ -58,7 +56,9 @@ async fn main() -> Result<()> {
     config.agent.max_thinking_steps = 1;
     config.workflow.enable_suspend_resume = false;
 
-    coordinator.spawn_agent(alice_id.clone(), config.clone()).await?;
+    coordinator
+        .spawn_agent(alice_id.clone(), config.clone())
+        .await?;
     println!("  ✓ Spawned Alice");
 
     coordinator.spawn_agent(bob_id.clone(), config).await?;
@@ -71,10 +71,13 @@ async fn main() -> Result<()> {
         "Say hello".to_string(),
         "Just say hello in 5 words".to_string(),
         vec![alice_id.clone()],
-    ).with_priority(TaskPriority::High);
+    )
+    .with_priority(TaskPriority::High);
 
     // Execute task
-    let results = coordinator.coordinate_workspace_project(&ws_id, vec![task]).await?;
+    let results = coordinator
+        .coordinate_workspace_project(&ws_id, vec![task])
+        .await?;
 
     println!("\n✅ SUCCESS! Results:");
     for result in &results {

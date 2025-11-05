@@ -238,7 +238,9 @@ impl AgentCoordinator {
             // Get Arc to the agent without holding the outer lock
             let agent_arc = {
                 let agents_read = self.active_agents.read().await;
-                agents_read.get(agent_id).cloned()
+                agents_read
+                    .get(agent_id)
+                    .cloned()
                     .ok_or_else(|| anyhow::anyhow!("Agent {} not found", agent_id))?
             };
 

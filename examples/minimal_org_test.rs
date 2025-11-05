@@ -1,5 +1,5 @@
-use the_agency::{Agent, AgentConfig};
 use anyhow::Result;
+use the_agency::{Agent, AgentConfig};
 
 #[tokio::main]
 async fn main() -> Result<()> {

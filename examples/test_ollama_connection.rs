@@ -1,5 +1,5 @@
 use the_agency::config::LlmConfig;
-use the_agency::llm::{OllamaClient, LlmClient, user_message, system_message};
+use the_agency::llm::{system_message, user_message, LlmClient, OllamaClient};
 
 #[tokio::main]
 async fn main() {

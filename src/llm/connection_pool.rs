@@ -35,7 +35,6 @@ impl OllamaConnectionPool {
         }
     }
 
-
     /// Acquire a permit to make a request
     /// This will block if all connections are in use
     pub async fn acquire(&self) -> ConnectionPermit {

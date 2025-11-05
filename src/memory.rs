@@ -177,7 +177,34 @@ impl MemoryStore for SqliteMemoryStore {
                 MemoryError::StorageFailed("No database URL provided".to_string())
             })?;
 
-        let pool = SqlitePool::connect(database_url).await?;
+        // Ensure the directory for the database file exists
+        if let Some(db_path) = database_url.strip_prefix("sqlite:") {
+            // Remove any query parameters to get just the file path
+            let db_path = db_path.split('?').next().unwrap_or(db_path);
+            if let Some(parent) = std::path::Path::new(db_path).parent() {
+                if !parent.as_os_str().is_empty() {
+                    std::fs::create_dir_all(parent).map_err(|e| {
+                        MemoryError::StorageFailed(format!(
+                            "Failed to create database directory: {}",
+                            e
+                        ))
+                    })?;
+                }
+            }
+        }
+
+        // Add SQLite create mode if not present
+        let database_url = if database_url.contains('?') {
+            if !database_url.contains("mode=") {
+                format!("{}&mode=rwc", database_url)
+            } else {
+                database_url.clone()
+            }
+        } else {
+            format!("{}?mode=rwc", database_url)
+        };
+
+        let pool = SqlitePool::connect(&database_url).await?;
 
         // Create the memories table
         sqlx::query(

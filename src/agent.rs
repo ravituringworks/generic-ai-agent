@@ -338,7 +338,10 @@ impl Agent {
         }
 
         // Generate response
-        info!("About to call LLM.generate with {} messages", messages.len());
+        info!(
+            "About to call LLM.generate with {} messages",
+            messages.len()
+        );
         let generation_result = self.llm.generate(&messages).await.map_err(|e| {
             error!("LLM generate failed: {}", e);
             e
