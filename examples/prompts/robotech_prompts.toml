@@ -1,0 +1,643 @@
+# RoboTech Industries - Task Prompt Configuration
+# 
+# This file contains all task prompts for the multi-agent organization examples.
+# Prompts can be updated without code changes - agents will generate code based on requirements.
+# 
+# Template variables: {variable_name} will be replaced at runtime
+# Available variables: agent_names, hardware_options, software_stack, budget, timeline, etc.
+
+[meta]
+version = "1.0.0"
+description = "RoboTech Industries humanoid robot development prompts"
+last_updated = "2025-01-05"
+
+# ========================================
+# HARDWARE PLATFORM ANALYSIS (Phase 20)
+# ========================================
+
+[hardware.compute_platform_analysis]
+title = "Generate Compute Platform Trade-off Analysis"
+priority = "Critical"
+assigned_roles = ["SoftwareEngineerSimulation", "ResearchEngineerScaling"]
+requirements = """
+Create comprehensive compute platform comparison and trade-off analysis for 2025.
+
+REQUIREMENTS:
+1. Platform Options Analysis
+   - Flagship: NVIDIA Jetson AGX Thor (2000 TOPS, $2499, Grace CPU + Blackwell GPU, 100W, 2025 release)
+   - Premium: NVIDIA Jetson AGX Orin 64GB (275 TOPS, $1999, 60W)
+   - Standard: NVIDIA Jetson Orin NX 16GB (100 TOPS, $699, 25W)
+   - Budget: Raspberry Pi 5 + AI Accelerator ($153-392, 15-50 TOPS)
+   - Alternatives: Intel Core Ultra 9 (30 TOPS NPU), AMD Ryzen AI 9 HX 370 (50 TOPS NPU), Qualcomm Snapdragon X Elite (45 TOPS NPU)
+
+2. Performance Benchmarks (agents should provide specific test methodologies)
+   - AI inference throughput (TOPS measurements, latency tests)
+   - Vision processing (frame rates, resolution, model types: YOLO, transformers)
+   - Multi-modal AI capabilities (vision-language models, audio processing)
+
+3. Power Analysis (agents should create detailed power profiles)
+   - Thermal design and cooling requirements
+   - Battery runtime impact calculations
+   - Peak vs sustained performance trade-offs
+
+4. Cost Analysis (agents should generate TCO models)
+   - Unit cost at volumes: 1, 100, 1000, 10K units
+   - Development kit and ecosystem costs
+   - Software licensing and support fees
+
+5. Software Ecosystem Assessment
+   - SDK maturity scores (TensorRT, OpenVINO, TFLite, ONNX Runtime)
+   - ROS2 Jazzy compatibility matrix
+   - Developer community size and activity
+
+6. Supply Chain Risk Assessment
+   - Lead time analysis and forecasts
+   - Multi-sourcing opportunities
+   - EOL roadmaps and lifecycle planning
+   - 2025 geopolitical and tariff considerations
+
+7. Deliverables (agents must generate):
+   - Comparison matrix (spreadsheet format)
+   - Performance/watt and performance/dollar charts
+   - Recommendation matrix for 4 configurations
+   - Decision tree flowchart
+   - BOM with supplier part numbers
+
+EXAMPLE OUTPUT STRUCTURE:
+   |Platform    |TOPS |Power|Cost  |Lead Time|Use Case           |
+   |------------|-----|-----|------|---------|-------------------|
+   |Thor        |2000 |100W |$2499 |12-20wks |Cutting-edge AI    |
+   |AGX Orin    |275  |60W  |$1999 |4-8wks   |Production         |
+   |...         |...  |...  |...   |...      |...                |
+
+NOTE: Agents should generate actual test code, analysis scripts, and documentation - NOT just descriptions.
+"""
+
+[hardware.microcontroller_selection]
+title = "Generate Microcontroller Selection & Sourcing Matrix"
+priority = "Critical"
+assigned_roles = ["ManufacturingEngineer", "RoboticsEngineerControlsTesting"]
+requirements = """
+Create microcontroller selection guide and multi-vendor sourcing strategy for 2025.
+
+REQUIREMENTS:
+1. Motor Control MCU Options
+   - High-performance: STM32H7 (550MHz, $15-25), NXP i.MX RT1180 (1.2GHz dual-core, $12-20)
+   - Mid-range: STM32U5 (ultra-low power, $8-18), NXP MCXN947 (150MHz, $6-12)
+   - Specialized: STM32G4 (motor-optimized, $5-10), TI TMS320F28P65 (200MHz DSP, $18-30)
+   - Budget: RP2350 (dual Cortex-M33 + RISC-V, $0.80-1.50)
+
+2. I/O Control MCU Options
+   - RP2350/RP2040 (dual-core, PIO for flexible I/O)
+   - ESP32-C6 (RISC-V, WiFi 6, $2-4)
+   - STM32C0 (entry-level, $0.50-2)
+   - Arduino Portenta C33 ($25-35, prototyping)
+
+3. Selection Criteria (agents should create scoring rubric)
+   - Real-time performance (control loop frequencies)
+   - Peripheral requirements (timers, ADCs, CAN-FD, EtherCAT)
+   - Development tools and debugger costs
+   - Community support and library availability
+   - Security features (TrustZone, secure boot)
+
+4. Configuration Recommendations
+   - Flagship: 4× STM32H7 + 2× RP2350 + STM32G4
+   - Premium: 4× STM32H7 + 2× RP2350 + STM32G4
+   - Standard: 4× STM32U5 + 2× RP2350 + NXP MCXN947
+   - Budget: 4× RP2350 + 2× ESP32-C6 + STM32C0
+
+5. Dual-Sourcing Strategy
+   - Primary suppliers: Mouser, DigiKey
+   - Secondary: Newark/Avnet, Arrow
+   - Direct: Raspberry Pi (for RP2xxx), STMicroelectronics (volume orders)
+
+6. Deliverables (agents must generate):
+   - Selection matrix with scoring
+   - Pinout compatibility table for drop-in replacements
+   - Configuration comparison spreadsheet
+   - Lead time tracking dashboard
+   - Inventory planning calculator
+
+EXAMPLE CONFIGURATIONS:
+   Flagship:  4× STM32H7 ($80) + 2× RP2350 ($3) + STM32G4 ($8) = $91 MCU cost
+   Standard:  4× STM32U5 ($52) + 2× RP2350 ($3) + MCXN947 ($8) = $63 MCU cost
+
+NOTE: Agents should generate actual selection tools, comparison scripts, and procurement documentation.
+"""
+
+[hardware.supply_chain_qualification]
+title = "Generate Second-Source Qualification Plan"
+priority = "High"
+assigned_roles = ["ManufacturingEngineer", "ProductManager"]
+requirements = """
+Create supplier qualification and second-sourcing procedures for 2025 supply chain resilience.
+
+REQUIREMENTS:
+1. Supplier Qualification Criteria
+   - Quality certifications (ISO 9001, AS9100, IATF 16949)
+   - Financial stability (Dun & Bradstreet rating, public filings)
+   - Technical support responsiveness (SLA requirements)
+   - RMA/warranty terms and processes
+   - Compliance (conflict minerals, RoHS, REACH)
+   - Sustainability certifications
+
+2. Component-Category Sourcing Matrix
+   - Jetson modules (Thor, Orin): NVIDIA Direct/Partner Network, DigiKey, Arrow, Mouser
+   - STM32 MCUs: Mouser (primary), DigiKey (secondary), Direct for volume
+   - RP2xxx: Raspberry Pi Direct, DigiKey, Adafruit, SparkFun
+   - Connectors: Molex/McMaster-Carr, TE/DigiKey, JST/Mouser, Hirose/Newark
+   - Passives: Yageo/DigiKey, Vishay/Mouser, Samsung/Arrow, Murata/DigiKey
+
+3. Validation Process
+   - Electrical equivalence testing protocols
+   - Software compatibility verification procedures
+   - Reliability testing (sample lot evaluation)
+   - Thermal characterization methods
+   - EMC/EMI compliance validation
+
+4. Risk Mitigation Strategies
+   - Geopolitical risk assessment (2025 tariff implications)
+   - Natural disaster contingency planning
+   - Single-source risk identification
+   - Strategic inventory: 6-12 month buffer for Thor, 3-6 months for MCUs
+
+5. Supplier Performance Monitoring
+   - On-time delivery KPIs
+   - Quality PPM targets (<100 PPM)
+   - Cost competitiveness reviews (quarterly)
+   - Technology roadmap alignment
+
+6. Transition Plans
+   - Triggers: lead time >12 weeks, price increase >15%, quality issues
+   - Qualification timeline: 8-12 weeks for Thor, 6-8 weeks for established MCUs
+
+7. Deliverables (agents must generate):
+   - Approved Vendor List (AVL) template
+   - Qualification checklist and scorecard
+   - 2025 supply chain resilience dashboard
+   - Transition playbook with decision trees
+   - Risk monitoring automation scripts
+
+NOTE: Agents should generate actual qualification procedures, monitoring tools, and automated alerts.
+"""
+
+[hardware.configuration_management]
+title = "Generate Hardware Configuration Management Strategy"
+priority = "High"
+assigned_roles = ["ManufacturingEngineer", "ProductManager"]
+requirements = """
+Create variant BOM management and configuration control system for multi-tier product line.
+
+REQUIREMENTS:
+1. Hardware Variant Definitions
+   - Flagship: Jetson AGX Thor + STM32H7 ($2590 compute, 2025 latest, 2000 TOPS)
+   - Premium: Jetson AGX Orin 64GB + STM32H7 ($2090 compute, 275 TOPS)
+   - Standard: Jetson Orin NX 16GB + STM32U5 ($762 compute, 100 TOPS)
+   - Economy: RPi5 + Coral/Hailo + RP2350 ($153-392 compute)
+
+2. PLM System Selection
+   - Evaluate: Arena PLM, Fusion 360 Manage, PTC Windchill, Odoo
+   - Requirements: part numbering, revision control, where-used, obsolescence tracking
+
+3. Configuration Management
+   - Variant part matrix (form-fit-function analysis)
+   - Build configurations (Robo-1/2/3 × compute tiers)
+   - Option codes: R1-FLG-THR (Robo-1, Flagship, Thor), R1-STD-JNX (Standard, Orin NX)
+
+4. Change Control Process
+   - ECO workflow with impact analysis
+   - Validation requirements matrix
+   - Customer notification procedures
+   - Regulatory compliance tracking (FCC, CE, UL, RoHS)
+
+5. Cost Rollup Models
+   - Material cost by configuration
+   - Assembly labor and test time
+   - Warranty reserves allocation
+   - Volume discounts: 1, 100, 1000, 10K units
+
+6. Supplier Cross-Reference
+   - Alternate parts matrix (form-fit-function equivalents)
+   - Preferred parts list with lifecycle status
+   - 2025 semiconductor shortage mitigation strategies
+
+7. Software Compatibility Matrix
+   - Firmware version requirements per hardware config
+   - Backward compatibility strategy
+   - Jetson Thor: JetPack 7.x+ required
+   - Multi-modal AI capability mapping
+
+8. Deliverables (agents must generate):
+   - Configuration Control Board (CCB) charter
+   - ECO template with workflow automation
+   - BOM management system implementation
+   - 2025 hardware roadmap alignment document
+   - Variant cost calculator spreadsheet
+
+NOTE: Agents should generate actual PLM workflows, automated tools, and decision support systems.
+"""
+
+# ========================================
+# ARCHITECTURE BUILDOUT PLANS (Phase 21)
+# ========================================
+
+[architecture.flagship_thor]
+title = "Generate Flagship Architecture Buildout Plan (Jetson AGX Thor - 2025)"
+priority = "Critical"
+assigned_roles = ["SoftwareEngineerSimulation", "ResearchEngineerScaling"]
+requirements = """
+Create complete buildout guide for flagship 2025 configuration with Jetson AGX Thor.
+
+REQUIREMENTS:
+1. Hardware Architecture ($2590 total)
+   - Compute: NVIDIA Jetson AGX Thor ($2499, 2000 TOPS, Grace CPU + Blackwell GPU, 64GB unified memory)
+   - MCUs: 4× STM32H7 ($80), 2× RP2350 ($3), STM32G4 ($8)
+   - Expected availability: 2025, 12-20 week lead time
+
+2. Assembly Guide (agents should create detailed procedures)
+   - Thor carrier board (official dev kit, custom carrier roadmap)
+   - Advanced thermal solution: dual-fan + vapor chamber, optional 120mm radiator
+   - Power: 48V 10A PoE++ or barrel connector, USB-C PD 240W
+   - Storage: PCIe Gen5 NVMe (2TB Samsung 990 PRO)
+   - Optional: 10GbE network card
+
+3. Interconnect Topology
+   - Primary CAN-FD: 5 Mbps for motor controllers
+   - Secondary CAN-FD: 2 Mbps for sensors
+   - EtherCAT: 1 GHz cycle for high-speed joint control
+   - TSN (Time-Sensitive Networking): deterministic communications
+   - I2C: auxiliary sensors, SPI: high-speed IMU arrays
+
+4. Software Stack
+   - JetPack 7.x (Thor-optimized)
+   - ROS2 Jazzy/Rolling
+   - TensorRT 10+ for transformer optimization
+   - CUDA 13+ with Blackwell features
+   - STM32CubeIDE 1.15+ for MCU development
+   - Real-time kernel: PREEMPT_RT or Xenomai
+
+5. Performance Targets
+   - Vision: 60 FPS (YOLO v10, ViT transformers)
+   - Multi-modal AI: vision-language models (CLIP, LLaVA)
+   - Motor control: 2 kHz update rate
+   - AI inference: <20ms latency for large models
+   - Power: 100W peak, 60W average
+
+6. Development Workflow
+   - Docker/Podman containers for reproducibility
+   - VS Code with CUDA 13 debugging, Nsight Systems profiling
+   - OpenOCD for STM32 debugging
+   - pytest + ROS2 test frameworks
+
+7. Deliverables (agents must generate):
+   - Step-by-step bring-up procedure document
+   - Thor-specific validation checklist
+   - Migration guide from Orin to Thor
+   - BOM with DigiKey, Mouser, Arrow part numbers
+   - Complete assembly instructions with photos/diagrams
+   - Troubleshooting guide
+   - Performance benchmarking scripts
+
+EXAMPLE OUTPUT: Agents should generate actual setup scripts, testing code, validation procedures.
+"""
+
+[architecture.premium_orin]
+title = "Generate Premium Architecture Buildout Plan (Jetson AGX Orin - 2025 Optimized)"
+priority = "Critical"
+assigned_roles = ["SoftwareEngineerPlatforms", "ManufacturingEngineer"]
+requirements = """
+Create complete buildout guide for premium configuration with proven Jetson AGX Orin platform.
+
+REQUIREMENTS:
+1. Hardware Architecture ($2090 total)
+   - Compute: NVIDIA Jetson AGX Orin 64GB ($1999, 275 TOPS, 60W)
+   - MCUs: 4× STM32H7 ($80), 2× RP2350 ($3), STM32G4 ($8)
+   - Lead time: 4-8 weeks (established supply chain)
+
+2. Assembly Guide
+   - Orin carrier board: official or ConnectTech Rogue-X
+   - Active cooling: 40mm Noctua fan, copper heat sink
+   - Power: 19V 6.3A barrel or USB-C PD 100W
+   - Storage: M.2 NVMe (1TB Samsung 990 EVO)
+
+3. Interconnect Topology
+   - Primary CAN-FD: 2 Mbps for motor controllers
+   - Secondary CAN: 500 kbps for sensors
+   - EtherCAT: 100 MHz cycle for joint control
+   - I2C: auxiliary sensors, SPI: high-speed IMU
+
+4. Software Stack
+   - JetPack 6.x
+   - ROS2 Jazzy
+   - TensorRT 9+ for model optimization
+   - CUDA 12/cuDNN for custom kernels
+   - STM32CubeIDE 1.15+
+   - PREEMPT_RT real-time kernel
+
+5. Performance Targets
+   - Vision: 30 FPS (YOLO v8/v9, semantic segmentation)
+   - Motor control: 1 kHz update rate
+   - AI inference: <50ms latency
+   - Power: 60W peak, 35W average
+
+6. Development Workflow
+   - Docker containers for reproducible builds
+   - VS Code with CUDA debugging
+   - OpenOCD/ST-Link for STM32
+   - pytest + gtest frameworks
+
+7. Deliverables (agents must generate):
+   - Complete bring-up procedure
+   - Validation checklist with acceptance criteria
+   - Thor upgrade path analysis
+   - BOM with 2025 lead times and pricing
+   - Assembly procedures with verification steps
+   - Performance optimization guide
+
+NOTE: Agents should generate production-ready documentation, not just specifications.
+"""
+
+[architecture.standard_orin_nx]
+title = "Generate Standard Architecture Buildout Plan (Jetson Orin NX - 2025)"
+priority = "High"
+assigned_roles = ["SoftwareEngineerPlatforms", "ManufacturingEngineer"]
+requirements = """
+Create complete buildout guide for standard configuration optimized for cost-performance balance.
+
+REQUIREMENTS:
+1. Hardware Architecture ($762 total)
+   - Compute: NVIDIA Jetson Orin NX 16GB ($699, 100 TOPS, 25W)
+   - MCUs: 4× STM32U5 ($52), 2× RP2350 ($3), NXP MCXN947 ($8)
+   - Lead time: 2-6 weeks
+
+2. Assembly Guide
+   - Orin NX carrier: official or Seeed Studio Recomputer J401
+   - Passive cooling: low-profile heatsink (fanless operation)
+   - Power: 12V 5A barrel or PoE+ (802.3at)
+   - Storage: microSD (256GB UHS-I) or M.2 2242 NVMe
+
+3. Interconnect Topology
+   - CAN-FD: 1 Mbps for motor control
+   - I2C: sensors, UART: debug/telemetry
+   - GPIO: safety interlocks (e-stop, limit switches)
+   - USB-C: RP2350 programming
+
+4. Software Stack
+   - JetPack 6.x
+   - ROS2 Jazzy
+   - TensorRT 9+ (INT8 quantization)
+   - OpenCV with CUDA acceleration
+   - STM32CubeIDE
+   - Linux 6.x kernel (low-latency config)
+
+5. Performance Targets
+   - Vision: 25 FPS (MobileNet v3, EfficientDet)
+   - Motor control: 500 Hz
+   - AI inference: <80ms
+   - Power: 25W peak, 15W average
+
+6. Cost Optimization Strategies
+   - MicroPython on RP2350 for rapid I/O prototyping
+   - Leverage ROS2 Nav2/MoveIt packages
+   - Quantized INT8 models via TensorRT
+   - Community pre-trained weights
+
+7. Deliverables (agents must generate):
+   - Quick-start guide for rapid deployment
+   - Common troubleshooting procedures
+   - Upgrade paths to Premium/Flagship
+   - BOM with volume pricing (100+, 1000+)
+   - Cost-saving recommendations
+   - Performance tuning guide
+
+NOTE: Focus on practical, cost-effective solutions that agents can implement.
+"""
+
+[architecture.budget_rpi5]
+title = "Generate Budget Architecture Buildout Plan (Raspberry Pi 5 + AI Accelerator)"
+priority = "High"
+assigned_roles = ["SoftwareEngineerSimulation", "ResearchEngineerAutonomy"]
+requirements = """
+Create complete buildout guide for budget configuration optimized for education and prototyping.
+
+REQUIREMENTS:
+1. Hardware Architecture ($153-392 total)
+   - Compute: Raspberry Pi 5 8GB ($80)
+   - AI Accelerator: Google Coral USB ($60) OR Hailo-8L M.2 ($299)
+   - MCUs: 4× RP2350 ($6), 2× ESP32-C6 ($6), STM32C0 ($1)
+   - Lead time: immediate to 2 weeks
+
+2. Assembly Guide
+   - RPi5 with official active cooler ($5)
+   - Power: USB-C PD (5V 5A, 27W official PSU)
+   - Storage: NVMe via M.2 HAT+ ($12 + $40 for 256GB WD SN740)
+   - AI: Coral USB or Hailo-8L on M.2 slot
+   - MCUs: RP2350 on breadboard or custom PCB
+
+3. Interconnect Topology
+   - USB-to-CAN adapter (PEAK PCAN-USB, $150) for motor control
+   - I2C over GPIO for sensors
+   - UART for RP2350 communication
+   - SPI for peripherals
+   - WiFi 6 via ESP32-C6 for wireless telemetry
+
+4. Software Stack
+   - Raspberry Pi OS 64-bit (Debian Bookworm 12)
+   - ROS2 Jazzy (ARM64)
+   - TensorFlow Lite with Coral/Hailo delegate
+   - Arduino IDE 2.3+ or MicroPython for RP2350/ESP32-C6
+   - Python 3.11+ based development
+
+5. Performance Targets
+   - Vision: 20 FPS (MobileNetV3, camera-limited despite 100 FPS inference capability)
+   - Motor control: 250 Hz
+   - AI inference: 10-25ms with accelerator
+   - Power: 15W total system
+
+6. Limitations & Workarounds
+   - Limited 8GB RAM → 4GB swap on NVMe
+   - No hardware H.265 encoding → CPU-based codecs
+   - Lower single-thread performance → NumPy + OpenBLAS optimization
+   - USB3 bandwidth sharing → prioritize Coral traffic
+
+7. Development Workflow
+   - VS Code remote SSH
+   - Jupyter Lab for ML prototyping
+   - GitHub Actions CI/CD
+   - Docker for deployment
+
+8. Educational Focus
+   - Ideal for universities, maker spaces
+   - Cost-effective for learning robotics
+   - Large community support
+   - Clear upgrade path to Jetson
+
+9. Deliverables (agents must generate):
+   - Beginner-friendly tutorial
+   - Troubleshooting guide with common issues
+   - Upgrade path to Standard (Orin NX)
+   - BOM with Adafruit, SparkFun, CanaKit, Pimoroni part numbers
+   - Educational curriculum outline
+   - Classroom lab setup guide
+
+NOTE: Agents should create accessible, educational materials suitable for beginners.
+"""
+
+[architecture.comparison_matrix]
+title = "Generate 2025 Architecture Comparison & Migration Guide"
+priority = "Critical"
+assigned_roles = ["ManufacturingEngineer", "ProductManager"]
+requirements = """
+Create comprehensive comparison matrix and migration guide for all 2025 configurations.
+
+REQUIREMENTS:
+1. Multi-Dimensional Comparison Matrix
+   - Performance: TOPS, FPS, latency, transformer throughput
+   - Power: peak, average, battery runtime estimates
+   - Cost: unit cost at 1/100/1000/10K volumes, TCO over 3 years
+   - Development: toolchain maturity, learning curve, ecosystem size
+
+2. Use Case Recommendations
+   - Flagship (Thor): Cutting-edge AI products, high-end commercial robots, research institutions
+   - Premium (AGX Orin): Production deployment, enterprise robotics, advanced autonomy
+   - Standard (Orin NX): Pilot programs, mid-scale production, cost-performance balance
+   - Budget (RPi5): Education, rapid prototyping, proof-of-concept, makerspaces
+
+3. Migration Guides
+   - Budget → Standard:
+     * Reuse: RP2350/ESP32-C6 I/O boards
+     * Upgrade: Compute module, motor control MCUs
+     * Software: 85% compatible, recompile for Jetson
+   - Standard → Premium:
+     * Carrier board: May require redesign
+     * Software: Highly compatible, unlock advanced features
+     * Power: Upgrade PSU and cooling
+   - Premium → Flagship:
+     * Thor: Requires new carrier board (different form factor)
+     * Software: JetPack 7.x migration, CUDA 13+ updates
+     * Capability: Leverage 2000 TOPS for multi-modal AI, VLMs
+
+4. Software Compatibility Analysis
+   - ROS2 packages: Which work on all platforms
+   - GPU requirements: TensorRT vs TFLite vs Hailo SDK
+   - RT kernel needs: Motor control, sensor fusion critical paths
+   - 2025 LLM/VLM support: Thor optimized for transformers
+
+5. Hybrid Configuration Options
+   - Mix-and-match: Orin NX + premium STM32H7 for specific needs
+   - Cost optimization: Thor + budget I/O boards
+   - Custom configurations for unique requirements
+
+6. Field Upgrade Procedures
+   - Compute module swap in deployed units
+   - Firmware compatibility verification
+   - Sensor recalibration procedures
+   - AI model retraining/quantization
+
+7. 2025 Supply Chain Timelines
+   - Thor: 12-20 weeks (limited early availability)
+   - AGX Orin: 4-8 weeks (mature supply chain)
+   - Orin NX: 2-6 weeks
+   - RPi5: immediate-2 weeks
+   - MCUs: immediate-8 weeks (varies by model)
+
+8. Future-Proofing Analysis
+   - Thor roadmap: updates through 2027+
+   - Orin lifecycle: 2028+ EOL expected
+   - Software support timelines
+   - Technology evolution predictions
+
+9. Deliverables (agents must generate):
+   - Interactive decision tree flowchart
+   - ROI calculator spreadsheet with customizable parameters
+   - 2025 market trends analysis report
+   - Migration project templates
+   - Cost-benefit analysis tools
+   - Risk assessment matrices
+
+NOTE: Agents should create actionable decision support tools, not just documentation.
+"""
+
+# ========================================
+# PROMPT TEMPLATES CONFIGURATION
+# ========================================
+
+[templates]
+# Template variables that can be used in all prompts
+available_variables = [
+    "project_name",
+    "budget",
+    "timeline",
+    "team_size",
+    "agent_names",
+    "hardware_tier",  # flagship, premium, standard, budget
+    "software_stack",
+    "target_market",
+    "regulatory_requirements"
+]
+
+[templates.output_format]
+# Standard output formats agents should follow
+deliverable_structure = """
+REQUIRED DELIVERABLE STRUCTURE:
+1. Executive Summary (1 page)
+2. Detailed Analysis (agent-generated content)
+3. Implementation Guide (step-by-step procedures)
+4. Code/Scripts (actual working code, not pseudocode)
+5. Testing Procedures (validation and verification)
+6. Documentation (user guides, API docs)
+7. BOM/Specifications (with part numbers and suppliers)
+8. Timeline and Milestones
+9. Risk Assessment
+10. Recommendations and Next Steps
+"""
+
+code_examples_note = """
+CODE GENERATION POLICY:
+- Agents MUST generate actual working code, NOT pseudo-code or descriptions
+- Include complete implementations with error handling
+- Provide unit tests and integration tests
+- Add inline documentation and usage examples
+- Include requirements.txt / Cargo.toml / package.json as needed
+- Generate configuration files (YAML, TOML, JSON)
+- Create automation scripts for deployment and testing
+"""
+
+# ========================================
+# AGENT BEHAVIOR GUIDELINES
+# ========================================
+
+[agent_guidelines]
+code_generation = """
+When generating code, agents must:
+1. Create complete, executable implementations
+2. Include proper error handling and logging
+3. Add comprehensive unit tests
+4. Provide usage examples and documentation
+5. Follow best practices for the language/framework
+6. Include dependency management files
+7. Generate deployment and CI/CD scripts
+8. Create monitoring and observability hooks
+"""
+
+analysis_generation = """
+When generating analysis documents, agents must:
+1. Use data-driven insights with actual metrics
+2. Create visualizations (charts, graphs, diagrams)
+3. Provide actionable recommendations
+4. Include risk assessments with mitigation strategies
+5. Reference specific products, vendors, part numbers
+6. Generate comparison matrices and decision trees
+7. Create cost models and ROI calculators
+"""
+
+documentation_generation = """
+When generating documentation, agents must:
+1. Create clear, step-by-step procedures
+2. Include diagrams, screenshots, and photos
+3. Provide troubleshooting guides with common issues
+4. Add quick reference guides and cheat sheets
+5. Include video tutorial scripts or storyboards
+6. Generate FAQ sections
+7. Create glossaries for technical terms
+"""

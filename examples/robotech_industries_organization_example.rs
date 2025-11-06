@@ -20,11 +20,10 @@
 //! - Real-world complexity: AI research, platform dev, hardware, strategy, customer success
 
 use anyhow::Result;
-use chrono;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use the_agency::{
     llm::connection_pool::OllamaConnectionPool,
@@ -171,151 +170,146 @@ async fn create_organization() -> Result<Organization> {
 
     // Research & AI Team
     let alice = OrganizationAgent::new(
-        "Alice Chen".to_string(),
+        "EMP001".to_string(),
         OrganizationRole::ResearchEngineerScaling,
     );
     org.add_agent(alice);
 
     let bob = OrganizationAgent::new(
-        "Bob Martinez".to_string(),
+        "EMP002".to_string(),
         OrganizationRole::ResearchEngineerAutonomy,
     );
     org.add_agent(bob);
 
     let carol = OrganizationAgent::new(
-        "Carol Kim".to_string(),
+        "EMP003".to_string(),
         OrganizationRole::ResearchEngineerWorldModels,
     );
     org.add_agent(carol);
 
     // Software Engineering Team
     let david = OrganizationAgent::new(
-        "David Johnson".to_string(),
+        "EMP004".to_string(),
         OrganizationRole::SoftwareEngineerSimulation,
     );
     org.add_agent(david);
 
     let emily = OrganizationAgent::new(
-        "Emily Zhang".to_string(),
+        "EMP005".to_string(),
         OrganizationRole::SoftwareEngineerPlatforms,
     );
     org.add_agent(emily);
 
     let frank = OrganizationAgent::new(
-        "Frank Wilson".to_string(),
+        "EMP006".to_string(),
         OrganizationRole::SoftwareEngineerEmbeddedSystems,
     );
     org.add_agent(frank);
 
     // Hardware & Robotics Team
     let grace = OrganizationAgent::new(
-        "Grace Lee".to_string(),
+        "EMP007".to_string(),
         OrganizationRole::HardcoreElectricalEngineer,
     );
     org.add_agent(grace);
 
     let henry = OrganizationAgent::new(
-        "Henry Patel".to_string(),
+        "EMP008".to_string(),
         OrganizationRole::SeniorRoboticsEngineerControls,
     );
     org.add_agent(henry);
 
     let iris = OrganizationAgent::new(
-        "Iris Anderson".to_string(),
+        "EMP009".to_string(),
         OrganizationRole::MechanicalEngineerAllLevels,
     );
     org.add_agent(iris);
 
     // Manufacturing & Production Team
     let jack = OrganizationAgent::new(
-        "Jack Thompson".to_string(),
+        "EMP010".to_string(),
         OrganizationRole::ManufacturingEngineer,
     );
     org.add_agent(jack);
 
     let kate = OrganizationAgent::new(
-        "Kate Brown".to_string(),
+        "EMP011".to_string(),
         OrganizationRole::AutomationEngineerManufacturing,
     );
     org.add_agent(kate);
 
     let leo = OrganizationAgent::new(
-        "Leo Garcia".to_string(),
+        "EMP012".to_string(),
         OrganizationRole::QualityEngineerManufacturing,
     );
     org.add_agent(leo);
 
     // Supply Chain & Data Team
-    let maya = OrganizationAgent::new("Maya Nguyen".to_string(), OrganizationRole::NPIPlanner);
+    let maya = OrganizationAgent::new("EMP013".to_string(), OrganizationRole::NPIPlanner);
     org.add_agent(maya);
 
-    let noah = OrganizationAgent::new("Noah Davis".to_string(), OrganizationRole::DataAnalyst);
+    let noah = OrganizationAgent::new("EMP014".to_string(), OrganizationRole::DataAnalyst);
     org.add_agent(noah);
 
     // Executive Leadership
     let olivia = OrganizationAgent::new(
-        "Olivia Torres".to_string(),
+        "EMP015".to_string(),
         OrganizationRole::ChiefExecutiveOfficer,
     );
     org.add_agent(olivia);
 
     let paul = OrganizationAgent::new(
-        "Paul Chen".to_string(),
+        "EMP016".to_string(),
         OrganizationRole::ChiefTechnologyOfficer,
     );
     org.add_agent(paul);
 
-    let quinn = OrganizationAgent::new("Quinn Rivera".to_string(), OrganizationRole::VPEngineering);
+    let quinn = OrganizationAgent::new("EMP017".to_string(), OrganizationRole::VPEngineering);
     org.add_agent(quinn);
 
     // Product & Strategy
-    let rachel = OrganizationAgent::new(
-        "Rachel Kim".to_string(),
-        OrganizationRole::ChiefProductOfficer,
-    );
+    let rachel =
+        OrganizationAgent::new("EMP018".to_string(), OrganizationRole::ChiefProductOfficer);
     org.add_agent(rachel);
 
     let sam = OrganizationAgent::new(
-        "Sam Johnson".to_string(),
+        "EMP019".to_string(),
         OrganizationRole::PrincipalProductManager,
     );
     org.add_agent(sam);
 
     let tina = OrganizationAgent::new(
-        "Tina Martinez".to_string(),
+        "EMP020".to_string(),
         OrganizationRole::TechnicalProgramManager,
     );
     org.add_agent(tina);
 
     // People & Culture
-    let uma = OrganizationAgent::new("Uma Patel".to_string(), OrganizationRole::DirectorOfPeople);
+    let uma = OrganizationAgent::new("EMP021".to_string(), OrganizationRole::DirectorOfPeople);
     org.add_agent(uma);
 
     // Customer Success & Sales
-    let victor = OrganizationAgent::new("Victor Wong".to_string(), OrganizationRole::VPSales);
+    let victor = OrganizationAgent::new("EMP022".to_string(), OrganizationRole::VPSales);
     org.add_agent(victor);
 
     let wendy = OrganizationAgent::new(
-        "Wendy Anderson".to_string(),
+        "EMP023".to_string(),
         OrganizationRole::CustomerSuccessManager,
     );
     org.add_agent(wendy);
 
-    let xavier = OrganizationAgent::new(
-        "Xavier Lopez".to_string(),
-        OrganizationRole::SolutionsArchitect,
-    );
+    let xavier = OrganizationAgent::new("EMP024".to_string(), OrganizationRole::SolutionsArchitect);
     org.add_agent(xavier);
 
     // Marketing & Design
     let yara = OrganizationAgent::new(
-        "Yara Hassan".to_string(),
+        "EMP025".to_string(),
         OrganizationRole::ProductMarketingManager,
     );
     org.add_agent(yara);
 
     let zack = OrganizationAgent::new(
-        "Zack Thompson".to_string(),
+        "EMP026".to_string(),
         OrganizationRole::PrincipalProductDesigner,
     );
     org.add_agent(zack);
@@ -336,11 +330,11 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign cross-functional team for Robo-1
     let agent_names = [
-        "Alice Chen",    // AI/Autonomy
-        "David Johnson", // Simulation
-        "Grace Lee",     // Electrical
-        "Iris Anderson", // Mechanical
-        "Sam Johnson",   // Product Manager
+        "EMP001", // AI/Autonomy
+        "EMP004", // Simulation
+        "EMP007", // Electrical
+        "EMP009", // Mechanical
+        "EMP019", // Product Manager
     ];
     for name in agent_names {
         let agent_id = org
@@ -363,11 +357,11 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign team for Robo-2 (inherits from Robo-1)
     let agent_names = [
-        "Bob Martinez",  // Autonomy for load handling
-        "Henry Patel",   // Robotics Controls
-        "Iris Anderson", // Mechanical (heavy-duty)
-        "Jack Thompson", // Manufacturing
-        "Maya Nguyen",   // NPI Planning
+        "EMP002", // Autonomy for load handling
+        "EMP008", // Robotics Controls
+        "EMP009", // Mechanical (heavy-duty)
+        "EMP010", // Manufacturing
+        "EMP013", // NPI Planning
     ];
     for name in agent_names {
         let agent_id = org
@@ -390,12 +384,12 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
 
     // Assign elite team for Robo-3 (most advanced)
     let agent_names = [
-        "Carol Kim",    // World Models for rescue
-        "Emily Zhang",  // Platform software
-        "Frank Wilson", // Embedded systems
-        "Henry Patel",  // Advanced controls
-        "Kate Brown",   // Automation
-        "Leo Garcia",   // Quality for safety
+        "EMP003", // World Models for rescue
+        "EMP005", // Platform software
+        "EMP006", // Embedded systems
+        "EMP008", // Advanced controls
+        "EMP011", // Automation
+        "EMP012", // Quality for safety
     ];
     for name in agent_names {
         let agent_id = org
@@ -417,7 +411,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(mfg_ws);
 
     // Assign manufacturing team
-    let agent_names = ["Jack Thompson", "Kate Brown", "Leo Garcia"];
+    let agent_names = ["EMP010", "EMP011", "EMP012"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -438,7 +432,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(sc_ws);
 
     // Assign supply chain team
-    let agent_names = ["Maya Nguyen", "Noah Davis"];
+    let agent_names = ["EMP013", "EMP014"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -459,7 +453,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(executive_ws);
 
     // Assign executives
-    let agent_names = ["Olivia Torres", "Paul Chen", "Quinn Rivera", "Rachel Kim"];
+    let agent_names = ["EMP015", "EMP016", "EMP017", "EMP018"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -480,7 +474,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(product_ws);
 
     // Assign product team
-    let agent_names = ["Sam Johnson", "Tina Martinez", "Zack Thompson"];
+    let agent_names = ["EMP019", "EMP020", "EMP026"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -501,12 +495,7 @@ async fn setup_workspaces(org: &mut Organization) -> Result<()> {
     org.create_workspace(customer_ws);
 
     // Assign customer success and sales team
-    let agent_names = [
-        "Victor Wong",
-        "Wendy Anderson",
-        "Xavier Lopez",
-        "Yara Hassan",
-    ];
+    let agent_names = ["EMP022", "EMP023", "EMP024", "EMP025"];
     for name in agent_names {
         let agent_id = org
             .agents
@@ -625,21 +614,21 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task1 = WorkspaceTask::new(
         "Design Home Assistant AI".to_string(),
         "Develop AI for household chores: cleaning, organizing, basic maintenance".to_string(),
-        vec![get_agent_id("Alice Chen")],
+        vec![get_agent_id("EMP001")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task2 = WorkspaceTask::new(
         "Build Security & Emotional Intelligence".to_string(),
         "Create security monitoring and emotional companionship capabilities".to_string(),
-        vec![get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task3 = WorkspaceTask::new(
         "Design Safe Home-Use Actuators".to_string(),
         "Engineer safe, quiet actuators suitable for home environment".to_string(),
-        vec![get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::High);
 
@@ -659,21 +648,21 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task4 = WorkspaceTask::new(
         "Design Heavy-Duty Actuator System".to_string(),
         "Engineer actuators capable of lifting 50+ kg loads safely".to_string(),
-        vec![get_agent_id("Bob Martinez")],
+        vec![get_agent_id("EMP002")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task5 = WorkspaceTask::new(
         "Develop Load-Balancing Control System".to_string(),
         "Create controls for stable load handling and construction site navigation".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task6 = WorkspaceTask::new(
         "Build Construction Safety Features".to_string(),
         "Implement safety protocols for construction site operations".to_string(),
-        vec![get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -693,28 +682,28 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task7 = WorkspaceTask::new(
         "Design Extreme Environment Systems".to_string(),
         "Engineer systems for high-heat (wildfire) and marine environments".to_string(),
-        vec![get_agent_id("Carol Kim")],
+        vec![get_agent_id("EMP003")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task8 = WorkspaceTask::new(
         "Build Advanced Perception for Rescue".to_string(),
         "Develop AI for victim detection, smoke/water navigation, threat assessment".to_string(),
-        vec![get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task9 = WorkspaceTask::new(
         "Implement Emergency Response Protocols".to_string(),
         "Create fail-safe systems and emergency response automation".to_string(),
-        vec![get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::Critical);
 
     let task10 = WorkspaceTask::new(
         "Design Rescue Equipment Integration".to_string(),
         "Integrate thermal imaging, water pumps, rescue tools, communication systems".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::High);
 
@@ -745,14 +734,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task11 = WorkspaceTask::new(
         "Research Advanced World Models".to_string(),
         "Investigate next-gen world modeling for better environment understanding".to_string(),
-        vec![get_agent_id("Carol Kim")],
+        vec![get_agent_id("EMP003")],
     )
     .with_priority(TaskPriority::High);
 
     let task12 = WorkspaceTask::new(
         "Optimize Scaling Algorithms".to_string(),
         "Improve scalability of AI systems for multiple robot variants".to_string(),
-        vec![get_agent_id("Alice Chen")],
+        vec![get_agent_id("EMP001")],
     )
     .with_priority(TaskPriority::High);
 
@@ -779,14 +768,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task13 = WorkspaceTask::new(
         "Build Cross-Platform SDK".to_string(),
         "Create unified SDK for all robot variants".to_string(),
-        vec![get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::High);
 
     let task14 = WorkspaceTask::new(
         "Implement Real-Time Simulation Framework".to_string(),
         "Develop simulation tools for testing robot behaviors".to_string(),
-        vec![get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::High);
 
@@ -813,14 +802,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task15 = WorkspaceTask::new(
         "Integrate Sensor Arrays".to_string(),
         "Coordinate integration of all sensor systems across robot variants".to_string(),
-        vec![get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Medium);
 
     let task16 = WorkspaceTask::new(
         "Standardize Power Management".to_string(),
         "Create unified power management system for all robots".to_string(),
-        vec![get_agent_id("Iris Anderson")],
+        vec![get_agent_id("EMP009")],
     )
     .with_priority(TaskPriority::Medium);
 
@@ -847,7 +836,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task17 = WorkspaceTask::new(
         "Q1 Strategic Planning".to_string(),
         "Review progress and plan next quarter strategy".to_string(),
-        vec![get_agent_id("Olivia Torres"), get_agent_id("Paul Chen")],
+        vec![get_agent_id("EMP015"), get_agent_id("EMP016")],
     )
     .with_priority(TaskPriority::Medium);
 
@@ -874,7 +863,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task18 = WorkspaceTask::new(
         "Define Product Roadmap".to_string(),
         "Create 12-month roadmap for all robot variants".to_string(),
-        vec![get_agent_id("Sam Johnson"), get_agent_id("Rachel Kim")],
+        vec![get_agent_id("EMP019"), get_agent_id("EMP018")],
     )
     .with_priority(TaskPriority::Medium);
 
@@ -901,14 +890,14 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let task19 = WorkspaceTask::new(
         "Launch Customer Feedback Program".to_string(),
         "Establish feedback loop with early adopters".to_string(),
-        vec![get_agent_id("Wendy Anderson")],
+        vec![get_agent_id("EMP023")],
     )
     .with_priority(TaskPriority::Low);
 
     let task20 = WorkspaceTask::new(
         "Develop Training Materials".to_string(),
         "Create comprehensive training for robot operators".to_string(),
-        vec![get_agent_id("Xavier Lopez")],
+        vec![get_agent_id("EMP024")],
     )
     .with_priority(TaskPriority::Low);
 
@@ -931,7 +920,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create supplier-ready CNC machining work orders with GD&T drawings, material specs (Al 6061-T6), \
         tolerances (±0.001\" for bearing fits), STEP/DXF files, and complete specifications ready for Xometry, \
         Protolabs, or local CNC shops.".to_string(),
-        vec![get_agent_id("Iris Anderson")],
+        vec![get_agent_id("EMP009")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -939,7 +928,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Generate PCB Fabrication Orders".to_string(),
         "Create complete PCB fabrication packages with Gerber files, drill files, BOM in CSV format, \
         pick-and-place files, and assembly notes ready for PCBWay, JLCPCB, or OSH Park.".to_string(),
-        vec![get_agent_id("Grace Lee")],
+        vec![get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -969,7 +958,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create comprehensive assembly procedures with step-by-step instructions, torque specifications \
         (M4: 2.8 N·m, M6: 8 N·m), bearing installation procedures, alignment checks, and unit testing \
         protocols with acceptance criteria.".to_string(),
-        vec![get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -977,7 +966,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Generate Actuation System Assembly Procedures".to_string(),
         "Create detailed actuation assembly documentation with motor-to-gearbox mounting, encoder calibration, \
         wiring color codes, and unit testing (no-load current <500mA, position control ±1°, thermal test 30min <80°C).".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1001,7 +990,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         system bring-up procedures, subsystem integration tests (power, communications, sensors), \
         and safety system validation (emergency stop <100ms)."
             .to_string(),
-        vec![get_agent_id("Leo Garcia")],
+        vec![get_agent_id("EMP012")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1010,7 +999,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create detailed locomotion testing with progressive sequence (static balance 30s, weight shifting, \
         single-leg stance 10s, forward walking 1 m/s, obstacle negotiation), performance metrics (step length, \
         stride frequency, energy consumption), and failure mode testing.".to_string(),
-        vec![get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1033,7 +1022,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create complete ROS2 workspace with robot_description, robot_bringup, robot_control packages. \
         Include URDF/XACRO files with complete kinematic chain, launch files for simulation/hardware, \
         parameter files (PID gains, sensor configs), and Docker container setup.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP004"), get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1043,7 +1032,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         inverse kinematics solvers, balance controller (ZMP, LIPM, CoM planning), gait generation \
         (footstep planning, phase state machine), and compliance control for manipulation."
             .to_string(),
-        vec![get_agent_id("Henry Patel"), get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP008"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1052,7 +1041,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create perception software stack with sensor drivers (RealSense, IMU, LIDAR), sensor fusion (EKF), \
         computer vision pipeline (YOLO, semantic segmentation, depth processing), SLAM implementation, \
         and GPU acceleration (CUDA/TensorRT).".to_string(),
-        vec![get_agent_id("Alice Chen"), get_agent_id("Bob Martinez")],
+        vec![get_agent_id("EMP001"), get_agent_id("EMP002")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1061,7 +1050,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create ML models for behaviors: MoveIt2 integration, RL framework (PPO/SAC algorithms), \
         imitation learning, vision-based learning (grasp pose estimation), model deployment (ONNX/TensorRT), \
         and training infrastructure.".to_string(),
-        vec![get_agent_id("Carol Kim"), get_agent_id("Alice Chen")],
+        vec![get_agent_id("EMP003"), get_agent_id("EMP001")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1084,7 +1073,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create comprehensive technical documentation: system architecture diagrams, design rationale, \
         consolidated BOM with suppliers, assembly documentation, test results and validation data, \
         change log, and safety documentation (FMEA, risk assessment). Export as PDF with searchable text.".to_string(),
-        vec![get_agent_id("Tina Martinez"), get_agent_id("Quinn Rivera")],
+        vec![get_agent_id("EMP020"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1093,7 +1082,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create user-friendly operation manual with quick start guide, operation modes (manual/semi-autonomous/autonomous), \
         safety procedures, basic troubleshooting, operational limits, and software interface guide. \
         Export as PDF and interactive HTML.".to_string(),
-        vec![get_agent_id("Wendy Anderson"), get_agent_id("Xavier Lopez")],
+        vec![get_agent_id("EMP023"), get_agent_id("EMP024")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1102,7 +1091,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         "Create detailed maintenance manual with preventive maintenance schedule (daily/weekly/monthly/annual), \
         component replacement procedures, lubrication guide, diagnostic procedures, calibration procedures, \
         spare parts list, and safety for technicians. Export as PDF with laminated quick-reference sheets.".to_string(),
-        vec![get_agent_id("Leo Garcia"), get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP012"), get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1127,7 +1116,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         test plans for electrical safety (UL 60950, IEC 62368), EMC testing (FCC Part 15, EN 55032), \
         mechanical safety (ISO 13849, ISO 12100), functional safety analysis, safety test reports, \
         declaration of conformity templates, and technical construction files for CE marking.".to_string(),
-        vec![get_agent_id("Leo Garcia"), get_agent_id("Quinn Rivera")],
+        vec![get_agent_id("EMP012"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1138,7 +1127,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         (novel actuation mechanisms, control algorithms, sensor fusion methods), trade secret identification \
         and protection procedures, trademark registrations (brand, logos), copyright protection for software, \
         IP licensing strategy, freedom-to-operate analysis, and defensive publication strategy.".to_string(),
-        vec![get_agent_id("Paul Chen"), get_agent_id("Rachel Kim")],
+        vec![get_agent_id("EMP016"), get_agent_id("EMP018")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1149,7 +1138,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         REACH SVHC declaration, conflict minerals reporting, WEEE compliance and recycling procedures, \
         packaging material declarations, battery disposal procedures (EPA, state regulations), \
         California Prop 65 warnings if applicable, and supplier environmental compliance verification.".to_string(),
-        vec![get_agent_id("Maya Nguyen"), get_agent_id("Leo Garcia")],
+        vec![get_agent_id("EMP013"), get_agent_id("EMP012")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1174,7 +1163,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         salt spray corrosion testing (ASTM B117, 48-96 hours), altitude testing (low pressure), sand and dust \
         ingress testing (IP6X), water ingress testing (IPX7/IPX8), UV exposure and weathering (ASTM G154), \
         test setup procedures, acceptance criteria, data collection templates, and failure analysis procedures.".to_string(),
-        vec![get_agent_id("Leo Garcia"), get_agent_id("Iris Anderson")],
+        vec![get_agent_id("EMP012"), get_agent_id("EMP009")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1186,7 +1175,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         wear testing for contact surfaces, fatigue analysis and accelerated life testing, packaging drop testing \
         (ISTA procedures), transportation simulation, acceptance criteria based on functional requirements, \
         and MTBF/MTTF calculation methodology.".to_string(),
-        vec![get_agent_id("Iris Anderson"), get_agent_id("Henry Patel")],
+        vec![get_agent_id("EMP009"), get_agent_id("EMP008")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1197,7 +1186,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         (IEC 61000-4-3, 80 MHz - 6 GHz, 3-10 V/m), ESD immunity (IEC 61000-4-2, contact/air discharge), \
         electrical fast transient/burst (IEC 61000-4-4), surge immunity (IEC 61000-4-5), power frequency magnetic field \
         (IEC 61000-4-8), test lab selection and scheduling, pre-compliance testing procedures, and remediation strategies.".to_string(),
-        vec![get_agent_id("Grace Lee"), get_agent_id("Frank Wilson")],
+        vec![get_agent_id("EMP007"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1223,7 +1212,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         quality control checkpoints (in-process inspection, final QA), yield analysis and defect tracking (Pareto analysis), \
         design for manufacturing (DFM) recommendations, cost analysis (labor, material, overhead), \
         lessons learned documentation, and readiness criteria for volume production.".to_string(),
-        vec![get_agent_id("Jack Thompson"), get_agent_id("Kate Brown")],
+        vec![get_agent_id("EMP010"), get_agent_id("EMP011")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1235,7 +1224,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         supplier qualification and dual-sourcing strategy, statistical process control (SPC) implementation \
         (Cp, Cpk targets), lean manufacturing initiatives (5S, kaizen, waste reduction), production scheduling \
         and MRP system, quality management system (ISO 9001), continuous improvement program, and cost reduction roadmap.".to_string(),
-        vec![get_agent_id("Kate Brown"), get_agent_id("Maya Nguyen")],
+        vec![get_agent_id("EMP011"), get_agent_id("EMP013")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1248,7 +1237,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         supply chain risk assessment (single-source risks, geopolitical risks, natural disaster contingencies), \
         second-source development timeline, contract manufacturing (CM) evaluation if applicable, \
         and supplier relationship management (SRM) procedures.".to_string(),
-        vec![get_agent_id("Maya Nguyen"), get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP013"), get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1275,7 +1264,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         commissioning checklist (power-on sequence, network configuration, sensor calibration verification), \
         customer acceptance testing (CAT) procedures, installation troubleshooting guide, \
         field service technician training materials, and installation time estimates.".to_string(),
-        vec![get_agent_id("Xavier Lopez"), get_agent_id("Jack Thompson")],
+        vec![get_agent_id("EMP024"), get_agent_id("EMP010")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1288,7 +1277,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         predictive maintenance algorithms (anomaly detection, failure prediction), multi-tenancy architecture \
         for multiple customers, data security and privacy controls, API design for third-party integrations, \
         and scalability planning (support 10k+ robots).".to_string(),
-        vec![get_agent_id("Emily Zhang"), get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP005"), get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1301,7 +1290,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         remote support tools (VPN access, screen sharing), warranty claim procedures and RMA process, \
         spare parts inventory planning (critical components, lead times), field service dispatch system, \
         customer satisfaction tracking (CSAT, NPS), and support cost analysis.".to_string(),
-        vec![get_agent_id("Wendy Anderson"), get_agent_id("Xavier Lopez")],
+        vec![get_agent_id("EMP023"), get_agent_id("EMP024")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1328,7 +1317,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         STRIDE threat modeling (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, \
         Elevation of Privilege), risk scoring (likelihood × impact), threat mitigation strategies, \
         security requirements traceability matrix, and incident response scenarios.".to_string(),
-        vec![get_agent_id("Frank Wilson"), get_agent_id("Emily Zhang")],
+        vec![get_agent_id("EMP006"), get_agent_id("EMP005")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1342,7 +1331,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         secure software update mechanism (signed updates, anti-rollback protection), \
         data encryption (at-rest: AES-256, in-transit: TLS), intrusion detection/prevention system (IDS/IPS), \
         security logging and audit trails, and vulnerability management process.".to_string(),
-        vec![get_agent_id("Frank Wilson"), get_agent_id("David Johnson")],
+        vec![get_agent_id("EMP006"), get_agent_id("EMP004")],
     )
     .with_priority(TaskPriority::Critical);
 
@@ -1355,7 +1344,7 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
         GDPR/CCPA compliance documentation (data inventory, processing activities, privacy notices, data subject rights), \
         security certification (IEC 62443 for industrial systems if applicable), incident response plan \
         (detection, containment, eradication, recovery, lessons learned), and security awareness training for developers.".to_string(),
-        vec![get_agent_id("Emily Zhang"), get_agent_id("Quinn Rivera")],
+        vec![get_agent_id("EMP005"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1376,73 +1365,82 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     let hw_task1 = WorkspaceTask::new(
         "Generate Compute Platform Trade-off Analysis".to_string(),
         "Create comprehensive compute platform comparison and trade-off analysis. Include: \
-        - Main compute options: NVIDIA Jetson family (AGX Orin 64GB: $1999, 275 TOPS, 60W; Orin NX 16GB: $699, 100 TOPS, 25W; \
-        Orin Nano 8GB: $499, 40 TOPS, 15W), Intel NUC 13 Pro (i7-1360P, $800-1200), AMD Ryzen Embedded V3000 ($600-900), \
-        Qualcomm RB5 ($499, 15 TOPS), Google Coral + Hailo-8 ($400 total). \
-        - Performance benchmarks: AI inference throughput (TOPS), latency, frame rates for vision tasks. \
-        - Power analysis: thermal design, battery runtime impact, cooling requirements. \
-        - Cost analysis: unit cost, volume pricing, development kit costs. \
-        - Software ecosystem: SDK maturity, library support (TensorRT, OpenVINO, TFLite), ease of development. \
-        - Supply chain: lead times, availability, EOL roadmaps. \
-        - Recommendation matrix: high-performance config ($2090), mid-range config ($754), budget config ($163). \
-        Include performance/watt and performance/dollar charts.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
+        - Main compute options: NVIDIA Jetson family (AGX Thor: $2499, 2000 TOPS, 100W AI accelerator with Grace CPU, shipping 2025; \
+        AGX Orin 64GB: $1999, 275 TOPS, 60W; Orin NX 16GB: $699, 100 TOPS, 25W; Orin Nano 8GB: $499, 40 TOPS, 15W), \
+        Intel Core Ultra 9 Series (185H: $1000-1500, with dedicated AI NPU 30 TOPS), AMD Ryzen AI 9 HX 370 ($800-1200, 50 TOPS NPU), \
+        Qualcomm Snapdragon X Elite ($600-900, 45 TOPS NPU), Apple M4 (for dev comparison, not robotics), Google Coral + Hailo-8L ($450 total). \
+        - Performance benchmarks: AI inference throughput (TOPS), latency, frame rates for vision tasks, transformer performance. \
+        - Power analysis: thermal design, battery runtime impact, cooling requirements, peak vs sustained performance. \
+        - Cost analysis: unit cost, volume pricing (100+, 1000+), development kit costs, ecosystem costs. \
+        - Software ecosystem: SDK maturity, library support (TensorRT, OpenVINO, TFLite, ONNX Runtime), ease of development, ROS2 compatibility. \
+        - Supply chain: lead times, availability, EOL roadmaps, multi-sourcing options. \
+        - Recommendation matrix: flagship config with Thor ($2599), high-performance config ($2090), mid-range config ($754), budget config ($163). \
+        Include performance/watt and performance/dollar charts, 2025 market positioning.".to_string(),
+        vec![get_agent_id("EMP004"), get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Critical);
 
     let hw_task2 = WorkspaceTask::new(
         "Generate Microcontroller Selection & Sourcing Matrix".to_string(),
         "Create microcontroller selection guide and multi-vendor sourcing strategy. Include: \
-        - MCU options for motor control: STM32H7 (480MHz, $15-25), STM32F4 (180MHz, $8-15), STM32G4 (motor-focused, $5-10), \
-        NXP i.MX RT1170 (1GHz, $10-18), TI TMS320F28379D (DSP, $15-25), RP2350 (cost-optimized, $0.80-1.50). \
-        - MCU options for I/O: RP2040/RP2350 (dual-core, excellent for I/O), STM32F1 (legacy, $3-5), Teensy 4.1 ($30, prototyping). \
-        - Selection criteria: real-time performance (control loop frequency), peripheral count (timers, ADCs, CAN/EtherCAT), \
-        development tools (free IDEs, debugger costs), community support. \
-        - Configuration recommendations: High-perf (4× STM32H743 + 2× RP2350 + STM32G4), Mid-range (4× STM32F4 + 2× RP2040 + STM32F1), \
-        Budget (4× RP2350 + 2× RP2040 + STM32F1). \
-        - Dual-sourcing strategy: Primary (Mouser), Secondary (DigiKey), Tertiary (Newark/Avnet). \
-        - Lead time analysis and inventory planning (safety stock for long-lead items). \
-        Include pinout compatibility matrix for drop-in replacements.".to_string(),
-        vec![get_agent_id("Frank Wilson"), get_agent_id("Maya Nguyen")],
+        - MCU options for motor control: STM32H7 (550MHz, $15-25), STM32U5 (ultra-low power, $8-18), STM32G4 (motor-focused, $5-10), \
+        NXP i.MX RT1180 (1.2GHz, dual Cortex-M7+M33, $12-20), NXP MCXN947 (150MHz, $6-12), TI TMS320F28P65 (200MHz DSP, $18-30), \
+        RP2350 (dual Cortex-M33 + RISC-V, $0.80-1.50, 2024 release), ESP32-C6 (RISC-V, WiFi 6, $2-4). \
+        - MCU options for I/O: RP2040/RP2350 (dual-core, excellent for I/O), STM32F1 (legacy, $3-5), STM32C0 (entry-level, $0.50-2), \
+        Teensy 4.1 ($30, prototyping), Arduino Portenta C33 ($25-35, dual-core). \
+        - Selection criteria: real-time performance (control loop frequency), peripheral count (timers, ADCs, CAN-FD/EtherCAT), \
+        development tools (free IDEs, debugger costs), community support, security features (TrustZone, secure boot). \
+        - Configuration recommendations: High-perf (4× STM32H7 + 2× RP2350 + STM32G4), Mid-range (4× STM32U5 + 2× RP2350 + NXP MCXN947), \
+        Budget (4× RP2350 + 2× ESP32-C6 + STM32C0). \
+        - Dual-sourcing strategy: Primary (Mouser), Secondary (DigiKey), Tertiary (Newark/Avnet), Direct (Raspberry Pi for RP2xxx). \
+        - Lead time analysis and inventory planning (safety stock for long-lead items, 2025 availability updates). \
+        Include pinout compatibility matrix for drop-in replacements and 2025 supply chain updates.".to_string(),
+        vec![get_agent_id("EMP006"), get_agent_id("EMP013")],
     )
     .with_priority(TaskPriority::Critical);
 
     let hw_task3 = WorkspaceTask::new(
         "Generate Second-Source Qualification Plan".to_string(),
         "Create supplier qualification and second-sourcing procedures. Include: \
-        - Supplier qualification criteria: quality certifications (ISO 9001, AS9100), financial stability (Dun & Bradstreet rating), \
-        technical support responsiveness, RMA/warranty terms, conflict minerals compliance. \
-        - Dual-sourcing matrix by component category: Jetson modules (DigiKey primary, Arrow secondary, Mouser tertiary), \
-        STM32 MCUs (Mouser primary, DigiKey secondary, Newark tertiary), RP2040 (Raspberry Pi Direct, DigiKey, Adafruit), \
-        Connectors (Molex via McMaster, TE Connectivity via DigiKey, JST via Mouser), Passives (Yageo/DigiKey, Vishay/Mouser, Samsung/Arrow). \
-        - Second-source validation: electrical equivalence testing, software compatibility verification, reliability testing (sample lot evaluation). \
-        - Supply chain risk mitigation: geopolitical risk assessment, natural disaster contingencies, single-source risk identification, \
-        strategic inventory for critical components (6-12 month buffer). \
-        - Supplier performance monitoring: on-time delivery KPIs, quality PPM targets (<100 PPM), cost competitiveness reviews (quarterly). \
+        - Supplier qualification criteria: quality certifications (ISO 9001, AS9100, IATF 16949), financial stability (Dun & Bradstreet rating), \
+        technical support responsiveness, RMA/warranty terms, conflict minerals compliance, sustainability certifications (RoHS, REACH). \
+        - Dual-sourcing matrix by component category: Jetson modules including Thor (NVIDIA Direct/Partner Network, DigiKey, Arrow, Mouser), \
+        STM32 MCUs (Mouser primary, DigiKey secondary, Newark tertiary, direct from STMicroelectronics for volume), \
+        RP2040/RP2350 (Raspberry Pi Direct, DigiKey, Adafruit, SparkFun), \
+        Connectors (Molex via McMaster-Carr, TE Connectivity via DigiKey, JST via Mouser, Hirose via Newark), \
+        Passives (Yageo/DigiKey, Vishay/Mouser, Samsung/Arrow, Murata/DigiKey for MLCC). \
+        - Second-source validation: electrical equivalence testing, software compatibility verification, reliability testing (sample lot evaluation), \
+        thermal characterization, EMC/EMI compliance validation. \
+        - Supply chain risk mitigation: geopolitical risk assessment (2025 tariff implications), natural disaster contingencies, \
+        single-source risk identification, strategic inventory for critical components (6-12 month buffer for Jetson Thor, 3-6 months for MCUs). \
+        - Supplier performance monitoring: on-time delivery KPIs, quality PPM targets (<100 PPM), cost competitiveness reviews (quarterly), \
+        technology roadmap alignment reviews. \
         - Transition plan: when to trigger second-source activation (lead time >12 weeks, price increase >15%, quality issues), \
-        qualification timeline (6-8 weeks for electronics). \
-        Include approved vendor list (AVL) template with qualification status.".to_string(),
-        vec![get_agent_id("Maya Nguyen"), get_agent_id("Leo Garcia")],
+        qualification timeline (8-12 weeks for new Jetson Thor, 6-8 weeks for established MCUs). \
+        Include approved vendor list (AVL) template with qualification status and 2025 supply chain resilience metrics.".to_string(),
+        vec![get_agent_id("EMP013"), get_agent_id("EMP012")],
     )
     .with_priority(TaskPriority::High);
 
     let hw_task4 = WorkspaceTask::new(
         "Generate Hardware Configuration Management Strategy".to_string(),
         "Create variant BOM management and configuration control system. Include: \
-        - Hardware variant definitions: Premium config (Jetson AGX Orin 64GB, STM32H7, $2090 compute), \
-        Standard config (Jetson Orin NX 16GB, STM32F4, $754 compute), Economy config (RPi5 + Coral, RP2350, $163 compute). \
-        - BOM management system: PLM tool selection (Arena PLM, Fusion 360 Manage, or Odoo), part numbering scheme, \
-        revision control (ECO process), where-used analysis, obsolescence tracking. \
+        - Hardware variant definitions: Flagship config (Jetson AGX Thor, STM32H7, $2599 compute, 2025 latest), \
+        Premium config (Jetson AGX Orin 64GB, STM32H7, $2090 compute), \
+        Standard config (Jetson Orin NX 16GB, STM32U5, $754 compute), Economy config (RPi5 + Coral, RP2350, $163 compute). \
+        - BOM management system: PLM tool selection (Arena PLM, Fusion 360 Manage, PTC Windchill, or Odoo), part numbering scheme, \
+        revision control (ECO process), where-used analysis, obsolescence tracking, supplier lifecycle management. \
         - Configuration management: variant part matrix, build configurations (Robo-1/2/3 with different compute tiers), \
-        option codes (e.g., R1-STD-JNX = Robo-1, Standard, Jetson NX). \
+        option codes (e.g., R1-FLG-THR = Robo-1, Flagship, Jetson Thor; R1-STD-JNX = Robo-1, Standard, Jetson NX). \
         - Change control process: Engineering Change Order (ECO) workflow, change impact analysis, validation requirements, \
-        customer notification procedures for product updates. \
-        - Cost rollup by configuration: material cost, assembly labor, test time, warranty reserves. \
+        customer notification procedures for product updates, regulatory compliance tracking (FCC, CE, UL). \
+        - Cost rollup by configuration: material cost, assembly labor, test time, warranty reserves, volume discounts (100+, 1000+, 10K+). \
         - Supplier part cross-reference: alternate parts matrix (form-fit-function equivalents), preferred parts list, \
-        lifecycle status (active, NRND, obsolete). \
-        - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy. \
-        Include configuration control board (CCB) charter and ECO template.".to_string(),
-        vec![get_agent_id("Tina Martinez"), get_agent_id("Quinn Rivera")],
+        lifecycle status (active, NRND, obsolete), 2025 semiconductor shortage mitigation. \
+        - Software compatibility matrix: which firmware versions support which hardware configs, backward compatibility strategy, \
+        Jetson Thor software requirements (JetPack 7.x+). \
+        Include configuration control board (CCB) charter, ECO template, and 2025 hardware roadmap alignment.".to_string(),
+        vec![get_agent_id("EMP020"), get_agent_id("EMP017")],
     )
     .with_priority(TaskPriority::High);
 
@@ -1461,90 +1459,118 @@ async fn execute_projects(coordinator: &AgentCoordinator, org: &Organization) ->
     println!("==========================================================\n");
 
     let arch_task1 = WorkspaceTask::new(
-        "Generate Premium Architecture Buildout Plan (Jetson AGX Orin)".to_string(),
-        "Create complete buildout guide for premium configuration. Include: \
-        - Hardware architecture: NVIDIA Jetson AGX Orin 64GB ($1999), 4× STM32H743 ($80), 2× RP2350 ($3), STM32G4 ($8), Total: $2090. \
-        - Detailed assembly guide: Jetson carrier board selection (official dev kit vs custom), thermal solution (active cooling, \
-        40mm fan, heat sink with thermal pad), power supply (19V 6.3A, barrel connector or USB-C PD), M.2 NVMe storage (1TB Samsung 980 PRO). \
-        - MCU interconnect topology: Primary CAN bus (1 Mbps) for motor controllers, Secondary CAN (500 kbps) for sensors, \
-        EtherCAT for high-speed joint control (100 MHz cycle), I2C for auxiliary sensors, SPI for high-speed IMU. \
-        - Software stack: JetPack 5.x/6.x installation, ROS2 Humble/Iron setup, TensorRT for model optimization, \
-        CUDA/cuDNN for custom kernels, STM32CubeIDE for MCU development, real-time kernel (PREEMPT_RT patch). \
-        - Performance targets: Vision processing at 30 FPS (YOLO, semantic segmentation), Motor control at 1 kHz, \
-        AI inference <50ms latency, Power budget: 60W peak, 35W average. \
-        - Development workflow: Docker container for reproducible builds, VS Code with CUDA debugging, \
-        OpenOCD for STM32 debugging, unit test frameworks. \
-        - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and lead times. \
-        Include step-by-step bring-up procedure and validation checklist.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Grace Lee")],
+        "Generate Flagship Architecture Buildout Plan (Jetson AGX Thor - 2025)".to_string(),
+        "Create complete buildout guide for flagship 2025 configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson AGX Thor ($2499, 2000 TOPS, Grace CPU + Blackwell GPU), 4× STM32H7 ($80), \
+        2× RP2350 ($3), STM32G4 ($8), Total: $2590. \
+        - Detailed assembly guide: Thor carrier board (official dev kit, custom carrier availability 2025), advanced thermal solution \
+        (dual-fan active cooling with vapor chamber, 120mm radiator option), power supply (48V 10A PoE++ or barrel, USB-C PD 240W), \
+        PCIe Gen5 NVMe storage (2TB Samsung 990 PRO), optional 10GbE network card. \
+        - MCU interconnect topology: Primary CAN-FD bus (5 Mbps) for motor controllers, Secondary CAN-FD (2 Mbps) for sensors, \
+        EtherCAT for high-speed joint control (1 GHz cycle), TSN (Time-Sensitive Networking) for deterministic comms, \
+        I2C for auxiliary sensors, SPI for high-speed IMU arrays. \
+        - Software stack: JetPack 7.x installation (Thor-optimized), ROS2 Jazzy/Rolling setup, TensorRT 10+ for transformer optimization, \
+        CUDA 13+ with Blackwell features, STM32CubeIDE 1.15+ for MCU, real-time kernel (PREEMPT_RT or Xenomai). \
+        - Performance targets: Vision at 60 FPS (YOLO v10, ViT transformers), Multi-modal AI (vision+language), Motor control at 2 kHz, \
+        AI inference <20ms latency for large models, Power budget: 100W peak, 60W average. \
+        - Development workflow: Docker/Podman containers, VS Code with CUDA 13 debugging, Nsight Systems profiling, \
+        OpenOCD for STM32, pytest + ROS2 test frameworks. \
+        - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and 2025 lead times. \
+        Include step-by-step bring-up procedure, Thor-specific validation checklist, and migration guide from Orin.".to_string(),
+        vec![get_agent_id("EMP004"), get_agent_id("EMP007")],
     )
     .with_priority(TaskPriority::Critical);
 
     let arch_task2 = WorkspaceTask::new(
-        "Generate Standard Architecture Buildout Plan (Jetson Orin NX)".to_string(),
-        "Create complete buildout guide for standard configuration. Include: \
-        - Hardware architecture: NVIDIA Jetson Orin NX 16GB ($699), 4× STM32F4 ($48), 2× RP2040 ($2), STM32F1 ($5), Total: $754. \
-        - Detailed assembly guide: Orin NX on official carrier or Seeed Studio J401, passive cooling (large heatsink, no fan for quieter operation), \
-        power via barrel jack (12V 5A) or PoE+ if supported, microSD card (256GB UHS-I) or optional M.2 NVMe. \
-        - MCU interconnect topology: Single CAN bus (500 kbps) for all motor control, I2C for sensors, UART for debug/telemetry, \
-        GPIO for safety interlocks (emergency stop, limit switches). \
-        - Software stack: JetPack 5.x, ROS2 Humble, TensorRT Lite for optimized models, OpenCV acceleration with CUDA, \
-        STM32CubeIDE for MCU, standard Linux kernel (not RT). \
-        - Performance targets: Vision at 20 FPS (MobileNet), Motor control at 500 Hz, AI inference <100ms, Power: 25W peak, 15W average. \
-        - Cost optimization strategies: Use MicroPython on RP2040 for rapid prototyping, leverage existing ROS2 packages \
-        instead of custom development, community-supported models (pre-trained weights). \
-        - Development workflow: Native development on Jetson, Thonny for RP2040, STM32CubeMX code generation. \
-        - BOM with cost breakdown and volume pricing (100+ unit discounts). \
-        Include quick-start guide and common troubleshooting.".to_string(),
-        vec![get_agent_id("Emily Zhang"), get_agent_id("Frank Wilson")],
+        "Generate Premium Architecture Buildout Plan (Jetson AGX Orin - 2025 Optimized)".to_string(),
+        "Create complete buildout guide for premium configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson AGX Orin 64GB ($1999), 4× STM32H7 ($80), 2× RP2350 ($3), STM32G4 ($8), Total: $2090. \
+        - Detailed assembly guide: Orin carrier board (official or ConnectTech Rogue-X), active cooling \
+        (40mm Noctua fan, copper heat sink), power supply (19V 6.3A barrel or USB-C PD 100W), M.2 NVMe storage (1TB Samsung 990 EVO). \
+        - MCU interconnect topology: Primary CAN-FD bus (2 Mbps) for motor controllers, Secondary CAN (500 kbps) for sensors, \
+        EtherCAT for high-speed joint control (100 MHz cycle), I2C for auxiliary sensors, SPI for high-speed IMU. \
+        - Software stack: JetPack 6.x installation, ROS2 Jazzy setup, TensorRT 9+ for model optimization, \
+        CUDA 12/cuDNN for custom kernels, STM32CubeIDE 1.15+ for MCU, real-time kernel (PREEMPT_RT patch). \
+        - Performance targets: Vision at 30 FPS (YOLO v8/v9, semantic segmentation), Motor control at 1 kHz, \
+        AI inference <50ms latency, Power budget: 60W peak, 35W average. \
+        - Development workflow: Docker containers for reproducible builds, VS Code with CUDA debugging, \
+        OpenOCD/ST-Link for STM32, pytest + gtest frameworks. \
+        - BOM with US suppliers: Complete parts list with DigiKey, Mouser, Arrow part numbers and 2025 lead times. \
+        Include step-by-step bring-up procedure, validation checklist, and Thor upgrade path.".to_string(),
+        vec![get_agent_id("EMP005"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::Critical);
 
     let arch_task3 = WorkspaceTask::new(
-        "Generate Budget Architecture Buildout Plan (Raspberry Pi + Coral)".to_string(),
-        "Create complete buildout guide for budget configuration. Include: \
-        - Hardware architecture: Raspberry Pi 5 8GB ($80), Google Coral USB Accelerator ($60), Hailo-8 M.2 ($250 alternative), \
-        4× RP2350 ($6), 2× RP2040 ($2), STM32F1 ($5), Total: $153-343 depending on AI accelerator choice. \
-        - Detailed assembly guide: RPi5 with official active cooler ($5), power via USB-C PD (5V 5A, 25W), NVMe via M.2 HAT \
-        (optional, $25 + $40 for 256GB), Coral plugged into USB3 port, RP2350 on custom PCB or breakout boards. \
-        - MCU interconnect topology: USB-to-CAN adapter for motor control, I2C over GPIO header for sensors, \
-        UART for RP2350 communication, SPI for additional peripherals. \
-        - Software stack: Raspberry Pi OS 64-bit (Debian Bookworm), ROS2 Humble (ARM64 build), TensorFlow Lite with Coral delegate, \
-        or Hailo SDK for Hailo-8, Arduino IDE or MicroPython for RP2350/RP2040, Python-based development (no C++ required). \
-        - Performance targets: Vision at 15 FPS (MobileNetV2 + Coral: 100 FPS inferences available but limited by camera), \
-        Motor control at 200 Hz, AI inference 10-30ms with Coral, Power: 15W total. \
-        - Limitations and workarounds: Limited RAM (use swap on NVMe), no hardware video encoding (use software codecs), \
-        single-threaded performance lower (optimize with NumPy/BLAS), USB bandwidth contention (prioritize Coral over other USB devices). \
-        - Development workflow: VS Code remote SSH, Jupyter notebooks for prototyping, GitHub Actions for CI/CD. \
-        - Educational focus: Great for learning, prototyping, university labs (cost-effective for multiple units). \
-        - BOM with Adafruit, SparkFun, and CanaKit part numbers. \
-        Include getting-started tutorial and upgrade path to Standard config.".to_string(),
-        vec![get_agent_id("David Johnson"), get_agent_id("Bob Martinez")],
+        "Generate Standard Architecture Buildout Plan (Jetson Orin NX - 2025)".to_string(),
+        "Create complete buildout guide for standard configuration. Include: \
+        - Hardware architecture: NVIDIA Jetson Orin NX 16GB ($699), 4× STM32U5 ($52), 2× RP2350 ($3), NXP MCXN947 ($8), Total: $762. \
+        - Detailed assembly guide: Orin NX on official carrier or Seeed Studio Recomputer J401, passive cooling (low-profile heatsink), \
+        power via barrel jack (12V 5A) or PoE+ (802.3at), microSD card (256GB UHS-I) or optional M.2 2242 NVMe. \
+        - MCU interconnect topology: Single CAN-FD bus (1 Mbps) for motor control, I2C for sensors, UART for debug/telemetry, \
+        GPIO for safety interlocks (emergency stop, limit switches), USB-C for RP2350 programming. \
+        - Software stack: JetPack 6.x, ROS2 Jazzy, TensorRT 9+ for optimized models, OpenCV with CUDA acceleration, \
+        STM32CubeIDE for MCU, standard Linux 6.x kernel (not RT, but low-latency config). \
+        - Performance targets: Vision at 25 FPS (MobileNet v3, EfficientDet), Motor control at 500 Hz, AI inference <80ms, Power: 25W peak, 15W average. \
+        - Cost optimization: MicroPython on RP2350 for rapid I/O prototyping, leverage ROS2 Nav2/MoveIt packages, \
+        use quantized INT8 models (TensorRT), community pre-trained weights. \
+        - Development workflow: Native development on Jetson, Thonny/Arduino IDE for RP2350, STM32CubeMX code generation. \
+        - BOM with cost breakdown and volume pricing (100+, 1000+ unit discounts). \
+        Include quick-start guide, common troubleshooting, and upgrade paths.".to_string(),
+        vec![get_agent_id("EMP005"), get_agent_id("EMP006")],
     )
     .with_priority(TaskPriority::High);
 
     let arch_task4 = WorkspaceTask::new(
-        "Generate Alternative Architecture Comparison Matrix".to_string(),
-        "Create side-by-side comparison and migration guide between configurations. Include: \
-        - Comparison matrix: Performance (TOPS, FPS, latency), Power (peak, average, battery life impact), Cost (unit, volume, TCO), \
-        Development complexity (toolchain, learning curve, community support), Upgrade path (can Standard be upgraded to Premium?). \
-        - Use case recommendations: Premium for production deployment, research labs, commercial products; \
-        Standard for pilot programs, small-scale production, cost-sensitive applications; \
-        Budget for education, prototyping, proof-of-concept, hobbyist projects. \
-        - Migration guides: Budget to Standard (reuse RP2040/RP2350 I/O boards, upgrade compute and motor MCUs, \
-        software mostly compatible), Standard to Premium (mechanical fit requires redesign, software highly compatible, \
-        take advantage of extra compute for advanced features). \
-        - Software compatibility matrix: Which ROS2 packages work on all platforms, which require GPU (TensorRT vs TFLite), \
-        which require real-time kernel (motor control critical paths). \
-        - Hybrid configuration options: Mix and match (e.g., Jetson Orin NX with high-end STM32H7 for specific motor control needs). \
-        - Field upgrade procedures: How to swap compute module in production units (firmware compatibility, recalibration needs). \
-        - Supplier lead time comparison: Jetson (4-12 weeks), RPi (immediate-4 weeks), STM32 (immediate-8 weeks), RP2040 (immediate). \
-        Include decision tree flowchart for architecture selection.".to_string(),
-        vec![get_agent_id("Tina Martinez"), get_agent_id("Sam Johnson")],
+        "Generate Budget Architecture Buildout Plan (Raspberry Pi 5 + AI Accelerator)".to_string(),
+        "Create complete buildout guide for budget configuration. Include: \
+        - Hardware architecture: Raspberry Pi 5 8GB ($80), Google Coral USB ($60) or Hailo-8L M.2 ($299), \
+        4× RP2350 ($6), 2× ESP32-C6 ($6), STM32C0 ($1), Total: $153-392 depending on AI accelerator. \
+        - Detailed assembly guide: RPi5 with official active cooler ($5), USB-C PD (5V 5A, 27W official PSU), NVMe via M.2 HAT+ \
+        ($12 + $40 for 256GB WD SN740), Coral USB or Hailo-8L on M.2 slot, RP2350 on breadboard or custom PCB. \
+        - MCU interconnect topology: USB-to-CAN adapter (PEAK PCAN-USB, $150) for motor control, I2C over GPIO for sensors, \
+        UART for RP2350 communication, SPI for peripherals, WiFi 6 via ESP32-C6 for wireless telemetry. \
+        - Software stack: Raspberry Pi OS 64-bit (Debian Bookworm 12), ROS2 Jazzy (ARM64), TensorFlow Lite with Coral/Hailo delegate, \
+        Arduino IDE 2.3+ or MicroPython for RP2350/ESP32-C6, Python 3.11+ based development. \
+        - Performance targets: Vision at 20 FPS (MobileNetV3 + Coral achieves 100 FPS inference, camera-limited), \
+        Motor control at 250 Hz, AI inference 10-25ms with accelerator, Power: 15W total system. \
+        - Limitations & workarounds: Limited 8GB RAM (use 4GB swap on NVMe), no hardware H.265 encoding (use CPU), \
+        lower single-thread performance (optimize with NumPy + OpenBLAS), USB3 bandwidth sharing (prioritize Coral). \
+        - Development workflow: VS Code remote SSH, Jupyter Lab for ML prototyping, GitHub Actions CI/CD, Docker for deployment. \
+        - Educational focus: Ideal for universities, maker spaces, prototyping, learning robotics (cost-effective at scale). \
+        - BOM with Adafruit, SparkFun, CanaKit, Pimoroni part numbers (2025 availability). \
+        Include beginner tutorial, troubleshooting guide, and upgrade path to Standard (Jetson Orin NX).".to_string(),
+        vec![get_agent_id("EMP004"), get_agent_id("EMP002")],
     )
     .with_priority(TaskPriority::High);
 
-    let arch_tasks = vec![arch_task1, arch_task2, arch_task3, arch_task4];
+    let arch_task5 = WorkspaceTask::new(
+        "Generate 2025 Architecture Comparison & Migration Guide".to_string(),
+        "Create comprehensive comparison matrix and migration guide for all 2025 configurations. Include: \
+        - Comparison matrix: Performance (TOPS, FPS, latency, transformer throughput), Power (peak, average, battery runtime), \
+        Cost (unit cost at 1/100/1000/10K volumes, TCO over 3 years), Development complexity (toolchain maturity, learning curve, ecosystem). \
+        - Use case recommendations: Flagship (Jetson Thor) for cutting-edge AI products, high-end commercial robots, research institutions; \
+        Premium (AGX Orin) for production deployment, enterprise robotics, advanced autonomy; \
+        Standard (Orin NX) for pilot programs, mid-scale production, cost-performance balance; \
+        Budget (RPi5) for education, rapid prototyping, proof-of-concept, makerspaces. \
+        - Migration guides: Budget → Standard (reuse RP2350/ESP32-C6 I/O, upgrade compute+MCUs, 85% software compatible), \
+        Standard → Premium (carrier board redesign, software highly compatible, unlock advanced features), \
+        Premium → Flagship (Thor requires new carrier, JetPack 7.x, leverage 2000 TOPS for multi-modal AI, vision-language models). \
+        - Software compatibility: ROS2 packages (which work on all platforms), GPU requirements (TensorRT vs TFLite vs Hailo), \
+        RT kernel needs (motor control, sensor fusion), 2025 LLM/VLM support (Thor optimized for transformers). \
+        - Hybrid configs: Mix-and-match options (e.g., Orin NX with premium STM32H7 MCUs for specific needs, \
+        Thor with budget I/O boards for cost savings). \
+        - Field upgrade procedures: Compute module swap in deployed units (firmware compatibility, sensor recalibration, \
+        AI model retraining/quantization). \
+        - 2025 supply chain: Jetson Thor (12-20 weeks, limited early availability), AGX Orin (4-8 weeks), Orin NX (2-6 weeks), \
+        RPi5 (immediate-2 weeks), MCUs (immediate-8 weeks depending on model). \
+        - Future-proofing: Thor roadmap (expect updates through 2027+), Orin lifecycle (2028+ EOL), software support timelines. \
+        Include decision tree flowchart, ROI calculator, and 2025 market trends analysis.".to_string(),
+        vec![get_agent_id("EMP020"), get_agent_id("EMP019")],
+    )
+    .with_priority(TaskPriority::Critical);
+
+    let arch_tasks = vec![arch_task1, arch_task2, arch_task3, arch_task4, arch_task5];
     let arch_buildout_results = coordinator
         .coordinate_workspace_project(&platform_ws_id, arch_tasks)
         .await?;
@@ -1734,7 +1760,7 @@ async fn display_organization_state(coordinator: &AgentCoordinator) -> Result<()
 
 /// Generate summary report and save to files
 async fn generate_summary_report(
-    output_dir: &PathBuf,
+    output_dir: &Path,
     coordinator: &AgentCoordinator,
     artifacts: &[Artifact],
 ) -> Result<()> {
@@ -1807,7 +1833,7 @@ async fn generate_summary_report(
                 artifact.name, artifact.file_extension
             ));
         }
-        summary.push_str("\n");
+        summary.push('\n');
     }
 
     summary.push_str("\n## Mission: 3 Humanoid Robot Variants\n\n");
@@ -1834,10 +1860,9 @@ async fn generate_summary_report(
 
 /// Generate artifacts for each robot variant and workspace
 async fn generate_artifacts(_org: &Organization) -> Result<Vec<Artifact>> {
-    let mut artifacts = Vec::new();
-
+    let artifacts = vec![
     // Robo-1: Home Companion Artifacts
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo1_design_spec".to_string(),
         artifact_type: ArtifactType::DesignDocument,
         content: r#"# Robo-1 Home Companion Design Specification
@@ -1865,11 +1890,11 @@ Robo-1 is designed as a versatile home companion robot with capabilities in hous
 - Soft padding on contact surfaces
 "#.to_string(),
         file_extension: "md".to_string(),
-        created_by: "Alice Chen".to_string(),
+        created_by: "EMP001".to_string(),
         workspace: "Robo-1: Home Companion".to_string(),
-    });
+    },
 
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo1_control_system".to_string(),
         artifact_type: ArtifactType::PythonCode,
         content: r#"#!/usr/bin/env python3
@@ -1944,12 +1969,12 @@ if __name__ == '__main__':
 "#
         .to_string(),
         file_extension: "py".to_string(),
-        created_by: "David Johnson".to_string(),
+        created_by: "EMP004".to_string(),
         workspace: "Robo-1: Home Companion".to_string(),
-    });
+    },
 
     // Robo-2: Construction Assistant Artifacts
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo2_load_controller".to_string(),
         artifact_type: ArtifactType::RustCode,
         content: r#"//! Robo-2 Load Balancing Controller
@@ -2040,12 +2065,12 @@ mod tests {
 "#
         .to_string(),
         file_extension: "rs".to_string(),
-        created_by: "Henry Patel".to_string(),
+        created_by: "EMP008".to_string(),
         workspace: "Robo-2: Construction Assistant".to_string(),
-    });
+    },
 
     // Robo-3: Rescue Operations Artifacts
-    artifacts.push(Artifact {
+    Artifact {
         name: "robo3_rescue_config".to_string(),
         artifact_type: ArtifactType::YamlConfig,
         content: r#"# Robo-3 Rescue Operations Configuration
@@ -2115,12 +2140,12 @@ safety:
 "#
         .to_string(),
         file_extension: "yaml".to_string(),
-        created_by: "Emily Zhang".to_string(),
+        created_by: "EMP005".to_string(),
         workspace: "Robo-3: Rescue Operations".to_string(),
-    });
+    },
 
     // API Specification
-    artifacts.push(Artifact {
+    Artifact {
         name: "robot_control_api".to_string(),
         artifact_type: ArtifactType::ApiSpecification,
         content: r#"# RoboTech Industries Robot Control API v1.0
@@ -2206,12 +2231,12 @@ wss://api.robotech.io/v1/ws/robots/{robot_id}
 "#
         .to_string(),
         file_extension: "md".to_string(),
-        created_by: "Sam Johnson".to_string(),
+        created_by: "EMP019".to_string(),
         workspace: "Product Strategy".to_string(),
-    });
+    },
 
     // Architecture Diagram
-    artifacts.push(Artifact {
+    Artifact {
         name: "system_architecture".to_string(),
         artifact_type: ArtifactType::ArchitectureDiagram,
         content: r#"# RoboTech Industries System Architecture
@@ -2289,12 +2314,12 @@ graph TB
 "#
         .to_string(),
         file_extension: "md".to_string(),
-        created_by: "Paul Chen".to_string(),
+        created_by: "EMP016".to_string(),
         workspace: "Executive Leadership".to_string(),
-    });
+    },
 
     // Manufacturing Configuration
-    artifacts.push(Artifact {
+    Artifact {
         name: "manufacturing_process".to_string(),
         artifact_type: ArtifactType::TomlConfig,
         content: r#"# Manufacturing Process Configuration
@@ -2368,15 +2393,16 @@ primary_suppliers = ["AcmeTech Motors", "SensorCorp", "JetsonSupply"]
 "#
         .to_string(),
         file_extension: "toml".to_string(),
-        created_by: "Jack Thompson".to_string(),
+        created_by: "EMP010".to_string(),
         workspace: "Manufacturing Excellence".to_string(),
-    });
+    },
+    ];
 
     Ok(artifacts)
 }
 
 /// Write artifacts to disk
-async fn write_artifacts(output_dir: &PathBuf, artifacts: &[Artifact]) -> Result<()> {
+async fn write_artifacts(output_dir: &Path, artifacts: &[Artifact]) -> Result<()> {
     for artifact in artifacts {
         let subdir = match artifact.artifact_type {
             ArtifactType::DesignDocument

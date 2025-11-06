@@ -11,7 +11,7 @@ The Agency framework provides two collaborative workspace examples demonstrating
 | Feature | Simple Workspace | Complex Workspace |
 |---------|------------------|-------------------|
 | **File** | `collaborative_robotics_workspace.rs` | `collaborative_robotics_complex.rs` |
-| **Agents** | 3 (Alice, Bob, Charlie) | 4 (Alice, Bob, Dana, Charlie) |
+| **Agents** | 3 (EMP001, EMP002, EMP003) | 4 (EMP001, EMP002, Dana, EMP003) |
 | **Roles** | Simulation, Scaling, Coordinator | + Configuration Specialist |
 | **Phases** | 1 (single execution) | 4 (multi-phase pipeline) |
 | **Tasks** | 1 | 5 |
@@ -39,11 +39,11 @@ Creates a single robotics simulation class with:
 
 ### Architecture
 ```
-SimulationEngineer_Alice
+SimulationEngineer_EMP001
     ↓ (generates)
 [Python Code + Docs]
     ↓ (reviews)
-ScalingEngineer_Bob
+ScalingEngineer_EMP002
     ↓ (approves)
 [Verified Artifacts]
 ```
@@ -94,17 +94,17 @@ Builds a complete humanoid robot manipulation system across 4 phases:
 ### Architecture
 ```
 Phase 1 (Parallel):
-    SimulationEngineer_Alice → [Environment Code]
+    SimulationEngineer_EMP001 → [Environment Code]
     ConfigSpecialist_Dana    → [URDF Model]
          ↓                          ↓
 Phase 2 (Sequential):
-    SimulationEngineer_Alice → [IK Controller] (depends on Phase 1)
+    SimulationEngineer_EMP001 → [IK Controller] (depends on Phase 1)
          ↓
 Phase 3 (Sequential):
-    ScalingEngineer_Bob → [Training Pipeline] (depends on Phase 2)
+    ScalingEngineer_EMP002 → [Training Pipeline] (depends on Phase 2)
          ↓
 Phase 4 (Sequential):
-    Coordinator_Charlie → [Final Report] (depends on all)
+    Coordinator_EMP003 → [Final Report] (depends on all)
 ```
 
 ### Key Features

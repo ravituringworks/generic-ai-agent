@@ -464,8 +464,3 @@ async fn verify_meaningful_error(world: &mut AgentWorld) {
         panic!("Expected an error message");
     }
 }
-
-#[tokio::main]
-async fn main() {
-    AgentWorld::run("features").await;
-}

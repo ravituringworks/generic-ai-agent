@@ -386,21 +386,21 @@ async fn main() -> Result<()> {
     println!("\n👥 Initializing agents...");
 
     let mut sim_engineer = CollaborativeAgent::new(
-        "SimulationEngineer_Alice".to_string(),
+        "SimulationEngineer_EMP001".to_string(),
         AgentRole::SimulationEngineer,
         config.clone(),
     )
     .await?;
 
     let mut scaling_engineer = CollaborativeAgent::new(
-        "ScalingEngineer_Bob".to_string(),
+        "ScalingEngineer_EMP002".to_string(),
         AgentRole::ScalingEngineer,
         config.clone(),
     )
     .await?;
 
     let coordinator = CollaborativeAgent::new(
-        "Coordinator_Charlie".to_string(),
+        "Coordinator_EMP003".to_string(),
         AgentRole::ProjectCoordinator,
         config.clone(),
     )

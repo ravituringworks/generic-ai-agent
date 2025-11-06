@@ -20,12 +20,12 @@ This advanced example demonstrates a **multi-phase, multi-agent collaborative wo
 
 ### 3. Four Specialized Agents
 
-**SimulationEngineer_Alice**
+**SimulationEngineer_EMP001**
 - Creates 3D simulation environments
 - Implements physics engines and collision detection
 - Generates Python code for robot simulation
 
-**ScalingEngineer_Bob**
+**ScalingEngineer_EMP002**
 - Builds distributed training pipelines
 - Creates performance optimization code
 - Implements benchmarking and profiling
@@ -35,7 +35,7 @@ This advanced example demonstrates a **multi-phase, multi-agent collaborative wo
 - Creates ROS configuration files
 - Produces system parameter files
 
-**Coordinator_Charlie**
+**Coordinator_EMP003**
 - Manages project coordination
 - Generates comprehensive reports
 - Creates integration guides
@@ -58,7 +58,7 @@ The system produces and tracks:
 #### Phase 1: Foundation (Parallel Execution)
 ```
 Task 1.1: Create 3D robot simulation environment with physics engine
-  Agent: SimulationEngineer_Alice
+  Agent: SimulationEngineer_EMP001
   Priority: Critical
   Dependencies: None
 
@@ -68,7 +68,7 @@ Task 1.2: Generate URDF model for humanoid robot with gripper
   Dependencies: None
 
 Task 1.3: Create performance profiling and benchmarking framework
-  Agent: ScalingEngineer_Bob
+  Agent: ScalingEngineer_EMP002
   Priority: High
   Dependencies: None
 ```
@@ -76,12 +76,12 @@ Task 1.3: Create performance profiling and benchmarking framework
 #### Phase 2: Control & Optimization (Depends on Phase 1)
 ```
 Task 2.1: Implement inverse kinematics controller
-  Agent: SimulationEngineer_Alice
+  Agent: SimulationEngineer_EMP001
   Priority: High
   Dependencies: Task 1.1, Task 1.2
 
 Task 2.2: Optimize simulation performance with vectorization
-  Agent: ScalingEngineer_Bob
+  Agent: ScalingEngineer_EMP002
   Priority: High
   Dependencies: Task 1.1, Task 1.3
 ```
@@ -89,12 +89,12 @@ Task 2.2: Optimize simulation performance with vectorization
 #### Phase 3: Training & Benchmarking (Depends on Phase 2)
 ```
 Task 3.1: Build distributed training pipeline for RL
-  Agent: ScalingEngineer_Bob
+  Agent: ScalingEngineer_EMP002
   Priority: High
   Dependencies: Task 2.1, Task 2.2
 
 Task 3.2: Create comprehensive benchmark suite
-  Agent: ScalingEngineer_Bob
+  Agent: ScalingEngineer_EMP002
   Priority: Medium
   Dependencies: Task 2.1, Task 2.2
 ```
@@ -102,7 +102,7 @@ Task 3.2: Create comprehensive benchmark suite
 #### Phase 4: Documentation (Depends on All)
 ```
 Task 4.1: Generate comprehensive project report
-  Agent: Coordinator_Charlie
+  Agent: Coordinator_EMP003
   Priority: Medium
   Dependencies: All previous tasks
 ```
@@ -235,10 +235,10 @@ let task6 = WorkspaceTask {
 - **Total**: ~3-4 minutes for 8 tasks
 
 **Agent Task Distribution**:
-- SimulationEngineer_Alice: 2 tasks (Phases 1, 2)
-- ScalingEngineer_Bob: 4 tasks (Phases 1, 2, 3, 3)
+- SimulationEngineer_EMP001: 2 tasks (Phases 1, 2)
+- ScalingEngineer_EMP002: 4 tasks (Phases 1, 2, 3, 3)
 - ConfigSpecialist_Dana: 1 task (Phase 1)
-- Coordinator_Charlie: 1 task (Phase 4)
+- Coordinator_EMP003: 1 task (Phase 4)
 
 **Scaling**:
 - Add more agents: Linear scaling

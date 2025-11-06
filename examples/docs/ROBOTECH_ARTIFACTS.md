@@ -7,52 +7,57 @@ The robotech_industries_organization_example now generates actual work product a
 ## Artifact Types
 
 ### 1. Design Documents (`.md`)
+
 - **robo1_design_spec.md** - Complete design specification for Robo-1 Home Companion
   - Technical specifications, features, safety requirements
-  - Created by: Alice Chen (Research Engineer)
+  - Created by: EMP001 (Research Engineer)
 
 - **robot_control_api.md** - REST API specification for robot control
   - Authentication, endpoints, WebSocket support
-  - Created by: Sam Johnson (Product Manager)
+  - Created by: EMP019 (Product Manager)
 
 - **system_architecture.md** - System architecture with Mermaid diagrams
   - Hardware, software, cloud services, communication flows
-  - Created by: Paul Chen (CTO)
+  - Created by: EMP016 (CTO)
 
 ### 2. Code Implementations
 
 #### Python (`.py`)
+
 - **robo1_control_system.py** - ROS 2 based control system for Robo-1
   - Joint control, navigation, cleaning tasks
   - Complete with publishers, subscribers, safety features
-  - Created by: David Johnson (Software Engineer - Simulation)
+  - Created by: EMP004 (Software Engineer - Simulation)
 
 #### Rust (`.rs`)
+
 - **robo2_load_controller.rs** - Load balancing controller for Robo-2
   - Heavy-duty load handling (up to 75kg)
   - Stability calculations, center of mass tracking
   - Includes unit tests
-  - Created by: Henry Patel (Robotics Engineer - Controls)
+  - Created by: EMP008 (Robotics Engineer - Controls)
 
 ### 3. Configuration Files
 
 #### YAML (`.yaml`)
+
 - **robo3_rescue_config.yaml** - Rescue operations configuration for Robo-3
   - Sensor suite (thermal camera, LIDAR, gas sensors)
   - Emergency equipment specifications
   - Operating conditions for extreme environments
-  - Created by: Emily Zhang (Software Engineer - Platforms)
+  - Created by: EMP005 (Software Engineer - Platforms)
 
 #### TOML (`.toml`)
+
 - **manufacturing_process.toml** - Manufacturing process configuration
   - Assembly line setup (6 stations, 8 hours per unit)
   - QA testing procedures
   - Supply chain parameters
-  - Created by: Jack Thompson (Manufacturing Engineer)
+  - Created by: EMP010 (Manufacturing Engineer)
 
 ## Output Directory Structure
 
-```
+```text
 output/
 └── robotech_organization_output/
     ├── reports/
@@ -105,13 +110,13 @@ These artifacts represent:
 
 | Agent | Role | Artifacts Created |
 |-------|------|-------------------|
-| Alice Chen | Research Engineer (Scaling) | Design specifications |
-| David Johnson | Software Engineer (Simulation) | Python control system |
-| Emily Zhang | Software Engineer (Platforms) | YAML configurations |
-| Henry Patel | Robotics Engineer (Controls) | Rust load controller |
-| Sam Johnson | Product Manager | API specifications |
-| Jack Thompson | Manufacturing Engineer | Manufacturing configs |
-| Paul Chen | CTO | Architecture diagrams |
+| EMP001 | Research Engineer (Scaling) | Design specifications |
+| EMP004 | Software Engineer (Simulation) | Python control system |
+| EMP005 | Software Engineer (Platforms) | YAML configurations |
+| EMP008 | Robotics Engineer (Controls) | Rust load controller |
+| EMP019 | Product Manager | API specifications |
+| EMP010 | Manufacturing Engineer | Manufacturing configs |
+| EMP016 | CTO | Architecture diagrams |
 
 ## How to View Artifacts
 
@@ -137,6 +142,7 @@ cat output/robotech_organization_output/artifacts/configs/robo3_rescue_config.ya
 ## Next Steps
 
 These artifacts can be:
+
 - Used as templates for actual robot development
 - Extended with more detail and functionality
 - Integrated into CI/CD pipelines

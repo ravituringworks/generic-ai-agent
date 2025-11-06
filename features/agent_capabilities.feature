@@ -1,5 +1,5 @@
 Feature: AI Agent Core Capabilities
-  As a user of the Generic AI Agent
+  As a user of the Agency framework
   I want to interact with an AI that has memory, tools, and reasoning capabilities
   So that I can get helpful and contextual assistance
 

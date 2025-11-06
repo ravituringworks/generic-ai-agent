@@ -136,7 +136,7 @@ enable_structured_feedback = true
 # Each agent gets a specialized model optimized for their tasks
 
 [agents.simulation_engineer]
-name = "SimulationEngineer_Alice"
+name = "SimulationEngineer_EMP001"
 role = "SimulationEngineer"
 model = "gpt-oss:120b-cloud"
 max_tokens = 1024
@@ -144,7 +144,7 @@ timeout = 60
 description = "Python code specialist for robotics simulation"
 
 [agents.scaling_engineer]
-name = "ScalingEngineer_Bob"
+name = "ScalingEngineer_EMP002"
 role = "ScalingEngineer"
 model = "gpt-oss:120b-cloud"
 max_tokens = 1024
@@ -160,7 +160,7 @@ timeout = 60
 description = "URDF/XML configuration specialist"
 
 [agents.coordinator]
-name = "Coordinator_Charlie"
+name = "Coordinator_EMP003"
 role = "ProjectCoordinator"
 model = "gpt-oss:120b-cloud"
 max_tokens = 1024
@@ -186,7 +186,7 @@ total_tasks = 8
 [[tasks]]
 phase = 1
 description = "Create 3D robot simulation environment with physics engine"
-assigned_to = "SimulationEngineer_Alice"
+assigned_to = "SimulationEngineer_EMP001"
 priority = "Critical"
 dependencies = []
 
@@ -200,42 +200,42 @@ dependencies = []
 [[tasks]]
 phase = 1
 description = "Create performance profiling and benchmarking framework"
-assigned_to = "ScalingEngineer_Bob"
+assigned_to = "ScalingEngineer_EMP002"
 priority = "High"
 dependencies = []
 
 [[tasks]]
 phase = 2
 description = "Implement inverse kinematics controller for manipulation tasks"
-assigned_to = "SimulationEngineer_Alice"
+assigned_to = "SimulationEngineer_EMP001"
 priority = "High"
 dependencies = ["task_1_1", "task_1_2"]
 
 [[tasks]]
 phase = 2
 description = "Optimize simulation performance with vectorization and parallel processing"
-assigned_to = "ScalingEngineer_Bob"
+assigned_to = "ScalingEngineer_EMP002"
 priority = "High"
 dependencies = ["task_1_1", "task_1_3"]
 
 [[tasks]]
 phase = 3
 description = "Build distributed training pipeline for reinforcement learning"
-assigned_to = "ScalingEngineer_Bob"
+assigned_to = "ScalingEngineer_EMP002"
 priority = "High"
 dependencies = ["task_2_1", "task_2_2"]
 
 [[tasks]]
 phase = 3
 description = "Create comprehensive benchmark suite for training and inference performance"
-assigned_to = "ScalingEngineer_Bob"
+assigned_to = "ScalingEngineer_EMP002"
 priority = "Medium"
 dependencies = ["task_2_1", "task_2_2"]
 
 [[tasks]]
 phase = 4
 description = "Generate comprehensive project report with integration guide"
-assigned_to = "Coordinator_Charlie"
+assigned_to = "Coordinator_EMP003"
 priority = "Medium"
 dependencies = ["task_1_1", "task_1_2", "task_1_3", "task_2_1", "task_2_2", "task_3_1", "task_3_2"]
 

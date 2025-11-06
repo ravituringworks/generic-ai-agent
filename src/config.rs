@@ -655,7 +655,7 @@ mod tests {
     fn test_default_config() {
         let config = AgentConfig::default();
         assert!(config.validate().is_ok());
-        assert_eq!(config.llm.ollama_url, "http://localhost:11434");
+        assert_eq!(config.llm.ollama_url, "http://127.0.0.1:11434");
         assert_eq!(config.agent.name, "Generic AI Agent");
     }
 

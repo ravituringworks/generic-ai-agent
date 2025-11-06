@@ -53,35 +53,35 @@ This example demonstrates a comprehensive multi-agent organization working to de
 ### Key Roles
 
 **Research & AI:**
-- Alice Chen (Scaling)
-- Bob Martinez (Autonomy)
-- Carol Kim (World Models)
+- EMP001 (Scaling)
+- EMP002 (Autonomy)
+- EMP003 (World Models)
 
 **Software Engineering:**
-- David Johnson (Simulation)
-- Emily Zhang (Platforms)
-- Frank Wilson (Embedded Systems)
+- EMP004 (Simulation)
+- EMP005 (Platforms)
+- EMP006 (Embedded Systems)
 
 **Hardware:**
-- Grace Lee (Electrical)
-- Henry Patel (Robotics Controls)
-- Iris Anderson (Mechanical)
+- EMP007 (Electrical)
+- EMP008 (Robotics Controls)
+- EMP009 (Mechanical)
 
 **Manufacturing:**
-- Jack Thompson (Manufacturing Engineer)
-- Kate Brown (Automation)
-- Leo Garcia (Quality)
+- EMP010 (Manufacturing Engineer)
+- EMP011 (Automation)
+- EMP012 (Quality)
 
 **Executive:**
-- Olivia Torres (CEO)
-- Paul Chen (CTO)
-- Rachel Kim (CPO)
-- Quinn Rivera (VP Engineering)
+- EMP015 (CEO)
+- EMP016 (CTO)
+- EMP018 (CPO)
+- EMP017 (VP Engineering)
 
 **Product & Customer:**
-- Sam Johnson (Product Manager)
-- Victor Wong (VP Sales)
-- Wendy Anderson (Customer Success)
+- EMP019 (Product Manager)
+- EMP022 (VP Sales)
+- EMP023 (Customer Success)
 
 ---
 
@@ -146,8 +146,8 @@ cargo run --example robotech_industries_organization_example
 
 🚀 Spawning AI agents...
 
-  ✓ Spawned: Alice Chen (ResearchEngineerScaling) with learning capabilities
-  ✓ Spawned: Bob Martinez (ResearchEngineerAutonomy) with learning capabilities
+  ✓ Spawned: EMP001 (ResearchEngineerScaling) with learning capabilities
+  ✓ Spawned: EMP002 (ResearchEngineerAutonomy) with learning capabilities
   ...
 
 ✅ All agents spawned and ready
@@ -209,45 +209,45 @@ cargo run --example robotech_industries_organization_example
 ### Robo-1 Tasks
 1. **Design Home Assistant AI** (Critical)
    - Household chores AI: cleaning, organizing, maintenance
-   - Agent: Alice Chen
+   - Agent: EMP001
 
 2. **Build Security & Emotional Intelligence** (Critical)
    - Security monitoring + emotional companionship
-   - Agent: David Johnson
+   - Agent: EMP004
 
 3. **Design Safe Home-Use Actuators** (High)
    - Safe, quiet actuators for home environment
-   - Agent: Grace Lee
+   - Agent: EMP007
 
 ### Robo-2 Tasks
 4. **Design Heavy-Duty Actuator System** (Critical)
    - 50+ kg lifting capacity
-   - Agent: Bob Martinez
+   - Agent: EMP002
 
 5. **Develop Load-Balancing Control System** (Critical)
    - Stable load handling + construction navigation
-   - Agent: Henry Patel
+   - Agent: EMP008
 
 6. **Build Construction Safety Features** (High)
    - Safety protocols for construction sites
-   - Agent: Jack Thompson
+   - Agent: EMP010
 
 ### Robo-3 Tasks
 7. **Design Extreme Environment Systems** (Critical)
    - High-heat (wildfire) + marine environment protection
-   - Agent: Carol Kim
+   - Agent: EMP003
 
 8. **Build Advanced Perception for Rescue** (Critical)
    - Victim detection, smoke/water navigation, threat assessment
-   - Agent: Emily Zhang
+   - Agent: EMP005
 
 9. **Implement Emergency Response Protocols** (Critical)
    - Fail-safe systems + emergency automation
-   - Agent: Frank Wilson
+   - Agent: EMP006
 
 10. **Design Rescue Equipment Integration** (High)
     - Thermal imaging, water pumps, rescue tools, communications
-    - Agent: Henry Patel
+    - Agent: EMP008
 
 ---
 

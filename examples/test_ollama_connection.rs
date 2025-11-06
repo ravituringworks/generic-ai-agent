@@ -6,9 +6,11 @@ async fn main() {
     // Test with localhost
     println!("Testing connection to Ollama at http://localhost:11434");
 
-    let mut config = LlmConfig::default();
-    config.ollama_url = "http://localhost:11434".to_string();
-    config.text_model = "llama3.2".to_string();
+    let mut config = LlmConfig {
+        ollama_url: "http://localhost:11434".to_string(),
+        text_model: "llama3.2".to_string(),
+        ..Default::default()
+    };
 
     let client = OllamaClient::new(config.clone());
 

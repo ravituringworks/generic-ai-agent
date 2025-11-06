@@ -5,6 +5,7 @@
 ### Current Approach (`collaborative_robotics_complex.rs`)
 
 **Architecture:**
+
 ```rust
 CollaborativeAgent {
     name: String,
@@ -14,16 +15,18 @@ CollaborativeAgent {
 ```
 
 **Task Execution:**
+
 - Single generic `execute_task()` method for all agents
 - Tasks described as free-form strings
 - System prompts provide role context
 - LLM generates code from scratch each time
 
 **Example Task:**
+
 ```rust
 let task = WorkspaceTask {
     description: "Create 3D robot simulation environment with physics engine",
-    assigned_to: "SimulationEngineer_Alice",
+    assigned_to: "SimulationEngineer_EMP001",
     // ... generic fields
 };
 
@@ -33,11 +36,13 @@ let response = agent.process(&prompt).await?;
 ```
 
 **Pros:**
+
 - ✅ Simple implementation
 - ✅ Flexible - any task can be assigned
 - ✅ Easy to add new agent types
 
 **Cons:**
+
 - ❌ Generic prompts = inconsistent outputs
 - ❌ No task-specific guidance
 - ❌ LLM must infer domain knowledge
@@ -49,6 +54,7 @@ let response = agent.process(&prompt).await?;
 ### Enhanced Approach (`collaborative_robotics_enhanced.rs`)
 
 **Architecture:**
+
 ```rust
 CollaborativeOrchestrator {
     workspace: Workspace,
@@ -58,12 +64,14 @@ CollaborativeOrchestrator {
 ```
 
 **Task Execution:**
+
 - Type-safe `TaskType` enum with domain-specific variants
 - Structured method calls with typed parameters
 - Rich, task-specific prompts from specialized agents
 - Predictable, high-quality outputs
 
 **Example Task:**
+
 ```rust
 let task = WorkspaceTask {
     description: "Design physics-accurate humanoid simulation environment",
@@ -86,6 +94,7 @@ let response = sim_engineer.design_environment(
 ```
 
 **Specialized Method (from `simulation_engineer_agent.rs`):**
+
 ```rust
 pub async fn design_environment(
     &mut self,
@@ -111,6 +120,7 @@ pub async fn design_environment(
 ```
 
 **Pros:**
+
 - ✅ **Task-specific prompts** → consistent, high-quality outputs
 - ✅ **Type safety** → compile-time task validation
 - ✅ **Domain expertise** → prompts include field-specific guidance
@@ -120,6 +130,7 @@ pub async fn design_environment(
 - ✅ **Easier testing** → mock specific methods
 
 **Cons:**
+
 - ⚠️ More code to maintain
 - ⚠️ Less flexible for ad-hoc tasks
 - ⚠️ Requires defining TaskType variants
@@ -131,23 +142,24 @@ pub async fn design_environment(
 ### 1. Output Quality
 
 **Generic Approach:**
-```markdown
+
 ## PyBullet Simulation
 
 Here's a basic simulation environment...
 [Variable quality, generic code]
-```
 
 **Enhanced Approach:**
-```markdown
+
 ## Physically Realistic Simulation Environment Design
 
 ### 1. Environment Specification
+
 - Dimensions: 10m x 10m x 3m workspace
 - Objects: Ground plane (friction: 0.8), robot mount, manipulation targets
 - Materials: Steel (robot), rubber (gripper), plastic (objects)
 
 ### 2. Physics Engine Configuration (MuJoCo)
+
 ```xml
 <mujoco model="humanoid_workspace">
   <option timestep="0.002" iterations="50" solver="Newton"/>
@@ -157,15 +169,15 @@ Here's a basic simulation environment...
 ```
 
 ### 3. Rendering Pipeline
+
 - OpenGL 4.5 with PBR materials
 - Shadow mapping: 2048x2048 cascaded shadows
 - Real-time ray tracing for reflections (optional)
-...
-```
 
 ### 2. Inter-Agent Collaboration
 
 **Generic Approach:**
+
 ```rust
 // Manual string-based coordination
 let prompt = format!(
@@ -174,6 +186,7 @@ let prompt = format!(
 ```
 
 **Enhanced Approach:**
+
 ```rust
 // Structured method calls
 let sim_analysis = sim_engineer
@@ -188,29 +201,34 @@ let optimization_plan = scaling_engineer
 ### 3. Task Specificity
 
 **Generic:**
+
 - "Optimize the system" → vague, LLM interprets broadly
 
 **Enhanced:**
+
 ```rust
 TaskType::OptimizeInference {
     target_latency_ms: 10.0,
     deployment_target: "edge",
 }
 ```
+
 → Specialized prompt with latency budgets, quantization strategies, hardware-specific optimizations
 
 ---
 
 ## Specialized Agent Capabilities
 
-### SimulationEngineerAgent Methods:
+### SimulationEngineerAgent Methods
+
 - `design_environment(desc, requirements)` → Environment specs + code
 - `analyze_sim_to_real_gap(policy)` → Domain randomization strategies
 - `scale_data_production(samples, scenario)` → Distributed sim architecture
 - `prototype_hardware(spec)` → URDF/MJCF models
 - `optimize_performance(bottleneck)` → Performance optimizations
 
-### ScalingEngineerAgent Methods:
+### ScalingEngineerAgent Methods
+
 - `design_distributed_training(gpus, model, data)` → Training infrastructure
 - `optimize_datacenter_inference(model, throughput)` → Serving optimizations
 - `optimize_edge_deployment(model, latency, hw)` → On-robot deployment
@@ -222,6 +240,7 @@ TaskType::OptimizeInference {
 ## Migration Path
 
 ### Step 1: Make agents public modules
+
 ```rust
 // In examples/simulation_engineer_agent.rs
 pub struct SimulationEngineerAgent { /* ... */ }
@@ -234,6 +253,7 @@ impl SimulationEngineerAgent {
 ```
 
 ### Step 2: Define TaskType enum
+
 ```rust
 enum TaskType {
     DesignEnvironment { requirements: Vec<String> },
@@ -243,6 +263,7 @@ enum TaskType {
 ```
 
 ### Step 3: Implement type-safe dispatch
+
 ```rust
 match (&task.assigned_to, &task.task_type) {
     (AgentType::SimulationEngineer, TaskType::DesignEnvironment { requirements }) => {
@@ -257,6 +278,7 @@ match (&task.assigned_to, &task.task_type) {
 ## Recommendation
 
 **Use Enhanced Approach When:**
+
 - You need consistent, high-quality outputs
 - Tasks are well-defined and repeatable
 - Domain expertise is critical
@@ -264,6 +286,7 @@ match (&task.assigned_to, &task.task_type) {
 - Agents need to collaborate with structured data
 
 **Use Generic Approach When:**
+
 - Rapid prototyping
 - Exploratory tasks
 - Maximum flexibility needed

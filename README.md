@@ -31,6 +31,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 - **Conversation Management**: Automatic history management and context preservation
 - **Concurrent Operations**: Async/await throughout with proper error handling
 - **Extensible Architecture**: Plugin-style components with trait-based design
+- **Specialized Agents**: Domain-specific agents like Robotics Scientist for research tasks
 - **Comprehensive Testing**: Unit tests, BDD tests, and integration examples
 
 ### Advanced Features
@@ -1178,6 +1179,7 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 - ⏯️ [Suspend/Resume Guide](docs/SUSPEND_RESUME.md)
 - 📄 [Document RAG Examples](examples/pdf_rag_with_tables.rs)
 - 🔌 [Multi-Provider Usage Example](examples/multi_provider_usage.rs)
+- 🤖 [Robotics Scientist Agent](examples/robotics_research_engineer_example.rs)
 
 ### 🐛 Issues & Discussions
 
