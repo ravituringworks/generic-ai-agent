@@ -1,59 +1,87 @@
-//! Robotics Research Engineer Role Example
+//! Robotics Scientist Agent Example
 //!
-//! This example demonstrates the Research Engineer specializing in Robotics Design and Development role.
-//! It shows the role's capabilities, system prompt, and collaboration patterns.
+//! This example demonstrates the Robotics Scientist Agent with full functionality
+//! for advanced robotics research, RL experimentation, and scientific validation.
 
-use the_agency::organization::OrganizationRole;
-use tracing::{info, Level};
+mod robotics_scientist_agent;
 
-fn main() {
+use anyhow::Result;
+use robotics_scientist_agent::RoboticsScientistAgent;
+use the_agency::AgentConfig;
+use tracing::info;
+
+#[tokio::main]
+async fn main() -> Result<()> {
     // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_max_level(Level::INFO)
-        .init();
+    tracing_subscriber::fmt::init();
 
-    info!("Starting Robotics Research Engineer Role Example");
+    info!("🔬 Starting Robotics Scientist Agent Example");
 
-    // Create the role instance
-    let role = OrganizationRole::ResearchEngineerRobotics;
+    // Load configuration (use default if config file not found)
+    let mut config = AgentConfig::from_file("config.toml").unwrap_or_else(|_| {
+        println!("⚠️  Config file not found, using defaults");
+        AgentConfig::default()
+    });
 
-    info!("Role: {:?}", role);
-    info!("Category: {:?}", role.category());
-    info!("Capabilities: {:?}", role.capabilities());
-    info!("Typical collaborators: {:?}", role.typical_collaborators());
+    // Use in-memory database to avoid file system issues
+    config.memory.database_url = Some("sqlite::memory:".to_string());
+    config.memory.persistent = false;
 
-    // Display the system prompt
-    info!("System Prompt Preview:");
-    let prompt = role.system_prompt();
-    info!("{}", &prompt[..500]); // Show first 500 chars
-    info!("... (truncated for display)");
+    // Create the robotics scientist agent
+    let mut agent = RoboticsScientistAgent::new(config).await?;
 
-    // Show key responsibilities from the prompt
-    info!("Key Responsibilities:");
-    if prompt.contains("Design and analyze mechanical and electrical systems") {
-        info!("✓ Mechanical and electrical design");
-        info!("✓ System integration and prototyping");
-        info!("✓ Failure analysis and testing");
-        info!("✓ CAD modeling (SOLIDWORKS, NX)");
-        info!("✓ Tolerance analysis and GD&T");
-        info!("✓ Manufacturing support");
-    }
+    info!("Agent created successfully with robotics research capabilities");
 
-    // Demonstrate collaboration capabilities
-    info!("Collaboration Patterns:");
-    let collaborators = role.typical_collaborators();
-    for collaborator in collaborators {
-        info!("- Collaborates with: {:?}", collaborator);
-    }
+    // Demonstrate core capabilities
+    println!("\n🧪 Robotics Scientist Agent Capabilities:");
+    println!("{}", "=".repeat(80));
+    println!("• RL algorithm development and optimization (PPO, SAC, DDPG, TD3)");
+    println!("• Robotic manipulation research (reach, grasp, pick-and-place)");
+    println!("• Simulation environment design and validation");
+    println!("• Hyperparameter optimization and experimental design");
+    println!("• Performance benchmarking and statistical analysis");
+    println!("• Sim-to-real transfer and domain adaptation");
+    println!("• Control theory integration with learning methods");
+    println!("• Research methodology and reproducibility validation");
 
-    // Show learning behaviors
-    info!("Learning Behaviors:");
-    if prompt.contains("LEARNING BEHAVIORS") {
-        info!("- Documents design iterations and failure analysis results");
-        info!("- Shares prototyping lessons learned with team");
-        info!("- Records manufacturing feedback for design improvements");
-        info!("- Builds repository of design patterns and solutions");
-    }
+    // Example task: Design RL experiment for manipulation
+    println!("\n📋 Example Task: Design RL Experiment for Robotic Manipulation");
+    println!("{}", "-".repeat(80));
 
-    info!("Robotics Research Engineer role example completed");
+    let _experiment_design = agent
+        .design_rl_experiment(
+            "Autonomous pick-and-place using Franka Panda with combined RL and traditional controls",
+            "Franka Panda robot with PyBullet simulation and ROS integration",
+            "Success rate >85%, sample efficiency, sim-to-real transfer accuracy, convergence stability",
+        )
+        .await?;
+
+    // Example task: Analyze RL algorithm performance
+    println!("\n📋 Example Task: Analyze PPO vs SAC for Robotic Tasks");
+    println!("{}", "-".repeat(80));
+
+    let _algorithm_analysis = agent
+        .analyze_rl_algorithm(
+            "Proximal Policy Optimization (PPO) vs Soft Actor-Critic (SAC)",
+            "Robotic reach, grasp, and pick-and-place with continuous action spaces",
+            "Sample efficiency differences, hyperparameter sensitivity, convergence properties",
+        )
+        .await?;
+
+    // Example task: Develop simulation environment
+    println!("\n📋 Example Task: Develop Research Simulation Environment");
+    println!("{}", "-".repeat(80));
+
+    let _simulation_development = agent
+        .develop_simulation_environment(
+            "Realistic manipulation tasks with physics-based object interactions and obstacle avoidance",
+            "Accurate contact dynamics, friction modeling, sensor noise, real-time performance",
+            "Visual fidelity, physics accuracy, ground truth data collection, ROS integration",
+        )
+        .await?;
+
+    info!("✅ Robotics Scientist Agent example completed successfully!");
+    info!("🔬 Agent is ready for advanced robotics research, experimentation, and validation");
+
+    Ok(())
 }

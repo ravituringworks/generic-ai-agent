@@ -25,6 +25,7 @@ pub enum OrganizationRole {
     ResearchEngineerDataInfrastructure,
     ResearchEngineerRobotCharacter,
     ResearchEngineerRobotics,
+    RoboticsScientist,
     AIResident,
 
     // Software Engineering Roles
@@ -173,6 +174,7 @@ impl OrganizationRole {
             | Self::ResearchEngineerDataInfrastructure
             | Self::ResearchEngineerRobotCharacter
             | Self::ResearchEngineerRobotics
+            | Self::RoboticsScientist
             | Self::AIResident => RoleCategory::ResearchAI,
 
             Self::SoftwareEngineerSimulation
@@ -311,6 +313,14 @@ impl OrganizationRole {
                 "failure_analysis".to_string(),
                 "tolerance_analysis".to_string(),
             ],
+            Self::RoboticsScientist => vec![
+                "reinforcement_learning".to_string(),
+                "robotics_simulation".to_string(),
+                "control_systems".to_string(),
+                "computer_vision".to_string(),
+                "algorithm_optimization".to_string(),
+                "experimental_design".to_string(),
+            ],
             Self::SoftwareEngineerSimulation => vec![
                 "python".to_string(),
                 "robotics_simulation".to_string(),
@@ -339,6 +349,13 @@ impl OrganizationRole {
                 Self::ManufacturingEngineer,
                 Self::SoftwareEngineerEmbeddedSystems,
                 Self::TestEngineerRD,
+            ],
+            Self::RoboticsScientist => vec![
+                Self::ResearchEngineerRL,
+                Self::SoftwareEngineerSimulation,
+                Self::SeniorRoboticsEngineerControls,
+                Self::SeniorRoboticsEngineerSoftware,
+                Self::DataAnalyst,
             ],
             Self::ManufacturingEngineer => vec![
                 Self::AutomationEngineerManufacturing,
