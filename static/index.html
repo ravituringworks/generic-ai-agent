@@ -632,7 +632,7 @@
 
             // REST API implementation
             restCall: async function(command, args) {
-                const apiBase = window.location.origin;
+                const apiBase = window.location.origin + '/workflow-ui';
 
                 switch(command) {
                     case 'get_node_types':
@@ -697,6 +697,8 @@
         let isDraggingNode = false;
         let draggedNode = null;
         let nodeDragStart = null;
+        let isDraggingFromPalette = false;
+        let paletteNodeType = null;
 
         // DOM elements
         const canvas = document.getElementById('canvas');
@@ -899,7 +901,9 @@
                         <div class="node-description">${nodeType.description}</div>
                     `;
 
+                    // Support both HTML5 drag-drop (for browsers) and mouse events (for WebView/Tauri)
                     nodeDiv.addEventListener('dragstart', handleNodeDragStart);
+                    nodeDiv.addEventListener('mousedown', handlePaletteNodeMouseDown);
                     categoryDiv.appendChild(nodeDiv);
                 });
 
@@ -1223,6 +1227,17 @@
 
             // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyDown);
+
+            // Global mouseup to clean up palette dragging state
+            document.addEventListener('mouseup', () => {
+                if (isDraggingFromPalette) {
+                    isDraggingFromPalette = false;
+                    paletteNodeType = null;
+                    document.querySelectorAll('.node-item').forEach(item => {
+                        item.classList.remove('dragging');
+                    });
+                }
+            });
         }
 
         function switchTab(tabName) {
@@ -1241,8 +1256,16 @@
             e.target.classList.add('dragging');
         }
 
+        function handlePaletteNodeMouseDown(e) {
+            // Mouse-based drag for WebView compatibility
+            isDraggingFromPalette = true;
+            paletteNodeType = e.currentTarget.dataset.nodeType;
+            e.currentTarget.classList.add('dragging');
+            e.preventDefault(); // Prevent text selection
+        }
+
         function handleCanvasMouseDown(e) {
-            if (e.target === canvas) {
+            if (e.target === canvas && !isDraggingFromPalette) {
                 isDraggingCanvas = true;
                 dragStart = { x: e.clientX - canvasOffset.x, y: e.clientY - canvasOffset.y };
                 canvas.classList.add('dragging');
@@ -1337,6 +1360,23 @@
                 nodeDragStart = null;
             }
 
+            // Handle palette node drop (mouse-based for WebView)
+            if (isDraggingFromPalette && paletteNodeType) {
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left - canvasOffset.x) / canvasScale;
+                const y = (e.clientY - rect.top - canvasOffset.y) / canvasScale;
+
+                addNode(paletteNodeType, x, y);
+
+                isDraggingFromPalette = false;
+                paletteNodeType = null;
+
+                // Remove dragging class from all palette items
+                document.querySelectorAll('.node-item').forEach(item => {
+                    item.classList.remove('dragging');
+                });
+            }
+
             isDraggingCanvas = false;
             dragStart = null;
             canvas.classList.remove('dragging');
@@ -1371,6 +1411,11 @@
 
         function handleNodeMouseDown(e, node) {
             e.stopPropagation();
+
+            // Don't interfere with delete button clicks
+            if (e.target.tagName === 'text' && e.target.textContent === '×') {
+                return;
+            }
 
             if (e.target.tagName === 'circle') {
                 // Handle connection start
@@ -1710,7 +1755,3 @@
         }
     </script>
 </body>
-</html></content>
-</xai:function_call">\
-<xai:function_call name="run">
-<parameter name="command">cd /Users/ravindraboddipalli/sources/the-agency && cargo build

@@ -179,8 +179,13 @@ async fn run_server(config: DaemonConfig) -> anyhow::Result<()> {
     info!("Initializing agent and workflow engine...");
     let app_state = AppState::new(agent_config).await?;
 
+    // Initialize workflow UI node types
+    info!("Initializing workflow UI node types...");
+    initialize_ui_node_types(&app_state).await;
+
     info!("Agency daemon starting...");
     info!("API server will listen on {}:{}", config.host, config.port);
+    info!("Workflow UI available at: http://{}:{}/workflow-ui", config.host, config.port);
 
     // Setup graceful shutdown
     let (tx, mut rx) = tokio::sync::oneshot::channel();

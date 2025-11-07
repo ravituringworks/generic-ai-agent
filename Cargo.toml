@@ -23,6 +23,8 @@ include = [
 tauri-build = { version = "2.5.0", features = [] }
 
 [dependencies]
+regex = "1.12.2"
+
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 
@@ -32,15 +34,6 @@ serde_json = "1"
 
 # HTTP client
 reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
-
-# Ollama client
-ollama-rs = "0.3"
-
-# Vector store and embeddings (commented out for now as they may not be needed)
-candle-core = "0.9"
-candle-nn = "0.9" 
-candle-transformers = "0.9"
-faiss = { version = "0.12", optional = true }
 
 # Database for vector storage
 sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid"] }
@@ -56,9 +49,6 @@ thiserror = "2"
 # UUID generation
 uuid = { version = "1", features = ["v4", "serde"] }
 
-# Configuration
-config = "0.15"
-
 # DateTime handling
 chrono = { version = "0.4", features = ["serde"] }
 
@@ -70,11 +60,6 @@ futures = "0.3"
 
 # JSON-RPC for MCP
 jsonrpc-core = "18.0"
-jsonrpc-http-server = "18.0"
-jsonrpc-derive = "18.0"
-
-# WebSocket support for MCP
-tokio-tungstenite = "0.28"
 
 # Async trait
 async-trait = "0.1"
@@ -84,9 +69,7 @@ flume = "0.11"
 
 # HTTP server for REST API
 axum = "0.8"
-tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace"] }
-hyper = { version = "1", features = ["full"] }
 
 # OpenAPI/Swagger documentation
 utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
@@ -99,7 +82,6 @@ tauri = { version = "2.5.0", optional = true }
 daemonize = "0.5"
 
 # Regular expressions
-regex = "1"
 pdf-extract = "0.10"
 
 # Windows service support
@@ -113,9 +95,7 @@ table-extract = { version = "0.2", optional = true }
 
 [dev-dependencies]
 # Testing frameworks
-tokio-test = "0.4"
 mockall = "0.13"
-wiremock = "0.6"
 
 # BDD testing
 cucumber = "0.21"
@@ -125,16 +105,12 @@ proptest = "1"
 
 # Test utilities
 tempfile = "3"
-serial_test = "3"
 
 # Random number generation for tests
 rand = "0.9"
 
-# Benchmarking
-criterion = { version = "0.7", features = ["html_reports"] }
-
 [features]
-default = ["sqlite"]
+default = ["sqlite", "tauri"]
 sqlite = []
 pdf = ["pdf-extract", "lopdf", "table-extract"]
 tauri = ["dep:tauri"]
@@ -154,10 +130,6 @@ path = "src/bin/agency-service.rs"
 [[bin]]
 name = "workflow-builder"
 path = "src/bin/workflow-builder.rs"
-
-[[bin]]
-name = "workflow-ui"
-path = "src/bin/workflow-ui.rs"
 
 [lib]
 name = "the_agency"

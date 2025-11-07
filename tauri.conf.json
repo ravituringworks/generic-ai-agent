@@ -1,10 +1,10 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/schema.json",
   "build": {
     "beforeBuildCommand": "",
     "beforeDevCommand": "",
-    "dev-url": "file:///Users/ravindraboddipalli/sources/the-agency/static/index.html",
-    "frontendDist": "static"
+    "devUrl": "http://localhost:8080/workflow-ui",
+    "frontendDist": "../static"
   },
   "bundle": {
     "active": true,

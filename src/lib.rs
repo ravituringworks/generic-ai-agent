@@ -38,6 +38,7 @@ pub mod memory;
 pub mod organization;
 pub mod saga;
 pub mod tools;
+pub mod ui_workflow_storage;
 pub mod unified_storage;
 pub mod workflow;
 

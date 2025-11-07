@@ -1,5 +1,9 @@
+#[cfg(feature = "tauri")]
 fn main() {
-    if std::env::var("CARGO_FEATURE_TAURI").is_ok() {
-        tauri_build::build();
-    }
+    tauri_build::build();
+}
+
+#[cfg(not(feature = "tauri"))]
+fn main() {
+    // No Tauri build steps needed
 }

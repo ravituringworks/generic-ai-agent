@@ -4,255 +4,120 @@
 //! built with Tauri for a native experience with web-based UI.
 
 #[cfg(feature = "tauri")]
-use serde::{Deserialize, Serialize};
+use std::process::{Command, Stdio};
 #[cfg(feature = "tauri")]
-use serde_json;
+use std::time::Duration;
 #[cfg(feature = "tauri")]
-use std::collections::HashMap;
+use tauri::Manager;
+
+// Agency daemon URL
 #[cfg(feature = "tauri")]
-use std::fs;
+const DAEMON_URL: &str = "http://localhost:8080";
 #[cfg(feature = "tauri")]
-use std::path::Path;
-#[cfg(feature = "tauri")]
-use tauri;
+const DAEMON_HEALTH_URL: &str = "http://localhost:8080/health";
 
 #[cfg(feature = "tauri")]
-#[derive(Serialize, Deserialize, Clone)]
-struct NodeType {
-    id: String,
-    name: String,
-    category: String,
-    description: String,
-    inputs: Vec<Input>,
-    outputs: Vec<Output>,
-    config_schema: Option<String>,
-}
-
-#[cfg(feature = "tauri")]
-#[derive(Serialize, Deserialize, Clone)]
-struct Input {
-    name: String,
-}
-
-#[cfg(feature = "tauri")]
-#[derive(Serialize, Deserialize, Clone)]
-struct Output {
-    name: String,
-}
-
-#[cfg(feature = "tauri")]
-#[derive(Serialize, Deserialize, Clone)]
-struct Workflow {
-    id: String,
-    name: String,
-    description: String,
-    nodes: Vec<Node>,
-    connections: Vec<Connection>,
-}
-
-#[cfg(feature = "tauri")]
-#[derive(Serialize, Deserialize, Clone)]
-struct Node {
-    id: String,
-    node_type: String,
-    position: Position,
-    config: HashMap<String, String>,
-    label: String,
-}
-
-#[cfg(feature = "tauri")]
-#[derive(Serialize, Deserialize, Clone)]
-struct Position {
-    x: f64,
-    y: f64,
-}
-
-#[cfg(feature = "tauri")]
-#[derive(Serialize, Deserialize, Clone)]
-struct Connection {
-    id: String,
-    from_node: String,
-    from_output: String,
-    to_node: String,
-    to_input: String,
-}
-
-#[cfg(feature = "tauri")]
-fn load_workflows() -> Vec<Workflow> {
-    let path = "workflows.json";
-    if Path::new(path).exists() {
-        let data = fs::read_to_string(path).unwrap_or_else(|_| "[]".to_string());
-        serde_json::from_str(&data).unwrap_or_else(|_| vec![])
-    } else {
-        vec![]
-    }
-}
-
-#[cfg(feature = "tauri")]
-fn save_workflows(workflows: &[Workflow]) {
-    let data = serde_json::to_string(workflows).unwrap();
-    fs::write("workflows.json", data).unwrap();
-}
-
-#[cfg(feature = "tauri")]
-#[tauri::command]
-fn get_node_types() -> Result<Vec<NodeType>, String> {
-    Ok(vec![
-        NodeType {
-            id: "start".to_string(),
-            name: "Start".to_string(),
-            category: "Flow Control".to_string(),
-            description: "Initiates workflow execution".to_string(),
-            inputs: vec![],
-            outputs: vec![Output { name: "output".to_string() }],
-            config_schema: None,
-        },
-        NodeType {
-            id: "end".to_string(),
-            name: "End".to_string(),
-            category: "Flow Control".to_string(),
-            description: "Terminates workflow execution".to_string(),
-            inputs: vec![Input { name: "input".to_string() }],
-            outputs: vec![],
-            config_schema: None,
-        },
-        NodeType {
-            id: "agent_task".to_string(),
-            name: "Agent Task".to_string(),
-            category: "AI Agents".to_string(),
-            description: "Executes a task using an AI agent".to_string(),
-            inputs: vec![Input { name: "input".to_string() }],
-            outputs: vec![Output { name: "output".to_string() }],
-            config_schema: Some(r#"{"properties":{"prompt":{"type":"string","default":"Enter your prompt"},"model":{"type":"string","default":"gpt-3.5-turbo"}}}"#.to_string()),
-        },
-        NodeType {
-            id: "model_config".to_string(),
-            name: "Model Configuration".to_string(),
-            category: "LLM".to_string(),
-            description: "Configure LLM server connection (Ollama, OpenAI, etc.)".to_string(),
-            inputs: vec![],
-            outputs: vec![Output { name: "config".to_string() }],
-            config_schema: Some(r#"{"type":"object","properties":{"server_url":{"type":"string","default":"http://localhost:11434","description":"Ollama or LLM server URL"},"model":{"type":"string","default":"llama2","description":"Model name to use"},"temperature":{"type":"number","minimum":0,"maximum":2,"default":0.7,"description":"Temperature for generation"},"max_tokens":{"type":"integer","minimum":1,"maximum":32000,"default":2048,"description":"Maximum tokens to generate"},"top_p":{"type":"number","minimum":0,"maximum":1,"default":0.9,"description":"Top-p sampling parameter"},"stream":{"type":"boolean","default":false,"description":"Enable streaming responses"}}}"#.to_string()),
-        },
-    ])
-}
-
-#[cfg(feature = "tauri")]
-#[tauri::command]
-fn get_workflows() -> Result<Vec<Workflow>, String> {
-    Ok(load_workflows())
-}
-
-#[cfg(feature = "tauri")]
-#[tauri::command]
-fn create_workflow(name: String, description: String) -> Result<Workflow, String> {
-    let id = format!(
-        "workflow_{}",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis()
-    );
-    let workflow = Workflow {
-        id: id.clone(),
-        name,
-        description,
-        nodes: vec![],
-        connections: vec![],
-    };
-    let mut workflows = load_workflows();
-    workflows.push(workflow.clone());
-    save_workflows(&workflows);
-    Ok(workflow)
-}
-
-#[cfg(feature = "tauri")]
-#[tauri::command]
-fn get_workflow(id: String) -> Result<Workflow, String> {
-    let workflows = load_workflows();
-    workflows
-        .into_iter()
-        .find(|w| w.id == id)
-        .ok_or_else(|| "Workflow not found".to_string())
-}
-
-#[cfg(feature = "tauri")]
-#[tauri::command]
-fn update_workflow(
-    id: String,
-    name: String,
-    description: String,
-    nodes: Vec<Node>,
-    connections: Vec<Connection>,
-) -> Result<(), String> {
-    let mut workflows = load_workflows();
-    if let Some(workflow) = workflows.iter_mut().find(|w| w.id == id) {
-        workflow.name = name;
-        workflow.description = description;
-        workflow.nodes = nodes;
-        workflow.connections = connections;
-        save_workflows(&workflows);
-        Ok(())
-    } else {
-        Err("Workflow not found".to_string())
-    }
-}
-
-#[cfg(feature = "tauri")]
-#[tauri::command]
-fn delete_workflow(id: String) -> Result<(), String> {
-    let mut workflows = load_workflows();
-    workflows.retain(|w| w.id != id);
-    save_workflows(&workflows);
-    Ok(())
-}
-
-#[cfg(feature = "tauri")]
-#[tauri::command]
-fn execute_workflow(id: String) -> Result<String, String> {
-    let workflows = load_workflows();
-    let workflow = workflows
-        .into_iter()
-        .find(|w| w.id == id)
-        .ok_or_else(|| "Workflow not found".to_string())?;
-
-    // Basic execution: simulate running the workflow
-    let mut execution_log = vec!["Starting workflow execution".to_string()];
-
-    for node in &workflow.nodes {
-        match node.node_type.as_str() {
-            "start" => execution_log.push("Start node executed".to_string()),
-            "agent_task" => {
-                let prompt = node
-                    .config
-                    .get("prompt")
-                    .cloned()
-                    .unwrap_or("No prompt".to_string());
-                execution_log.push(format!("Agent task executed with prompt: {}", prompt));
-            }
-            "end" => execution_log.push("End node reached".to_string()),
-            _ => execution_log.push(format!("Unknown node type: {}", node.node_type)),
+/// Check if daemon is running and spawn it if not
+async fn ensure_daemon_running() -> Result<(), String> {
+    // First check if daemon is already running
+    let client = reqwest::Client::new();
+    match client
+        .get(DAEMON_HEALTH_URL)
+        .timeout(Duration::from_secs(2))
+        .send()
+        .await
+    {
+        Ok(response) if response.status().is_success() => {
+            println!("✓ Daemon is already running");
+            return Ok(());
+        }
+        _ => {
+            println!("Daemon not running, spawning...");
         }
     }
 
-    execution_log.push("Workflow execution completed".to_string());
+    // Find the cargo binary location
+    let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
 
-    Ok(serde_json::to_string(&execution_log).unwrap())
+    // Get the project root directory (where Cargo.toml is)
+    let project_root = std::env::current_exe()
+        .map_err(|e| format!("Failed to get current executable path: {}", e))?
+        .parent()
+        .and_then(|p| p.parent())
+        .and_then(|p| p.parent())
+        .ok_or_else(|| "Failed to determine project root".to_string())?
+        .to_path_buf();
+
+    println!("Spawning daemon from: {:?}", project_root);
+
+    // Spawn daemon process in background
+    Command::new(cargo)
+        .args(["run", "--bin", "agency-daemon", "--release"])
+        .current_dir(&project_root)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| format!("Failed to spawn daemon: {}", e))?;
+
+    // Wait for daemon to be ready (up to 30 seconds)
+    print!("Waiting for daemon to start");
+    for i in 0..30 {
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
+        match client
+            .get(DAEMON_HEALTH_URL)
+            .timeout(Duration::from_secs(2))
+            .send()
+            .await
+        {
+            Ok(response) if response.status().is_success() => {
+                println!("\n✓ Daemon is ready after {} seconds", i + 1);
+                return Ok(());
+            }
+            _ => {
+                print!(".");
+                use std::io::Write;
+                std::io::stdout().flush().ok();
+            }
+        }
+    }
+
+    Err("Daemon failed to start within 30 seconds".to_string())
 }
 
 #[cfg(feature = "tauri")]
 fn main() {
-    println!("Starting Tauri application...");
+    println!("Starting The Agency Workflow Builder...");
+
+    // Check and spawn daemon before starting Tauri
+    let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+    let daemon_result = runtime.block_on(async { ensure_daemon_running().await });
+
+    match daemon_result {
+        Ok(_) => {
+            println!("✓ Daemon is ready");
+            println!("✓ Workflow UI available at: {}/workflow-ui", DAEMON_URL);
+        }
+        Err(e) => {
+            eprintln!("Warning: Failed to ensure daemon is running: {}", e);
+            eprintln!("You may need to start the daemon manually with: cargo run --bin agency-daemon");
+            eprintln!("Press Enter to continue anyway or Ctrl+C to exit...");
+            std::io::stdin().read_line(&mut String::new()).ok();
+        }
+    }
+
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![
-            get_node_types,
-            get_workflows,
-            create_workflow,
-            get_workflow,
-            update_workflow,
-            delete_workflow,
-            execute_workflow
-        ])
+        .setup(|app| {
+            let window = app.get_webview_window("main").unwrap();
+
+            // Load the workflow UI from the daemon
+            let url = format!("{}/workflow-ui", DAEMON_URL);
+            window
+                .eval(&format!(r#"window.location.href = "{}";"#, url))
+                .ok();
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

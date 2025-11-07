@@ -9,11 +9,12 @@
 use crate::agent::{Agent, AgentBuilder};
 use crate::config::AgentConfig;
 use crate::error::{AgentError, Result};
+use crate::ui_workflow_storage::UIWorkflowStorage;
 use crate::workflow::{WorkflowContext, WorkflowEngine, WorkflowSnapshot};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::{IntoResponse, Response},
+    response::{Html, IntoResponse, Response},
     routing::{get, post},
     Json, Router,
 };
@@ -23,7 +24,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{error, info};
 use utoipa::{OpenApi, ToSchema};
 use uuid::Uuid;
 
@@ -34,21 +35,29 @@ pub struct AppState {
     pub agent: Arc<RwLock<Agent>>,
     /// Workflow engine
     pub workflow_engine: Arc<WorkflowEngine>,
-    /// Visual workflows storage
-    pub ui_workflows: Arc<RwLock<HashMap<String, UIWorkflow>>>,
-    /// Node types for visual workflow builder
+    /// Visual workflows storage (SQLite)
+    pub ui_workflow_storage: Arc<UIWorkflowStorage>,
+    /// Node types for visual workflow builder (in-memory cache)
     pub ui_node_types: Arc<RwLock<HashMap<String, UINodeType>>>,
 }
 
 impl AppState {
     pub async fn new(config: AgentConfig) -> Result<Self> {
-        let agent = AgentBuilder::new().with_config(config).build().await?;
+        let agent = AgentBuilder::new().with_config(config.clone()).build().await?;
         let workflow_engine = Arc::new(WorkflowEngine::default());
+
+        // Initialize UI workflow storage with same database as agent
+        let database_url = config
+            .memory
+            .database_url
+            .as_ref()
+            .ok_or_else(|| AgentError::Config("No database URL configured".to_string()))?;
+        let ui_workflow_storage = Arc::new(UIWorkflowStorage::new(database_url).await?);
 
         Ok(Self {
             agent: Arc::new(RwLock::new(agent)),
             workflow_engine,
-            ui_workflows: Arc::new(RwLock::new(HashMap::new())),
+            ui_workflow_storage,
             ui_node_types: Arc::new(RwLock::new(HashMap::new())),
         })
     }
@@ -276,6 +285,7 @@ pub struct UpdateUIWorkflowRequest {
 }
 
 /// Custom error type for API responses
+#[derive(Debug)]
 pub struct ApiError(AgentError);
 
 impl From<AgentError> for ApiError {
@@ -383,12 +393,12 @@ pub fn create_router(state: AppState) -> Router {
         .route("/workflow-ui", get(serve_workflow_ui))
         .route("/workflow-ui/workflows", get(list_ui_workflows).post(create_ui_workflow))
         .route(
-            "/workflow-ui/workflows/:id",
+            "/workflow-ui/workflows/{id}",
             get(get_ui_workflow)
                 .put(update_ui_workflow)
                 .delete(delete_ui_workflow),
         )
-        .route("/workflow-ui/workflows/:id/execute", post(execute_ui_workflow))
+        .route("/workflow-ui/workflows/{id}/execute", post(execute_ui_workflow))
         .route("/workflow-ui/nodes", get(list_ui_node_types))
         .route("/workflow-ui/api/health", get(workflow_ui_health))
         // OpenAPI spec endpoint
@@ -671,6 +681,9 @@ async fn execute_visual_workflow_handler(
     let mut executed: HashMap<String, bool> = HashMap::new();
     let mut to_execute: Vec<String> = start_nodes.iter().map(|n| n.id.clone()).collect();
 
+    info!("Starting workflow execution with {} nodes, {} connections", request.nodes.len(), request.connections.len());
+    info!("Start nodes: {:?}", start_nodes.iter().map(|n| &n.id).collect::<Vec<_>>());
+
     while let Some(node_id) = to_execute.pop() {
         if executed.contains_key(&node_id) {
             continue;
@@ -688,21 +701,31 @@ async fn execute_visual_workflow_handler(
             }
         }
 
+        info!("Executing node {} (type: {}), inputs keys: {:?}", node_id, node.node_type, inputs.keys().collect::<Vec<_>>());
+
         // Execute node based on type
         let output = execute_node(&state, node, &inputs).await?;
-        node_outputs.insert(node_id.clone(), output);
+        node_outputs.insert(node_id.clone(), output.clone());
         executed.insert(node_id.clone(), true);
         steps_executed += 1;
 
+        info!("Node {} completed, output: {:?}", node_id, output);
+
         // Find next nodes to execute
         for conn in request.connections.iter().filter(|c| c.from_node == node_id) {
+            info!("Found outgoing connection from {} to {} (input: {})", node_id, conn.to_node, conn.to_input);
             if !executed.contains_key(&conn.to_node) {
                 // Check if all inputs are ready
-                let all_inputs_ready = request.connections.iter()
+                let required_inputs: Vec<_> = request.connections.iter()
                     .filter(|c| c.to_node == conn.to_node)
+                    .collect();
+                let all_inputs_ready = required_inputs.iter()
                     .all(|c| executed.contains_key(&c.from_node));
 
+                info!("Node {} has {} required inputs, {} ready. All ready: {}", conn.to_node, required_inputs.len(), required_inputs.iter().filter(|c| executed.contains_key(&c.from_node)).count(), all_inputs_ready);
+
                 if all_inputs_ready {
+                    info!("Adding node {} to execution queue", conn.to_node);
                     to_execute.push(conn.to_node.clone());
                 }
             }
@@ -740,10 +763,24 @@ async fn execute_node(
     match node.node_type.as_str() {
         "llm_generate" => {
             // Extract prompt from inputs or config
-            let prompt = inputs.get("prompt")
-                .and_then(|v| v.as_str())
-                .or_else(|| node.config.get("prompt").and_then(|v| v.as_str()))
-                .unwrap_or("").to_string();
+            // Handle case where input is an object from file_input ({"content": "...", "error": "..."})
+            let prompt = if let Some(prompt_value) = inputs.get("prompt") {
+                if let Some(s) = prompt_value.as_str() {
+                    s.to_string()
+                } else if let Some(obj) = prompt_value.as_object() {
+                    // Extract "content" field from file_input output
+                    obj.get("content")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| "".to_string())
+                } else {
+                    "".to_string()
+                }
+            } else if let Some(config_prompt) = node.config.get("prompt").and_then(|v| v.as_str()) {
+                config_prompt.to_string()
+            } else {
+                "".to_string()
+            };
 
             if prompt.is_empty() {
                 return Ok(serde_json::json!({
@@ -785,9 +822,23 @@ async fn execute_node(
             let file_path = node.config.get("file_path")
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
-            let content = inputs.get("content")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
+
+            // Extract content - could be a string directly or from an object (e.g., {"response": "..."})
+            let content = if let Some(content_value) = inputs.get("content") {
+                if let Some(s) = content_value.as_str() {
+                    s.to_string()
+                } else if let Some(obj) = content_value.as_object() {
+                    // Try to extract "response" field from object
+                    obj.get("response")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| content_value.to_string())
+                } else {
+                    content_value.to_string()
+                }
+            } else {
+                "".to_string()
+            };
 
             if file_path.is_empty() {
                 return Ok(serde_json::json!({
@@ -796,7 +847,7 @@ async fn execute_node(
                 }));
             }
 
-            match std::fs::write(file_path, content) {
+            match std::fs::write(file_path, &content) {
                 Ok(_) => Ok(serde_json::json!({
                     "success": true,
                     "path": file_path
@@ -858,22 +909,54 @@ async fn execute_node(
 // ============= Visual Workflow UI Handlers =============
 
 /// Serve the workflow UI HTML
-async fn serve_workflow_ui() -> Html<&'static str> {
-    Html(include_str!("../../static/index.html"))
+async fn serve_workflow_ui() -> impl IntoResponse {
+    // Read the HTML file at runtime so we don't need to recompile for UI changes
+    match tokio::fs::read_to_string("static/index.html").await {
+        Ok(html) => Html(html).into_response(),
+        Err(e) => {
+            error!("Failed to read static/index.html: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to load UI: {}", e),
+            )
+                .into_response()
+        }
+    }
 }
 
 /// List all visual workflows
-async fn list_ui_workflows(State(state): State<AppState>) -> Json<Vec<UIWorkflow>> {
-    let workflows = state.ui_workflows.read().await;
-    let workflow_list: Vec<UIWorkflow> = workflows.values().cloned().collect();
-    Json(workflow_list)
+async fn list_ui_workflows(State(state): State<AppState>) -> ApiResult<Json<Vec<UIWorkflow>>> {
+    let stored_workflows = state.ui_workflow_storage.list().await?;
+
+    let workflows: Vec<UIWorkflow> = stored_workflows
+        .into_iter()
+        .map(|stored| UIWorkflow {
+            id: stored.id,
+            name: stored.name,
+            description: stored.description,
+            nodes: serde_json::from_str(&stored.nodes_json).unwrap_or_default(),
+            connections: serde_json::from_str(&stored.connections_json).unwrap_or_default(),
+            created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
+                .ok()
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(chrono::Utc::now),
+            updated_at: chrono::DateTime::parse_from_rfc3339(&stored.updated_at)
+                .ok()
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(chrono::Utc::now),
+        })
+        .collect();
+
+    Ok(Json(workflows))
 }
 
 /// Create a new visual workflow
 async fn create_ui_workflow(
     State(state): State<AppState>,
     Json(request): Json<CreateUIWorkflowRequest>,
-) -> Result<Json<UIWorkflow>, StatusCode> {
+) -> ApiResult<Json<UIWorkflow>> {
+    use crate::ui_workflow_storage::StoredWorkflow;
+
     let now = chrono::Utc::now();
     let workflow = UIWorkflow {
         id: uuid::Uuid::new_v4().to_string(),
@@ -885,8 +968,17 @@ async fn create_ui_workflow(
         updated_at: now,
     };
 
-    let mut workflows = state.ui_workflows.write().await;
-    workflows.insert(workflow.id.clone(), workflow.clone());
+    let stored = StoredWorkflow {
+        id: workflow.id.clone(),
+        name: workflow.name.clone(),
+        description: workflow.description.clone(),
+        nodes_json: serde_json::to_string(&workflow.nodes).unwrap_or_else(|_| "[]".to_string()),
+        connections_json: serde_json::to_string(&workflow.connections).unwrap_or_else(|_| "[]".to_string()),
+        created_at: workflow.created_at.to_rfc3339(),
+        updated_at: workflow.updated_at.to_rfc3339(),
+    };
+
+    state.ui_workflow_storage.create(&stored).await?;
 
     Ok(Json(workflow))
 }
@@ -895,11 +987,29 @@ async fn create_ui_workflow(
 async fn get_ui_workflow(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> Result<Json<UIWorkflow>, StatusCode> {
-    let workflows = state.ui_workflows.read().await;
-    match workflows.get(&id) {
-        Some(workflow) => Ok(Json(workflow.clone())),
-        None => Err(StatusCode::NOT_FOUND),
+) -> ApiResult<Json<UIWorkflow>> {
+    let stored = state.ui_workflow_storage.get(&id).await?;
+
+    match stored {
+        Some(stored) => {
+            let workflow = UIWorkflow {
+                id: stored.id,
+                name: stored.name,
+                description: stored.description,
+                nodes: serde_json::from_str(&stored.nodes_json).unwrap_or_default(),
+                connections: serde_json::from_str(&stored.connections_json).unwrap_or_default(),
+                created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
+                    .ok()
+                    .map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(chrono::Utc::now),
+                updated_at: chrono::DateTime::parse_from_rfc3339(&stored.updated_at)
+                    .ok()
+                    .map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(chrono::Utc::now),
+            };
+            Ok(Json(workflow))
+        }
+        None => Err(AgentError::NotFound("workflow not found".to_string()).into()),
     }
 }
 
@@ -908,38 +1018,72 @@ async fn update_ui_workflow(
     State(state): State<AppState>,
     Path(id): Path<String>,
     Json(request): Json<UpdateUIWorkflowRequest>,
-) -> Result<Json<UIWorkflow>, StatusCode> {
-    let mut workflows = state.ui_workflows.write().await;
-    if let Some(workflow) = workflows.get_mut(&id) {
-        if let Some(name) = request.name {
-            workflow.name = name;
-        }
-        if let Some(description) = request.description {
-            workflow.description = description;
-        }
-        if let Some(nodes) = request.nodes {
-            workflow.nodes = nodes;
-        }
-        if let Some(connections) = request.connections {
-            workflow.connections = connections;
-        }
-        workflow.updated_at = chrono::Utc::now();
-        Ok(Json(workflow.clone()))
-    } else {
-        Err(StatusCode::NOT_FOUND)
+) -> ApiResult<Json<UIWorkflow>> {
+    use crate::ui_workflow_storage::StoredWorkflow;
+
+    // Get existing workflow
+    let stored = state.ui_workflow_storage.get(&id).await?;
+    let mut workflow = match stored {
+        Some(stored) => UIWorkflow {
+            id: stored.id,
+            name: stored.name,
+            description: stored.description,
+            nodes: serde_json::from_str(&stored.nodes_json).unwrap_or_default(),
+            connections: serde_json::from_str(&stored.connections_json).unwrap_or_default(),
+            created_at: chrono::DateTime::parse_from_rfc3339(&stored.created_at)
+                .ok()
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(chrono::Utc::now),
+            updated_at: chrono::DateTime::parse_from_rfc3339(&stored.updated_at)
+                .ok()
+                .map(|dt| dt.with_timezone(&chrono::Utc))
+                .unwrap_or_else(chrono::Utc::now),
+        },
+        None => return Err(AgentError::NotFound("workflow not found".to_string()).into()),
+    };
+
+    // Apply updates
+    if let Some(name) = request.name {
+        workflow.name = name;
     }
+    if let Some(description) = request.description {
+        workflow.description = description;
+    }
+    if let Some(nodes) = request.nodes {
+        workflow.nodes = nodes;
+    }
+    if let Some(connections) = request.connections {
+        workflow.connections = connections;
+    }
+    workflow.updated_at = chrono::Utc::now();
+
+    // Save to database
+    let stored = StoredWorkflow {
+        id: workflow.id.clone(),
+        name: workflow.name.clone(),
+        description: workflow.description.clone(),
+        nodes_json: serde_json::to_string(&workflow.nodes).unwrap_or_else(|_| "[]".to_string()),
+        connections_json: serde_json::to_string(&workflow.connections).unwrap_or_else(|_| "[]".to_string()),
+        created_at: workflow.created_at.to_rfc3339(),
+        updated_at: workflow.updated_at.to_rfc3339(),
+    };
+
+    state.ui_workflow_storage.update(&stored).await?;
+
+    Ok(Json(workflow))
 }
 
 /// Delete a visual workflow
 async fn delete_ui_workflow(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> Result<StatusCode, StatusCode> {
-    let mut workflows = state.ui_workflows.write().await;
-    if workflows.remove(&id).is_some() {
+) -> ApiResult<StatusCode> {
+    let deleted = state.ui_workflow_storage.delete(&id).await?;
+
+    if deleted {
         Ok(StatusCode::NO_CONTENT)
     } else {
-        Err(StatusCode::NOT_FOUND)
+        Err(AgentError::NotFound("workflow not found".to_string()).into())
     }
 }
 
@@ -947,10 +1091,26 @@ async fn delete_ui_workflow(
 async fn execute_ui_workflow(
     State(state): State<AppState>,
     Path(id): Path<String>,
-) -> Result<Json<serde_json::Value>, StatusCode> {
-    let workflows = state.ui_workflows.read().await;
-    match workflows.get(&id) {
-        Some(workflow) => {
+) -> ApiResult<Json<serde_json::Value>> {
+    let stored = state.ui_workflow_storage.get(&id).await?;
+
+    match stored {
+        Some(stored_workflow) => {
+            // Convert StoredWorkflow to UIWorkflow
+            let workflow = UIWorkflow {
+                id: stored_workflow.id,
+                name: stored_workflow.name,
+                description: stored_workflow.description,
+                nodes: serde_json::from_str(&stored_workflow.nodes_json).unwrap_or_default(),
+                connections: serde_json::from_str(&stored_workflow.connections_json).unwrap_or_default(),
+                created_at: chrono::DateTime::parse_from_rfc3339(&stored_workflow.created_at)
+                    .ok().map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(chrono::Utc::now),
+                updated_at: chrono::DateTime::parse_from_rfc3339(&stored_workflow.updated_at)
+                    .ok().map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(chrono::Utc::now),
+            };
+
             // Convert UI workflow to execution request
             let nodes: Vec<VisualWorkflowNode> = workflow.nodes.iter().map(|n| VisualWorkflowNode {
                 id: n.id.clone(),
@@ -987,7 +1147,7 @@ async fn execute_ui_workflow(
                 }))),
             }
         }
-        None => Err(StatusCode::NOT_FOUND),
+        None => Err(AgentError::NotFound("workflow not found".to_string()).into()),
     }
 }
 
