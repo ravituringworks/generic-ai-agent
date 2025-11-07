@@ -19,7 +19,7 @@
 
 use std::fs::File;
 use std::path::PathBuf;
-use the_agency::api::{start_server, AppState};
+use the_agency::api::{initialize_ui_node_types, start_server, AppState};
 use the_agency::config::AgentConfig;
 use tracing::{error, info};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};

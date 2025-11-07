@@ -12,6 +12,8 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 - **🌐 A2A Communication** - Agent-to-Agent communication for multi-agent systems
 - **🔄 State Management** - Pause, resume, and persistent agent state
 - **🗃️ Unified Storage** - Centralized data management across components
+- **🧠 Knowledge Management** - Organizational learning and external knowledge ingestion
+- **⚡ Saga Workflows** - Distributed transaction patterns for complex operations
 
 ## ✨ Features
 
@@ -32,6 +34,8 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 - **Concurrent Operations**: Async/await throughout with proper error handling
 - **Extensible Architecture**: Plugin-style components with trait-based design
 - **Specialized Agents**: Domain-specific agents like Robotics Scientist for research tasks
+- **Knowledge Management**: Persistent learning, external knowledge ingestion, and organizational memory
+- **Saga Workflows**: Distributed transaction patterns for complex multi-agent operations
 - **Comprehensive Testing**: Unit tests, BDD tests, and integration examples
 
 ### Advanced Features
@@ -43,6 +47,9 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 - **🗄️ Unified Storage**: Centralized data management with multiple backend support
 - **📊 Real-time Collaboration**: Multi-agent workflows and task distribution
 - **🔄 Load Balancing**: Automatic request distribution across agent networks
+- **🧠 Organizational Learning**: Knowledge capture from every task with persistent memory
+- **🌐 External Knowledge**: Web scraping, document ingestion, and content consolidation
+- **⚡ Saga Transactions**: Distributed workflows with compensation and rollback
 
 ## 🚀 Quick Start
 
@@ -187,6 +194,85 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+### Knowledge Management & Organizational Learning
+
+Agents learn from every task execution and can ingest external knowledge:
+
+```rust
+use the_agency::knowledge::{KnowledgeEntry, KnowledgeManager};
+
+// Agents automatically capture knowledge from tasks
+let knowledge = KnowledgeEntry {
+    task_title: "Implement RL Algorithm".to_string(),
+    task_description: "Develop PPO implementation for robotic control".to_string(),
+    agent_role: "ResearchEngineerRL".to_string(),
+    approach: "Used stable-baselines3 with custom environment".to_string(),
+    outcome: "Achieved 85% success rate in simulation".to_string(),
+    insights: vec![
+        "Hyperparameter tuning critical for convergence".to_string(),
+        "Environment reward shaping improved learning".to_string(),
+    ],
+    timestamp: chrono::Utc::now(),
+};
+
+// Store knowledge for future use
+let manager = KnowledgeManager::new(config).await?;
+manager.store_knowledge(knowledge).await?;
+
+// Agents learn from past experiences
+let similar_tasks = manager.query_similar_experiences("RL implementation", 5).await?;
+```
+
+**Features:**
+- **Persistent Learning**: Knowledge captured from every task execution
+- **Context-Aware Execution**: Agents query past experiences for enhanced task performance
+- **External Knowledge Ingestion**: Web scraping, document parsing, and content consolidation
+- **Organizational Memory**: Cross-agent knowledge sharing and best practices
+- **Quality Management**: Automatic consolidation and deduplication of knowledge
+
+### Saga Workflows for Distributed Transactions
+
+Handle complex multi-step operations with automatic rollback and compensation:
+
+```rust
+use the_agency::saga::{Saga, SagaStep, SagaContext};
+
+// Define saga steps
+let step1 = SagaStep::new("validate_input", validate_input);
+let step2 = SagaStep::new("process_payment", process_payment);
+let step3 = SagaStep::new("update_inventory", update_inventory);
+let step4 = SagaStep::new("send_notification", send_notification);
+
+// Create compensating actions for rollback
+let compensation1 = SagaStep::new("rollback_validation", rollback_validation);
+let compensation2 = SagaStep::new("refund_payment", refund_payment);
+let compensation3 = SagaStep::new("restore_inventory", restore_inventory);
+
+// Build saga with compensations
+let saga = Saga::new("order_processing")
+    .add_step(step1, Some(compensation1))?
+    .add_step(step2, Some(compensation2))?
+    .add_step(step3, Some(compensation3))?
+    .add_step(step4, None)?; // No compensation needed for notification
+
+// Execute saga
+let context = SagaContext::new();
+let result = saga.execute(context).await;
+
+// Automatic rollback on failure
+if result.is_err() {
+    // Compensations executed in reverse order
+    saga.rollback().await?;
+}
+```
+
+**Features:**
+- **Distributed Transactions**: Multi-step operations across services
+- **Automatic Compensation**: Rollback failed operations with custom logic
+- **Fault Tolerance**: Graceful handling of partial failures
+- **State Persistence**: Saga state saved for recovery
+- **Timeout Management**: Configurable timeouts and retry policies
 
 ### Document RAG (Retrieval-Augmented Generation)
 
@@ -530,27 +616,37 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for detailed deployment instructions.
 │ • State mgmt    │    │ • Tool calling   │    │ • Model mgmt     │
 │ • A2A mgmt      │    │ • Multi-agent    │    │ • Load balancing │
 └─────────────────┘    └──────────────────┘    └─────────────────-┘
-         │                        │                        │
-         │                        │                        │
-         ▼                        ▼                        ▼
+          │                        │                        │
+          │                        │                        │
+          ▼                        ▼                        ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ Memory Store    │    │    MCP Client    │    │   Built-in Tools│
+│ Memory Store    │    │  MCP Client      │    │ Built-in Tools  │
 │                 │    │                  │    │                 │
 │ • Vector search │    │ • Server mgmt    │    │ • System info   │
 │ • Embeddings    │    │ • Tool discovery │    │ • Extensible    │
 │ • Persistence   │    │ • JSON-RPC calls │    │ • Async ready   │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
-                                   │
-                                   ▼
-                     ┌─────────────────────────────┐
-                     │    A2A Communication        │
-                     │                             │
-                     │ • Multi-protocol support    │
-                     │ • Service discovery         │
-                     │ • Agent coordination        │
-                     │ • Security & auth           │
-                     │ • Load balancing            │
-                     └─────────────────────────────┘
+          │                        │                        │
+          │                        │                        │
+          ▼                        ▼                        ▼
+┌───────────────-──┐   ┌──────────────────┐    ┌─────────────────┐
+│ Knowledge Mgmt   │   │  Saga Workflows  │    │ Unified Storage │
+│                  │   │                  │    │                 │
+│ • Learning       │   │ • Transactions   │    │ • Multi-backend │
+│ • External ingest│   │ • Compensation   │    │ • Persistence   │
+│ • Consolidation  │   │ • Rollback       │    │ • Resource mgmt │
+└─────────────────-┘   └──────────────────┘    └─────────────────┘
+                                    │
+                                    ▼
+                      ┌─────────────────────────────┐
+                      │    A2A Communication        │
+                      │                             │
+                      │ • Multi-protocol support    │
+                      │ • Service discovery         │
+                      │ • Agent coordination        │
+                      │ • Security & auth           │
+                      │ • Load balancing            │
+                      └─────────────────────────────┘
 ```
 
 ### Workflow Processing
@@ -1177,9 +1273,23 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 - 🗄️ [Unified Storage Guide](docs/UNIFIED_STORAGE_README.md)
 - 📋 [API Reference](docs/API.md)
 - ⏯️ [Suspend/Resume Guide](docs/SUSPEND_RESUME.md)
+- 🏢 [Multi-Agent Organization Example](docs/ORGANIZATION.md)
+- 🧠 [Knowledge Management Guide](docs/KNOWLEDGE_MANAGEMENT_SUMMARY.md)
+- 🌐 [External Knowledge Learning Example](docs/EXTERNAL_KNOWLEDGE_LEARNING.md)
+- ⚡ [Saga Workflows Guide](docs/SAGA_WORKFLOW.md)
+- 🤝 [Collaborative Workspaces Example](docs/COLLABORATIVE_WORKSPACE.md)
 - 📄 [Document RAG Examples](examples/pdf_rag_with_tables.rs)
 - 🔌 [Multi-Provider Usage Example](examples/multi_provider_usage.rs)
 - 🤖 [Robotics Scientist Agent](examples/robotics_research_engineer_example.rs)
+- 🏢 [Multi-Agent Organization Example](examples/robotech_industries_organization_example.rs)
+- 🤝 [Collaborative Workspaces Example](examples/collaborative_robotics_workspace.rs)
+- 📚 [Knowledge Management](examples/rag_system_comprehensive.rs)
+- ⚡ [Saga Workflows](examples/saga_workflow.rs)
+- 🤖 [Saga LLM Workflows](examples/saga_llm_workflow.rs)
+- 🔄 [Multi-Provider LLM Usage](examples/multi_provider_example.rs)
+- 🌐 [Agent-to-Agent Communication](examples/a2a_communication.rs)
+- 📄 [PDF RAG with Tables](examples/pdf_rag_with_tables.rs)
+- 🗃️ [Unified Storage System](examples/unified_storage_system.rs)
 
 ### 🐛 Issues & Discussions
 

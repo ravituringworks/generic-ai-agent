@@ -18,6 +18,7 @@ use axum::{
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower_http::cors::CorsLayer;
@@ -33,6 +34,10 @@ pub struct AppState {
     pub agent: Arc<RwLock<Agent>>,
     /// Workflow engine
     pub workflow_engine: Arc<WorkflowEngine>,
+    /// Visual workflows storage
+    pub ui_workflows: Arc<RwLock<HashMap<String, UIWorkflow>>>,
+    /// Node types for visual workflow builder
+    pub ui_node_types: Arc<RwLock<HashMap<String, UINodeType>>>,
 }
 
 impl AppState {
@@ -43,6 +48,8 @@ impl AppState {
         Ok(Self {
             agent: Arc::new(RwLock::new(agent)),
             workflow_engine,
+            ui_workflows: Arc::new(RwLock::new(HashMap::new())),
+            ui_node_types: Arc::new(RwLock::new(HashMap::new())),
         })
     }
 }
@@ -134,6 +141,140 @@ pub struct ErrorResponse {
     pub details: Option<String>,
 }
 
+/// Visual workflow node definition
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
+pub struct VisualWorkflowNode {
+    pub id: String,
+    pub node_type: String,
+    pub position: Position,
+    pub config: serde_json::Value,
+    pub label: Option<String>,
+}
+
+/// Node position
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
+pub struct Position {
+    pub x: f64,
+    pub y: f64,
+}
+
+/// Visual workflow connection
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
+pub struct VisualWorkflowConnection {
+    pub id: String,
+    pub from_node: String,
+    pub from_output: String,
+    pub to_node: String,
+    pub to_input: String,
+    pub label: Option<String>,
+    pub description: Option<String>,
+}
+
+/// Request to execute a visual workflow
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct ExecuteVisualWorkflowRequest {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub nodes: Vec<VisualWorkflowNode>,
+    pub connections: Vec<VisualWorkflowConnection>,
+}
+
+/// Response from visual workflow execution
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct ExecuteVisualWorkflowResponse {
+    pub status: String,
+    pub output: serde_json::Value,
+    pub execution_time_ms: u64,
+    pub steps_executed: usize,
+}
+
+// ============= Visual Workflow UI Types =============
+
+/// Visual workflow stored in UI
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UIWorkflow {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub nodes: Vec<UIWorkflowNode>,
+    pub connections: Vec<UIConnection>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+/// Node in visual workflow UI
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UIWorkflowNode {
+    pub id: String,
+    pub node_type: String,
+    pub position: UIPosition,
+    pub config: serde_json::Value,
+    pub label: String,
+}
+
+/// Position of node in UI canvas
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UIPosition {
+    pub x: f64,
+    pub y: f64,
+}
+
+/// Connection between nodes in UI
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UIConnection {
+    pub id: String,
+    pub from_node: String,
+    pub from_output: String,
+    pub to_node: String,
+    pub to_input: String,
+}
+
+/// Node type definition for UI palette
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UINodeType {
+    pub id: String,
+    pub name: String,
+    pub category: String,
+    pub description: String,
+    pub inputs: Vec<UINodeInput>,
+    pub outputs: Vec<UINodeOutput>,
+    pub config_schema: serde_json::Value,
+}
+
+/// Node input definition
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UINodeInput {
+    pub name: String,
+    pub r#type: String,
+    pub required: bool,
+    pub description: String,
+}
+
+/// Node output definition
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UINodeOutput {
+    pub name: String,
+    pub r#type: String,
+    pub description: String,
+}
+
+/// Request to create a new workflow
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct CreateUIWorkflowRequest {
+    pub name: String,
+    pub description: String,
+}
+
+/// Request to update an existing workflow
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UpdateUIWorkflowRequest {
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub nodes: Option<Vec<UIWorkflowNode>>,
+    pub connections: Option<Vec<UIConnection>>,
+}
+
 /// Custom error type for API responses
 pub struct ApiError(AgentError);
 
@@ -176,6 +317,7 @@ type ApiResult<T> = std::result::Result<T, ApiError>;
         list_snapshots_handler,
         get_snapshot_handler,
         delete_snapshot_handler,
+        execute_visual_workflow_handler,
     ),
     components(
         schemas(
@@ -187,6 +329,11 @@ type ApiResult<T> = std::result::Result<T, ApiError>;
             ResumeWorkflowRequest,
             HealthResponse,
             ErrorResponse,
+            ExecuteVisualWorkflowRequest,
+            ExecuteVisualWorkflowResponse,
+            VisualWorkflowNode,
+            VisualWorkflowConnection,
+            Position,
         )
     ),
     tags(
@@ -230,6 +377,20 @@ pub fn create_router(state: AppState) -> Router {
             "/api/v1/workflows/snapshots/{id}",
             axum::routing::delete(delete_snapshot_handler),
         )
+        // Visual workflow execution endpoint
+        .route("/api/v1/workflows/execute", post(execute_visual_workflow_handler))
+        // Workflow UI endpoints
+        .route("/workflow-ui", get(serve_workflow_ui))
+        .route("/workflow-ui/workflows", get(list_ui_workflows).post(create_ui_workflow))
+        .route(
+            "/workflow-ui/workflows/:id",
+            get(get_ui_workflow)
+                .put(update_ui_workflow)
+                .delete(delete_ui_workflow),
+        )
+        .route("/workflow-ui/workflows/:id/execute", post(execute_ui_workflow))
+        .route("/workflow-ui/nodes", get(list_ui_node_types))
+        .route("/workflow-ui/api/health", get(workflow_ui_health))
         // OpenAPI spec endpoint
         .route("/api-docs/openapi.json", get(openapi_spec_handler))
         .with_state(state)
@@ -458,6 +619,648 @@ async fn delete_snapshot_handler(
     Ok(Json(serde_json::json!({
         "deleted": deleted
     })))
+}
+
+/// Execute a visual workflow
+#[utoipa::path(
+    post,
+    path = "/api/v1/workflows/execute",
+    tag = "workflows",
+    request_body = ExecuteVisualWorkflowRequest,
+    responses(
+        (status = 200, description = "Workflow executed successfully", body = ExecuteVisualWorkflowResponse),
+        (status = 400, description = "Invalid workflow", body = ErrorResponse),
+        (status = 500, description = "Execution failed", body = ErrorResponse)
+    )
+)]
+async fn execute_visual_workflow_handler(
+    State(state): State<AppState>,
+    Json(request): Json<ExecuteVisualWorkflowRequest>,
+) -> ApiResult<Json<ExecuteVisualWorkflowResponse>> {
+    use std::collections::HashMap;
+    use std::time::Instant;
+
+    info!("Executing visual workflow: {}", request.name);
+    let start_time = Instant::now();
+
+    // Build execution graph
+    let mut node_map: HashMap<String, &VisualWorkflowNode> = HashMap::new();
+    for node in &request.nodes {
+        node_map.insert(node.id.clone(), node);
+    }
+
+    // Store node outputs
+    let mut node_outputs: HashMap<String, serde_json::Value> = HashMap::new();
+    let mut steps_executed = 0;
+
+    // Find nodes with no incoming connections (start nodes)
+    let mut has_incoming: HashMap<String, bool> = HashMap::new();
+    for conn in &request.connections {
+        has_incoming.insert(conn.to_node.clone(), true);
+    }
+
+    let start_nodes: Vec<&VisualWorkflowNode> = request.nodes.iter()
+        .filter(|n| !has_incoming.contains_key(&n.id))
+        .collect();
+
+    if start_nodes.is_empty() {
+        return Err(AgentError::Config("No start nodes found in workflow".to_string()).into());
+    }
+
+    // Execute nodes in topological order (simplified - execute start nodes then connected nodes)
+    let mut executed: HashMap<String, bool> = HashMap::new();
+    let mut to_execute: Vec<String> = start_nodes.iter().map(|n| n.id.clone()).collect();
+
+    while let Some(node_id) = to_execute.pop() {
+        if executed.contains_key(&node_id) {
+            continue;
+        }
+
+        let node = node_map.get(&node_id).ok_or_else(|| {
+            AgentError::Config(format!("Node not found: {}", node_id))
+        })?;
+
+        // Gather inputs from connected nodes
+        let mut inputs: HashMap<String, serde_json::Value> = HashMap::new();
+        for conn in request.connections.iter().filter(|c| c.to_node == node_id) {
+            if let Some(output) = node_outputs.get(&conn.from_node) {
+                inputs.insert(conn.to_input.clone(), output.clone());
+            }
+        }
+
+        // Execute node based on type
+        let output = execute_node(&state, node, &inputs).await?;
+        node_outputs.insert(node_id.clone(), output);
+        executed.insert(node_id.clone(), true);
+        steps_executed += 1;
+
+        // Find next nodes to execute
+        for conn in request.connections.iter().filter(|c| c.from_node == node_id) {
+            if !executed.contains_key(&conn.to_node) {
+                // Check if all inputs are ready
+                let all_inputs_ready = request.connections.iter()
+                    .filter(|c| c.to_node == conn.to_node)
+                    .all(|c| executed.contains_key(&c.from_node));
+
+                if all_inputs_ready {
+                    to_execute.push(conn.to_node.clone());
+                }
+            }
+        }
+    }
+
+    let execution_time_ms = start_time.elapsed().as_millis() as u64;
+
+    // Collect final outputs (from nodes with no outgoing connections)
+    let mut final_output = serde_json::json!({});
+    if let Some(obj) = final_output.as_object_mut() {
+        for (node_id, output) in &node_outputs {
+            let has_outgoing = request.connections.iter()
+                .any(|c| c.from_node == *node_id);
+            if !has_outgoing {
+                obj.insert(node_id.clone(), output.clone());
+            }
+        }
+    }
+
+    Ok(Json(ExecuteVisualWorkflowResponse {
+        status: "completed".to_string(),
+        output: final_output,
+        execution_time_ms,
+        steps_executed,
+    }))
+}
+
+/// Execute a single node
+async fn execute_node(
+    state: &AppState,
+    node: &VisualWorkflowNode,
+    inputs: &HashMap<String, serde_json::Value>,
+) -> Result<serde_json::Value> {
+    match node.node_type.as_str() {
+        "llm_generate" => {
+            // Extract prompt from inputs or config
+            let prompt = inputs.get("prompt")
+                .and_then(|v| v.as_str())
+                .or_else(|| node.config.get("prompt").and_then(|v| v.as_str()))
+                .unwrap_or("").to_string();
+
+            if prompt.is_empty() {
+                return Ok(serde_json::json!({
+                    "response": "No prompt provided"
+                }));
+            }
+
+            // Use the agent to process the message
+            let mut agent = state.agent.write().await;
+            let response = agent.process(&prompt).await?;
+
+            Ok(serde_json::json!({
+                "response": response
+            }))
+        },
+        "file_input" => {
+            let file_path = node.config.get("file_path")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+
+            if file_path.is_empty() {
+                return Ok(serde_json::json!({
+                    "content": "",
+                    "error": "No file path specified"
+                }));
+            }
+
+            match std::fs::read_to_string(file_path) {
+                Ok(content) => Ok(serde_json::json!({
+                    "content": content
+                })),
+                Err(e) => Ok(serde_json::json!({
+                    "content": "",
+                    "error": e.to_string()
+                }))
+            }
+        },
+        "file_output" => {
+            let file_path = node.config.get("file_path")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let content = inputs.get("content")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+
+            if file_path.is_empty() {
+                return Ok(serde_json::json!({
+                    "success": false,
+                    "error": "No file path specified"
+                }));
+            }
+
+            match std::fs::write(file_path, content) {
+                Ok(_) => Ok(serde_json::json!({
+                    "success": true,
+                    "path": file_path
+                })),
+                Err(e) => Ok(serde_json::json!({
+                    "success": false,
+                    "error": e.to_string()
+                }))
+            }
+        },
+        "text_splitter" => {
+            let text = inputs.get("text")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let chunk_size = node.config.get("chunk_size")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(1000) as usize;
+
+            let chunks: Vec<String> = text.chars()
+                .collect::<Vec<char>>()
+                .chunks(chunk_size)
+                .map(|chunk| chunk.iter().collect())
+                .collect();
+
+            Ok(serde_json::json!({
+                "chunks": chunks
+            }))
+        },
+        "conditional" => {
+            let condition = inputs.get("condition")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let true_value = inputs.get("true_value");
+            let false_value = inputs.get("false_value");
+
+            let output = if condition {
+                true_value.cloned().unwrap_or(serde_json::json!(true))
+            } else {
+                false_value.cloned().unwrap_or(serde_json::json!(false))
+            };
+
+            Ok(serde_json::json!({
+                "output": output
+            }))
+        },
+        "model_config" => {
+            // Return the configuration
+            Ok(node.config.clone())
+        },
+        _ => {
+            // Unknown node type - return empty output
+            Ok(serde_json::json!({
+                "warning": format!("Unknown node type: {}", node.node_type)
+            }))
+        }
+    }
+}
+
+// ============= Visual Workflow UI Handlers =============
+
+/// Serve the workflow UI HTML
+async fn serve_workflow_ui() -> Html<&'static str> {
+    Html(include_str!("../../static/index.html"))
+}
+
+/// List all visual workflows
+async fn list_ui_workflows(State(state): State<AppState>) -> Json<Vec<UIWorkflow>> {
+    let workflows = state.ui_workflows.read().await;
+    let workflow_list: Vec<UIWorkflow> = workflows.values().cloned().collect();
+    Json(workflow_list)
+}
+
+/// Create a new visual workflow
+async fn create_ui_workflow(
+    State(state): State<AppState>,
+    Json(request): Json<CreateUIWorkflowRequest>,
+) -> Result<Json<UIWorkflow>, StatusCode> {
+    let now = chrono::Utc::now();
+    let workflow = UIWorkflow {
+        id: uuid::Uuid::new_v4().to_string(),
+        name: request.name,
+        description: request.description,
+        nodes: vec![],
+        connections: vec![],
+        created_at: now,
+        updated_at: now,
+    };
+
+    let mut workflows = state.ui_workflows.write().await;
+    workflows.insert(workflow.id.clone(), workflow.clone());
+
+    Ok(Json(workflow))
+}
+
+/// Get a specific visual workflow
+async fn get_ui_workflow(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> Result<Json<UIWorkflow>, StatusCode> {
+    let workflows = state.ui_workflows.read().await;
+    match workflows.get(&id) {
+        Some(workflow) => Ok(Json(workflow.clone())),
+        None => Err(StatusCode::NOT_FOUND),
+    }
+}
+
+/// Update a visual workflow
+async fn update_ui_workflow(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+    Json(request): Json<UpdateUIWorkflowRequest>,
+) -> Result<Json<UIWorkflow>, StatusCode> {
+    let mut workflows = state.ui_workflows.write().await;
+    if let Some(workflow) = workflows.get_mut(&id) {
+        if let Some(name) = request.name {
+            workflow.name = name;
+        }
+        if let Some(description) = request.description {
+            workflow.description = description;
+        }
+        if let Some(nodes) = request.nodes {
+            workflow.nodes = nodes;
+        }
+        if let Some(connections) = request.connections {
+            workflow.connections = connections;
+        }
+        workflow.updated_at = chrono::Utc::now();
+        Ok(Json(workflow.clone()))
+    } else {
+        Err(StatusCode::NOT_FOUND)
+    }
+}
+
+/// Delete a visual workflow
+async fn delete_ui_workflow(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> Result<StatusCode, StatusCode> {
+    let mut workflows = state.ui_workflows.write().await;
+    if workflows.remove(&id).is_some() {
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        Err(StatusCode::NOT_FOUND)
+    }
+}
+
+/// Execute a visual workflow (calls the execution handler)
+async fn execute_ui_workflow(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> Result<Json<serde_json::Value>, StatusCode> {
+    let workflows = state.ui_workflows.read().await;
+    match workflows.get(&id) {
+        Some(workflow) => {
+            // Convert UI workflow to execution request
+            let nodes: Vec<VisualWorkflowNode> = workflow.nodes.iter().map(|n| VisualWorkflowNode {
+                id: n.id.clone(),
+                node_type: n.node_type.clone(),
+                position: Position { x: n.position.x, y: n.position.y },
+                config: n.config.clone(),
+                label: Some(n.label.clone()),
+            }).collect();
+
+            let connections: Vec<VisualWorkflowConnection> = workflow.connections.iter().map(|c| VisualWorkflowConnection {
+                id: c.id.clone(),
+                from_node: c.from_node.clone(),
+                from_output: c.from_output.clone(),
+                to_node: c.to_node.clone(),
+                to_input: c.to_input.clone(),
+                label: None,
+                description: None,
+            }).collect();
+
+            let request = ExecuteVisualWorkflowRequest {
+                id: workflow.id.clone(),
+                name: workflow.name.clone(),
+                description: Some(workflow.description.clone()),
+                nodes,
+                connections,
+            };
+
+            // Execute the workflow
+            match execute_visual_workflow_handler(State(state.clone()), Json(request)).await {
+                Ok(Json(response)) => Ok(Json(serde_json::to_value(response).unwrap())),
+                Err(e) => Ok(Json(serde_json::json!({
+                    "status": "error",
+                    "output": format!("Execution failed: {:?}", e)
+                }))),
+            }
+        }
+        None => Err(StatusCode::NOT_FOUND),
+    }
+}
+
+/// List available node types for the workflow builder
+async fn list_ui_node_types(State(state): State<AppState>) -> Json<Vec<UINodeType>> {
+    let nodes = state.ui_node_types.read().await;
+    let node_list: Vec<UINodeType> = nodes.values().cloned().collect();
+    Json(node_list)
+}
+
+/// Health check for workflow UI
+async fn workflow_ui_health() -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "status": "healthy",
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "version": env!("CARGO_PKG_VERSION")
+    }))
+}
+
+/// Initialize default node types for workflow builder
+pub async fn initialize_ui_node_types(state: &AppState) {
+    let mut nodes = state.ui_node_types.write().await;
+
+    // LLM Generate Node
+    nodes.insert(
+        "llm_generate".to_string(),
+        UINodeType {
+            id: "llm_generate".to_string(),
+            name: "LLM Generate".to_string(),
+            category: "LLM".to_string(),
+            description: "Generate text using a language model".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "prompt".to_string(),
+                    r#type: "string".to_string(),
+                    required: true,
+                    description: "The prompt to send to the LLM".to_string(),
+                },
+                UINodeInput {
+                    name: "model".to_string(),
+                    r#type: "string".to_string(),
+                    required: false,
+                    description: "LLM model to use (optional)".to_string(),
+                },
+            ],
+            outputs: vec![UINodeOutput {
+                name: "response".to_string(),
+                r#type: "string".to_string(),
+                description: "Generated text response".to_string(),
+            }],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "temperature": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "default": 0.7
+                    },
+                    "max_tokens": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 4096,
+                        "default": 1000
+                    }
+                }
+            }),
+        },
+    );
+
+    // Model Configuration Node
+    nodes.insert(
+        "model_config".to_string(),
+        UINodeType {
+            id: "model_config".to_string(),
+            name: "Model Configuration".to_string(),
+            category: "LLM".to_string(),
+            description: "Configure LLM server connection (Ollama, OpenAI, etc.)".to_string(),
+            inputs: vec![],
+            outputs: vec![UINodeOutput {
+                name: "config".to_string(),
+                r#type: "object".to_string(),
+                description: "LLM configuration".to_string(),
+            }],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "server_url": {
+                        "type": "string",
+                        "default": "http://localhost:11434",
+                        "description": "Ollama or LLM server URL"
+                    },
+                    "model": {
+                        "type": "string",
+                        "default": "llama2",
+                        "description": "Model name to use"
+                    },
+                    "temperature": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "default": 0.7,
+                        "description": "Temperature for generation"
+                    },
+                    "max_tokens": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 32000,
+                        "default": 2048,
+                        "description": "Maximum tokens to generate"
+                    },
+                    "top_p": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "default": 0.9,
+                        "description": "Top-p sampling parameter"
+                    },
+                    "stream": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Enable streaming responses"
+                    }
+                }
+            }),
+        },
+    );
+
+    // Text Splitter Node
+    nodes.insert(
+        "text_splitter".to_string(),
+        UINodeType {
+            id: "text_splitter".to_string(),
+            name: "Text Splitter".to_string(),
+            category: "Data Processing".to_string(),
+            description: "Split text into chunks".to_string(),
+            inputs: vec![UINodeInput {
+                name: "text".to_string(),
+                r#type: "string".to_string(),
+                required: true,
+                description: "Text to split".to_string(),
+            }],
+            outputs: vec![UINodeOutput {
+                name: "chunks".to_string(),
+                r#type: "array".to_string(),
+                description: "Array of text chunks".to_string(),
+            }],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "chunk_size": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 10000,
+                        "default": 1000
+                    },
+                    "overlap": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 500,
+                        "default": 200
+                    }
+                }
+            }),
+        },
+    );
+
+    // Conditional Node
+    nodes.insert(
+        "conditional".to_string(),
+        UINodeType {
+            id: "conditional".to_string(),
+            name: "Conditional".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Route execution based on conditions".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "condition".to_string(),
+                    r#type: "boolean".to_string(),
+                    required: true,
+                    description: "Boolean condition to evaluate".to_string(),
+                },
+                UINodeInput {
+                    name: "true_value".to_string(),
+                    r#type: "any".to_string(),
+                    required: false,
+                    description: "Value to pass when condition is true".to_string(),
+                },
+                UINodeInput {
+                    name: "false_value".to_string(),
+                    r#type: "any".to_string(),
+                    required: false,
+                    description: "Value to pass when condition is false".to_string(),
+                },
+            ],
+            outputs: vec![UINodeOutput {
+                name: "output".to_string(),
+                r#type: "any".to_string(),
+                description: "Selected output value".to_string(),
+            }],
+            config_schema: serde_json::json!({}),
+        },
+    );
+
+    // File Input Node
+    nodes.insert(
+        "file_input".to_string(),
+        UINodeType {
+            id: "file_input".to_string(),
+            name: "File Input".to_string(),
+            category: "I/O".to_string(),
+            description: "Read data from a file".to_string(),
+            inputs: vec![],
+            outputs: vec![UINodeOutput {
+                name: "content".to_string(),
+                r#type: "string".to_string(),
+                description: "File content".to_string(),
+            }],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "Path to the input file"
+                    },
+                    "encoding": {
+                        "type": "string",
+                        "enum": ["utf8", "binary"],
+                        "default": "utf8"
+                    }
+                },
+                "required": ["file_path"]
+            }),
+        },
+    );
+
+    // File Output Node
+    nodes.insert(
+        "file_output".to_string(),
+        UINodeType {
+            id: "file_output".to_string(),
+            name: "File Output".to_string(),
+            category: "I/O".to_string(),
+            description: "Write data to a file".to_string(),
+            inputs: vec![UINodeInput {
+                name: "content".to_string(),
+                r#type: "string".to_string(),
+                required: true,
+                description: "Content to write".to_string(),
+            }],
+            outputs: vec![],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "file_path": {
+                        "type": "string",
+                        "description": "Path to the output file"
+                    },
+                    "encoding": {
+                        "type": "string",
+                        "enum": ["utf8", "binary"],
+                        "default": "utf8"
+                    },
+                    "append": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Append to file instead of overwriting"
+                    }
+                },
+                "required": ["file_path"]
+            }),
+        },
+    );
 }
 
 /// Start the API server

@@ -141,6 +141,12 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 - Compensation in action
 - Step retry logic
 
+**`examples/saga_llm_workflow.rs`**: Demonstrates:
+- Saga workflows with LLM integration
+- AI-powered research workflows
+- LLM-based compensation and rollback
+- Real LLM calls in distributed transactions
+
 ## Architecture
 
 ```

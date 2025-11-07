@@ -19,6 +19,9 @@ include = [
     "LICENSE"
 ]
 
+[build-dependencies]
+tauri-build = { version = "2.5.0", features = [] }
+
 [dependencies]
 # Async runtime
 tokio = { version = "1", features = ["full"] }
@@ -89,6 +92,9 @@ hyper = { version = "1", features = ["full"] }
 utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-swagger-ui = { version = "8", features = ["axum"] }
 
+# Tauri for desktop application (optional)
+tauri = { version = "2.5.0", optional = true }
+
 # Daemon/service functionality
 daemonize = "0.5"
 
@@ -131,6 +137,7 @@ criterion = { version = "0.7", features = ["html_reports"] }
 default = ["sqlite"]
 sqlite = []
 pdf = ["pdf-extract", "lopdf", "table-extract"]
+tauri = ["dep:tauri"]
 
 [[bin]]
 name = "agent-example"
@@ -143,6 +150,14 @@ path = "src/bin/agency-daemon.rs"
 [[bin]]
 name = "agency-service"
 path = "src/bin/agency-service.rs"
+
+[[bin]]
+name = "workflow-builder"
+path = "src/bin/workflow-builder.rs"
+
+[[bin]]
+name = "workflow-ui"
+path = "src/bin/workflow-ui.rs"
 
 [lib]
 name = "the_agency"

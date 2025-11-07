@@ -1,0 +1,50 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "frontendDist": "../static"
+  },
+  "bundle": {
+    "active": true,
+    "category": "DeveloperTool",
+    "copyright": "MIT",
+    "externalBin": [],
+    "longDescription": "A visual workflow builder for creating and managing complex AI agent workflows",
+    "resources": [],
+    "shortDescription": "Visual Workflow Builder",
+    "targets": "all",
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    },
+    "macos": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "The Agency - Workflow Builder",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "decorations": true
+      }
+    ]
+  },
+  "identifier": "com.theagency.workflowbuilder",
+  "plugins": {},
+  "productName": "The Agency - Workflow Builder",
+  "version": "0.2.0"
+}
