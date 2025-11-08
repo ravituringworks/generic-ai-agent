@@ -332,20 +332,30 @@
             top: 10px;
             right: 10px;
             width: 300px;
+            max-height: calc(100vh - 100px);
             background: #2a2a2a;
             border: 1px solid #404040;
             border-radius: 8px;
-            padding: 1rem;
+            display: flex;
+            flex-direction: column;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .properties-header {
             font-weight: 500;
-            margin-bottom: 1rem;
+            padding: 1rem;
             color: #00d4aa;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #404040;
+            flex-shrink: 0;
+        }
+
+        #propertiesContent {
+            overflow-y: auto;
+            padding: 1rem;
+            flex: 1;
         }
 
         .property-group {
@@ -498,7 +508,11 @@
         <h1>🤖 The Agency - Workflow Builder</h1>
         <div class="toolbar">
             <button class="btn" id="newWorkflowBtn">New Workflow</button>
+            <button class="btn" id="copyWorkflowBtn">Copy</button>
+            <button class="btn" id="renameWorkflowBtn">Rename</button>
             <button class="btn" id="saveWorkflowBtn">Save</button>
+            <button class="btn" id="importWorkflowBtn">Import</button>
+            <button class="btn" id="exportWorkflowBtn">Export</button>
             <button class="btn primary" id="executeWorkflowBtn">Execute</button>
             <button class="btn danger" id="deleteWorkflowBtn">Delete</button>
         </div>
@@ -599,6 +613,53 @@
             </div>
         </div>
     </div>
+
+    <div class="modal hidden" id="renameWorkflowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Rename Workflow</div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Workflow Name</label>
+                    <input type="text" class="form-input" id="renameWorkflowNameInput" placeholder="My Workflow">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" id="renameWorkflowDescriptionInput" rows="3" placeholder="Workflow description..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelRenameWorkflowBtn">Cancel</button>
+                <button class="btn primary" id="saveRenameWorkflowBtn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="copyWorkflowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Copy Workflow</div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">New Workflow Name</label>
+                    <input type="text" class="form-input" id="copyWorkflowNameInput" placeholder="Copy of My Workflow">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" id="copyWorkflowDescriptionInput" rows="3" placeholder="Workflow description..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelCopyWorkflowBtn">Cancel</button>
+                <button class="btn primary" id="saveCopyWorkflowBtn">Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for importing workflows -->
+    <input type="file" id="importWorkflowFileInput" accept=".json" style="display: none;">
 
     <script>
         // Detect if running in Tauri or web mode
@@ -939,8 +1000,29 @@
             // Render connections first (so they appear behind nodes)
             connections.forEach(connection => renderConnection(connection));
 
-            // Render nodes
-            nodes.forEach(node => renderNode(node));
+            // Render nodes in order: container nodes first, then regular nodes, then child nodes inside containers
+            // This ensures containers are drawn before their children
+
+            // 1. Render top-level container nodes (no parent_id, is_container=true)
+            nodes.filter(n => !n.parent_id).forEach(node => {
+                const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                if (nodeType && nodeType.is_container) {
+                    renderNode(node);
+                }
+            });
+
+            // 2. Render top-level regular nodes (no parent_id, is_container=false)
+            nodes.filter(n => !n.parent_id).forEach(node => {
+                const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                if (nodeType && !nodeType.is_container) {
+                    renderNode(node);
+                }
+            });
+
+            // 3. Render child nodes (have parent_id) - these will be positioned relative to their containers
+            nodes.filter(n => n.parent_id).forEach(node => {
+                renderNode(node);
+            });
 
             // Update properties panel
             if (selectedNode) {
@@ -961,21 +1043,42 @@
             const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
             if (!nodeType) return;
 
+            // Check if this is a container node
+            const isContainer = nodeType.is_container === true;
+
             // Calculate node dimensions
-            const inputsHeight = nodeType.inputs.length * 30;
-            const outputsHeight = nodeType.outputs.length * 30;
-            const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
-            const nodeWidth = 200;
-            const nodeHeight = 40 + contentHeight;
+            let nodeWidth, nodeHeight;
+            if (isContainer) {
+                // Container nodes use their size or default to larger dimensions
+                nodeWidth = node.size?.width || 400;
+                nodeHeight = node.size?.height || 300;
+            } else {
+                const inputsHeight = nodeType.inputs.length * 30;
+                const outputsHeight = nodeType.outputs.length * 30;
+                const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
+                nodeWidth = 200;
+                nodeHeight = 40 + contentHeight;
+            }
 
             // Node background
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             rect.setAttribute('width', nodeWidth);
             rect.setAttribute('height', nodeHeight);
             rect.setAttribute('rx', '8');
-            rect.setAttribute('fill', '#2a2a2a');
-            rect.setAttribute('stroke', selectedNode && selectedNode.id === node.id ? '#00e4ba' : '#00d4aa');
-            rect.setAttribute('stroke-width', selectedNode && selectedNode.id === node.id ? '3' : '2');
+
+            if (isContainer) {
+                // Container nodes have a lighter background and dashed border
+                rect.setAttribute('fill', '#1a1a1a');
+                rect.setAttribute('stroke', selectedNode && selectedNode.id === node.id ? '#00e4ba' : '#7a7a7a');
+                rect.setAttribute('stroke-width', selectedNode && selectedNode.id === node.id ? '3' : '2');
+                rect.setAttribute('stroke-dasharray', '8,4');
+                rect.setAttribute('fill-opacity', '0.3');
+            } else {
+                // Regular nodes
+                rect.setAttribute('fill', '#2a2a2a');
+                rect.setAttribute('stroke', selectedNode && selectedNode.id === node.id ? '#00e4ba' : '#00d4aa');
+                rect.setAttribute('stroke-width', selectedNode && selectedNode.id === node.id ? '3' : '2');
+            }
             nodeElement.appendChild(rect);
 
             // Node header
@@ -983,7 +1086,7 @@
             headerRect.setAttribute('width', nodeWidth);
             headerRect.setAttribute('height', '30');
             headerRect.setAttribute('rx', '6');
-            headerRect.setAttribute('fill', '#00d4aa');
+            headerRect.setAttribute('fill', isContainer ? '#8a8a00' : '#00d4aa');
             nodeElement.appendChild(headerRect);
 
             const headerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -1008,6 +1111,38 @@
                 deleteNode(node.id);
             });
             nodeElement.appendChild(deleteBtn);
+
+            // Container-specific UI
+            if (isContainer) {
+                // Check if container has child nodes
+                const childNodes = nodes.filter(n => n.parent_id === node.id);
+
+                // If empty, show drop zone hint
+                if (childNodes.length === 0) {
+                    const hintText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    hintText.setAttribute('x', nodeWidth / 2);
+                    hintText.setAttribute('y', nodeHeight / 2);
+                    hintText.setAttribute('fill', '#6a6a6a');
+                    hintText.setAttribute('font-size', '14');
+                    hintText.setAttribute('font-style', 'italic');
+                    hintText.setAttribute('text-anchor', 'middle');
+                    hintText.setAttribute('pointer-events', 'none');
+                    hintText.textContent = 'Drop nodes here';
+                    nodeElement.appendChild(hintText);
+                }
+
+                // Add resize handle in bottom-right corner
+                const resizeHandle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                resizeHandle.setAttribute('x', nodeWidth - 15);
+                resizeHandle.setAttribute('y', nodeHeight - 15);
+                resizeHandle.setAttribute('width', '12');
+                resizeHandle.setAttribute('height', '12');
+                resizeHandle.setAttribute('fill', '#6a6a6a');
+                resizeHandle.setAttribute('cursor', 'nwse-resize');
+                resizeHandle.setAttribute('class', 'resize-handle');
+                resizeHandle.dataset.nodeId = node.id;
+                nodeElement.appendChild(resizeHandle);
+            }
 
             // Input handles
             nodeType.inputs.forEach((input, index) => {
@@ -1112,6 +1247,10 @@
             const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
             if (!nodeType) return;
 
+            // For model_config nodes, check current provider to filter parameters
+            const isModelConfig = node.node_type === 'model_config';
+            const currentProvider = isModelConfig ? (node.config['provider'] || 'ollama') : null;
+
             propertiesContent.innerHTML = `
                 <div class="property-group">
                     <label class="property-label">Node Type</label>
@@ -1121,22 +1260,38 @@
                     <label class="property-label">Label</label>
                     <input type="text" class="property-input" value="${node.label || ''}" onchange="updateNodeLabel('${node.id}', this.value)">
                 </div>
+                ${isModelConfig ? `
+                    <div style="background: rgba(0, 212, 170, 0.1); border-left: 3px solid #00d4aa; padding: 0.75rem; margin: 1rem 0; border-radius: 4px;">
+                        <div style="font-size: 0.85rem; color: #00d4aa; font-weight: 500; margin-bottom: 0.25rem;">Provider: ${currentProvider ? currentProvider.toUpperCase() : 'Not Selected'}</div>
+                        <div style="font-size: 0.75rem; color: #b0b0b0;">Showing ${currentProvider ? currentProvider + '-specific' : 'default'} parameters. Required fields are marked with <span style="color: #d44040;">*</span></div>
+                    </div>
+                ` : ''}
             `;
 
             // Add config properties based on schema
             if (nodeType.config_schema) {
                 const schema = nodeType.config_schema;
                 if (schema.properties) {
+
                     Object.keys(schema.properties).forEach(prop => {
                         const propSchema = schema.properties[prop];
                         const currentValue = node.config[prop] || propSchema.default || '';
                         const description = propSchema.description || '';
 
+                        // Skip parameters that should be hidden for this provider
+                        if (isModelConfig && currentProvider && !isParamVisibleForProvider(currentProvider, prop)) {
+                            return; // Skip this parameter
+                        }
+
+                        // Check if parameter is required for this provider
+                        const isRequired = isModelConfig && currentProvider && isParamRequiredForProvider(currentProvider, prop);
+                        const labelSuffix = isRequired ? ' <span style="color: #d44040;">*</span>' : '';
+
                         // Check if this is a file path field
                         if (prop.includes('file') || prop.includes('path')) {
                             propertiesContent.innerHTML += `
                                 <div class="property-group">
-                                    <label class="property-label">${prop}</label>
+                                    <label class="property-label">${prop}${labelSuffix}</label>
                                     <div style="display: flex; gap: 0.5rem;">
                                         <input type="text" class="property-input" id="prop-${node.id}-${prop}"
                                                value="${currentValue}"
@@ -1146,6 +1301,7 @@
                                         <button class="btn" onclick="selectFile('${node.id}', '${prop}')"
                                                 style="padding: 0.5rem; min-width: auto;">Browse</button>
                                     </div>
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         } else if (propSchema.enum) {
@@ -1155,10 +1311,11 @@
                             ).join('');
                             propertiesContent.innerHTML += `
                                 <div class="property-group">
-                                    <label class="property-label">${prop}</label>
+                                    <label class="property-label">${prop}${labelSuffix}</label>
                                     <select class="property-input" onchange="updateNodeConfig('${node.id}', '${prop}', this.value)">
                                         ${options}
                                     </select>
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         } else if (propSchema.type === 'boolean') {
@@ -1171,19 +1328,32 @@
                                                ${isChecked ? 'checked' : ''}
                                                onchange="updateNodeConfig('${node.id}', '${prop}', this.checked)"
                                                style="width: auto; margin-right: 0.5rem;">
-                                        <span class="property-label" style="margin-bottom: 0;">${prop}</span>
+                                        <span class="property-label" style="margin-bottom: 0;">${prop}${labelSuffix}</span>
                                     </label>
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
+                                </div>
+                            `;
+                        } else if (propSchema.type === 'object') {
+                            // JSON object input
+                            const jsonValue = typeof currentValue === 'object' ? JSON.stringify(currentValue, null, 2) : currentValue;
+                            propertiesContent.innerHTML += `
+                                <div class="property-group">
+                                    <label class="property-label">${prop}${labelSuffix}</label>
+                                    <textarea class="property-input" rows="3"
+                                              placeholder="${description}"
+                                              onchange="updateNodeConfig('${node.id}', '${prop}', this.value)">${jsonValue}</textarea>
                                     ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         } else {
                             propertiesContent.innerHTML += `
                                 <div class="property-group">
-                                    <label class="property-label">${prop}</label>
+                                    <label class="property-label">${prop}${labelSuffix}</label>
                                     <input type="${getInputType(propSchema.type)}" class="property-input"
                                            value="${currentValue}"
                                            placeholder="${description}"
                                            onchange="updateNodeConfig('${node.id}', '${prop}', this.value)">
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         }
@@ -1211,14 +1381,25 @@
 
             // Toolbar buttons
             document.getElementById('newWorkflowBtn').addEventListener('click', showNewWorkflowModal);
+            document.getElementById('copyWorkflowBtn').addEventListener('click', showCopyWorkflowModal);
+            document.getElementById('renameWorkflowBtn').addEventListener('click', showRenameWorkflowModal);
             document.getElementById('saveWorkflowBtn').addEventListener('click', saveWorkflow);
+            document.getElementById('importWorkflowBtn').addEventListener('click', importWorkflow);
+            document.getElementById('exportWorkflowBtn').addEventListener('click', exportWorkflow);
             document.getElementById('executeWorkflowBtn').addEventListener('click', executeWorkflow);
             document.getElementById('deleteWorkflowBtn').addEventListener('click', deleteWorkflow);
 
             // Modal events
             document.getElementById('cancelNewWorkflowBtn').addEventListener('click', hideNewWorkflowModal);
             document.getElementById('createWorkflowBtn').addEventListener('click', handleCreateWorkflow);
+            document.getElementById('cancelCopyWorkflowBtn').addEventListener('click', hideCopyWorkflowModal);
+            document.getElementById('saveCopyWorkflowBtn').addEventListener('click', handleCopyWorkflow);
+            document.getElementById('cancelRenameWorkflowBtn').addEventListener('click', hideRenameWorkflowModal);
+            document.getElementById('saveRenameWorkflowBtn').addEventListener('click', handleRenameWorkflow);
             document.getElementById('closeExecutionOutputBtn').addEventListener('click', hideExecutionOutputModal);
+
+            // File input event
+            document.getElementById('importWorkflowFileInput').addEventListener('change', handleImportFile);
 
             // Zoom controls
             document.getElementById('zoomIn').addEventListener('click', () => zoomCanvas(1.2));
@@ -1354,10 +1535,51 @@
             }
 
             // Stop node dragging
-            if (isDraggingNode) {
+            if (isDraggingNode && draggedNode) {
+                // Check if node was dropped into a container
+                const droppedNode = draggedNode;
+                let foundContainer = null;
+
+                // Check all container nodes to see if drop position is within bounds
+                for (const containerNode of nodes) {
+                    const containerType = nodeTypes.find(nt => nt.id === containerNode.node_type);
+                    if (containerType && containerType.is_container && containerNode.id !== droppedNode.id) {
+                        const containerWidth = containerNode.size?.width || 400;
+                        const containerHeight = containerNode.size?.height || 300;
+
+                        // Check if dropped node center is within container bounds
+                        const nodeCenterX = droppedNode.position.x + 100; // assuming node width ~200
+                        const nodeCenterY = droppedNode.position.y + 50; // assuming node height ~100
+
+                        if (nodeCenterX >= containerNode.position.x &&
+                            nodeCenterX <= containerNode.position.x + containerWidth &&
+                            nodeCenterY >= containerNode.position.y + 30 && // Skip header
+                            nodeCenterY <= containerNode.position.y + containerHeight) {
+                            foundContainer = containerNode;
+                            break;
+                        }
+                    }
+                }
+
+                // Update parent_id based on whether node was dropped in container
+                if (foundContainer) {
+                    droppedNode.parent_id = foundContainer.id;
+                    updateStatus(`Node moved into ${foundContainer.label || 'container'}`);
+                } else if (droppedNode.parent_id) {
+                    // Node was moved out of a container
+                    droppedNode.parent_id = null;
+                    updateStatus('Node moved out of container');
+                }
+
+                // Save the workflow after moving nodes
+                if (currentWorkflow) {
+                    saveWorkflow();
+                }
+
                 isDraggingNode = false;
                 draggedNode = null;
                 nodeDragStart = null;
+                renderCanvas();
             }
 
             // Handle palette node drop (mouse-based for WebView)
@@ -1459,9 +1681,22 @@
         }
 
         // Workflow operations
-        function addNode(nodeTypeId, x, y) {
+        async function addNode(nodeTypeId, x, y) {
             const nodeType = nodeTypes.find(nt => nt.id === nodeTypeId);
             if (!nodeType) return;
+
+            // Auto-create workflow if none exists
+            if (!currentWorkflow) {
+                try {
+                    const timestamp = new Date().toLocaleString();
+                    await createWorkflow(`Workflow ${timestamp}`, 'Auto-created workflow');
+                    updateStatus('Created new workflow automatically');
+                } catch (error) {
+                    console.error('Failed to auto-create workflow:', error);
+                    updateStatus('Failed to create workflow - please create one manually');
+                    return;
+                }
+            }
 
             // Initialize config with default values from schema
             const config = {};
@@ -1481,6 +1716,11 @@
                 config: config,
                 label: nodeType.name
             };
+
+            // Initialize size for container nodes
+            if (nodeType.is_container) {
+                node.size = { width: 400, height: 300 };
+            }
 
             nodes.push(node);
             renderCanvas();
@@ -1617,6 +1857,51 @@
             document.getElementById('executionOutputModal').classList.add('hidden');
         }
 
+        function showRenameWorkflowModal() {
+            if (!currentWorkflow) {
+                updateStatus('No workflow selected to rename');
+                return;
+            }
+
+            document.getElementById('renameWorkflowNameInput').value = currentWorkflow.name;
+            document.getElementById('renameWorkflowDescriptionInput').value = currentWorkflow.description || '';
+            document.getElementById('renameWorkflowModal').classList.remove('hidden');
+            document.getElementById('renameWorkflowNameInput').focus();
+        }
+
+        function hideRenameWorkflowModal() {
+            document.getElementById('renameWorkflowModal').classList.add('hidden');
+            document.getElementById('renameWorkflowNameInput').value = '';
+            document.getElementById('renameWorkflowDescriptionInput').value = '';
+        }
+
+        async function handleRenameWorkflow() {
+            if (!currentWorkflow) {
+                alert('No workflow selected');
+                return;
+            }
+
+            const name = document.getElementById('renameWorkflowNameInput').value.trim();
+            const description = document.getElementById('renameWorkflowDescriptionInput').value.trim();
+
+            if (!name) {
+                alert('Workflow name is required');
+                return;
+            }
+
+            try {
+                currentWorkflow.name = name;
+                currentWorkflow.description = description;
+                await saveWorkflow();
+                await loadWorkflows();
+                hideRenameWorkflowModal();
+                updateStatus(`Renamed workflow to: ${name}`);
+            } catch (error) {
+                console.error('Failed to rename workflow:', error);
+                alert('Failed to rename workflow');
+            }
+        }
+
         async function handleCreateWorkflow() {
             const name = document.getElementById('workflowNameInput').value.trim();
             const description = document.getElementById('workflowDescriptionInput').value.trim();
@@ -1632,6 +1917,183 @@
             } catch (error) {
                 alert('Failed to create workflow');
             }
+        }
+
+        // Copy workflow functions
+        function showCopyWorkflowModal() {
+            if (!currentWorkflow) {
+                updateStatus('No workflow selected to copy');
+                return;
+            }
+
+            document.getElementById('copyWorkflowNameInput').value = `Copy of ${currentWorkflow.name}`;
+            document.getElementById('copyWorkflowDescriptionInput').value = currentWorkflow.description || '';
+            document.getElementById('copyWorkflowModal').classList.remove('hidden');
+            document.getElementById('copyWorkflowNameInput').focus();
+        }
+
+        function hideCopyWorkflowModal() {
+            document.getElementById('copyWorkflowModal').classList.add('hidden');
+            document.getElementById('copyWorkflowNameInput').value = '';
+            document.getElementById('copyWorkflowDescriptionInput').value = '';
+        }
+
+        async function handleCopyWorkflow() {
+            if (!currentWorkflow) {
+                alert('No workflow selected');
+                return;
+            }
+
+            const name = document.getElementById('copyWorkflowNameInput').value.trim();
+            const description = document.getElementById('copyWorkflowDescriptionInput').value.trim();
+
+            if (!name) {
+                alert('Workflow name is required');
+                return;
+            }
+
+            try {
+                // Create a copy of the current workflow with new name
+                const workflowCopy = {
+                    name: name,
+                    description: description,
+                    nodes: JSON.parse(JSON.stringify(nodes)), // Deep copy nodes
+                    connections: JSON.parse(JSON.stringify(connections)) // Deep copy connections
+                };
+
+                // Create new workflow
+                const result = await apiCall('create_workflow', workflowCopy);
+
+                // Load the new workflow
+                await loadWorkflow(result.id);
+                hideCopyWorkflowModal();
+                updateStatus(`Copied workflow: ${name}`);
+            } catch (error) {
+                console.error('Failed to copy workflow:', error);
+                alert('Failed to copy workflow');
+            }
+        }
+
+        // Export workflow function
+        async function exportWorkflow() {
+            if (!currentWorkflow) {
+                updateStatus('No workflow selected to export');
+                return;
+            }
+
+            try {
+                // Create export object with all workflow data
+                const exportData = {
+                    name: currentWorkflow.name,
+                    description: currentWorkflow.description || '',
+                    nodes: nodes,
+                    connections: connections,
+                    exported_at: new Date().toISOString(),
+                    version: '1.0',
+                    workflow_id: currentWorkflow.id
+                };
+
+                // Convert to JSON string
+                const jsonString = JSON.stringify(exportData, null, 2);
+
+                if (isTauriMode && window.__TAURI__) {
+                    // Use Tauri save dialog
+                    const filePath = await window.__TAURI__.dialog.save({
+                        defaultPath: `${currentWorkflow.name.replace(/[^a-z0-9]/gi, '_')}_workflow.json`,
+                        filters: [{
+                            name: 'JSON',
+                            extensions: ['json']
+                        }]
+                    });
+
+                    if (filePath) {
+                        await window.__TAURI__.fs.writeTextFile(filePath, jsonString);
+                        updateStatus(`Exported workflow: ${currentWorkflow.name}`);
+                    }
+                } else {
+                    // Use web browser download
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${currentWorkflow.name.replace(/[^a-z0-9]/gi, '_')}_workflow.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    updateStatus(`Exported workflow: ${currentWorkflow.name}`);
+                }
+            } catch (error) {
+                console.error('Failed to export workflow:', error);
+                alert('Failed to export workflow');
+            }
+        }
+
+        // Import workflow functions
+        async function importWorkflow() {
+            if (isTauriMode && window.__TAURI__) {
+                // Use Tauri open dialog
+                try {
+                    const filePath = await window.__TAURI__.dialog.open({
+                        multiple: false,
+                        filters: [{
+                            name: 'JSON',
+                            extensions: ['json']
+                        }]
+                    });
+
+                    if (filePath) {
+                        const text = await window.__TAURI__.fs.readTextFile(filePath);
+                        await processImportedWorkflow(text, filePath);
+                    }
+                } catch (error) {
+                    console.error('Failed to import workflow:', error);
+                    alert('Failed to import workflow. Please check the file format.');
+                }
+            } else {
+                // Trigger the hidden file input for web browser
+                document.getElementById('importWorkflowFileInput').click();
+            }
+        }
+
+        async function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                await processImportedWorkflow(text, file.name);
+            } catch (error) {
+                console.error('Failed to import workflow:', error);
+                alert('Failed to import workflow. Please check the file format.');
+            }
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        async function processImportedWorkflow(text, fileName) {
+            const importData = JSON.parse(text);
+
+            // Validate import data
+            if (!importData.nodes || !importData.connections) {
+                throw new Error('Invalid workflow file format');
+            }
+
+            // Create a new workflow with the imported data
+            const workflowData = {
+                name: importData.name || 'Imported Workflow',
+                description: importData.description || `Imported from ${fileName}`,
+                nodes: importData.nodes,
+                connections: importData.connections,
+                workflow_id: importData.workflow_id
+            };
+
+            const result = await apiCall('create_workflow', workflowData);
+
+            // Load the new workflow
+            await loadWorkflow(result.id);
+            updateStatus(`Imported workflow: ${workflowData.name}`);
         }
 
         // Utility functions
@@ -1665,26 +2127,127 @@
         function fitToScreen() {
             if (nodes.length === 0) return;
 
-            const bounds = nodes.reduce((acc, node) => ({
-                minX: Math.min(acc.minX, node.position.x),
-                minY: Math.min(acc.minY, node.position.y),
-                maxX: Math.max(acc.maxX, node.position.x + 200),
-                maxY: Math.max(acc.maxY, node.position.y + 100)
-            }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+            const bounds = nodes.reduce((acc, node) => {
+                const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                const isContainer = nodeType?.is_container === true;
+
+                // Calculate actual node dimensions
+                let nodeWidth, nodeHeight;
+                if (isContainer) {
+                    nodeWidth = node.size?.width || 400;
+                    nodeHeight = node.size?.height || 300;
+                } else {
+                    const inputsHeight = nodeType?.inputs?.length * 30 || 0;
+                    const outputsHeight = nodeType?.outputs?.length * 30 || 0;
+                    const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
+                    nodeWidth = 200;
+                    nodeHeight = 40 + contentHeight;
+                }
+
+                return {
+                    minX: Math.min(acc.minX, node.position.x),
+                    minY: Math.min(acc.minY, node.position.y),
+                    maxX: Math.max(acc.maxX, node.position.x + nodeWidth),
+                    maxY: Math.max(acc.maxY, node.position.y + nodeHeight)
+                };
+            }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
 
             const canvasRect = canvas.getBoundingClientRect();
-            const scaleX = canvasRect.width / (bounds.maxX - bounds.minX + 100);
-            const scaleY = canvasRect.height / (bounds.maxY - bounds.minY + 100);
+            const padding = 100; // Add padding around the workflow
+            const scaleX = canvasRect.width / (bounds.maxX - bounds.minX + padding);
+            const scaleY = canvasRect.height / (bounds.maxY - bounds.minY + padding);
             canvasScale = Math.min(scaleX, scaleY, 1);
 
-            canvasOffset.x = -bounds.minX * canvasScale + 50;
-            canvasOffset.y = -bounds.minY * canvasScale + 50;
+            canvasOffset.x = -bounds.minX * canvasScale + padding / 2;
+            canvasOffset.y = -bounds.minY * canvasScale + padding / 2;
 
             updateCanvasTransform();
         }
 
         function updateStatus(message) {
             statusMessage.textContent = message;
+        }
+
+        // Provider URL mapping
+        const PROVIDER_URLS = {
+            'ollama': 'http://localhost:11434',
+            'openai': 'https://api.openai.com/v1',
+            'anthropic': 'https://api.anthropic.com',
+            'google': 'https://generativelanguage.googleapis.com/v1',
+            'azureopenai': '',  // User must provide their Azure endpoint
+            'groq': 'https://api.groq.com/openai/v1',
+            'together': 'https://api.together.xyz/v1',
+            'replicate': 'https://api.replicate.com/v1',
+            'huggingface': 'https://api-inference.huggingface.co/models',
+            'cohere': 'https://api.cohere.ai/v1'
+        };
+
+        // Provider-specific parameter visibility
+        const PROVIDER_PARAMS = {
+            'ollama': {
+                required: ['provider', 'base_url', 'model'],
+                optional: ['temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model'],
+                hidden: ['api_key', 'api_version', 'deployment_name', 'system_prompt', 'provider_options']
+            },
+            'openai': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt']
+            },
+            'anthropic': {
+                required: ['provider', 'api_key', 'model', 'max_tokens'],
+                optional: ['base_url', 'temperature', 'top_p', 'timeout', 'system_prompt', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'stream', 'embedding_model']
+            },
+            'google': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream', 'embedding_model']
+            },
+            'azureopenai': {
+                required: ['provider', 'api_key', 'deployment_name', 'base_url'],
+                optional: ['model', 'api_version', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['system_prompt']
+            },
+            'groq': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'embedding_model']
+            },
+            'together': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt']
+            },
+            'replicate': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream', 'embedding_model']
+            },
+            'huggingface': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream', 'embedding_model']
+            },
+            'cohere': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream']
+            }
+        };
+
+        // Helper function to check if a parameter should be visible for a provider
+        function isParamVisibleForProvider(provider, paramName) {
+            const config = PROVIDER_PARAMS[provider];
+            if (!config) return true; // Show all if provider not configured
+            return !config.hidden.includes(paramName);
+        }
+
+        // Helper function to check if a parameter is required for a provider
+        function isParamRequiredForProvider(provider, paramName) {
+            const config = PROVIDER_PARAMS[provider];
+            if (!config) return false;
+            return config.required.includes(paramName);
         }
 
         // Global functions for HTML event handlers
@@ -1700,6 +2263,21 @@
             const node = nodes.find(n => n.id === nodeId);
             if (node) {
                 node.config[prop] = value;
+
+                // If updating provider field in model_config node, update base_url automatically
+                if (prop === 'provider' && node.node_type === 'model_config') {
+                    const defaultUrl = PROVIDER_URLS[value] || '';
+                    node.config['base_url'] = defaultUrl;
+
+                    // Update the base_url input field if it exists
+                    const baseUrlInput = document.querySelector(`input[onchange*="'base_url'"]`);
+                    if (baseUrlInput) {
+                        baseUrlInput.value = defaultUrl;
+                    }
+
+                    // Re-render properties panel to show updated URL
+                    renderPropertiesPanel(node);
+                }
             }
         };
 

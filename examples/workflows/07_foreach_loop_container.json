@@ -1,0 +1,100 @@
+{
+  "name": "For-Each Loop Container",
+  "description": "Demonstrates iterating over a collection using foreach container node",
+  "nodes": [
+    {
+      "id": "input_array",
+      "node_type": "text_input",
+      "position": {
+        "x": 50,
+        "y": 150
+      },
+      "config": {
+        "text": "[\"apple\", \"banana\", \"cherry\", \"date\"]"
+      },
+      "label": "Items Array (JSON)"
+    },
+    {
+      "id": "foreach_container_1",
+      "node_type": "foreach_container",
+      "position": {
+        "x": 350,
+        "y": 100
+      },
+      "config": {
+        "max_iterations": 100
+      },
+      "label": "Process Each Item",
+      "size": {
+        "width": 450,
+        "height": 300
+      }
+    },
+    {
+      "id": "item_processor",
+      "node_type": "text_input",
+      "position": {
+        "x": 380,
+        "y": 170
+      },
+      "config": {
+        "text": "Processing item: "
+      },
+      "label": "Process Item",
+      "parent_id": "foreach_container_1"
+    },
+    {
+      "id": "item_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 620,
+        "y": 180
+      },
+      "config": {
+        "label": "Current Item",
+        "format": "plain"
+      },
+      "label": "Item Result",
+      "parent_id": "foreach_container_1"
+    },
+    {
+      "id": "final_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 900,
+        "y": 220
+      },
+      "config": {
+        "label": "All Results",
+        "format": "plain"
+      },
+      "label": "Loop Results"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "input_array",
+      "from_output": "text",
+      "to_node": "foreach_container_1",
+      "to_input": "items"
+    },
+    {
+      "id": "conn_item",
+      "from_node": "item_processor",
+      "from_output": "text",
+      "to_node": "item_output",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_final",
+      "from_node": "foreach_container_1",
+      "from_output": "results",
+      "to_node": "final_output",
+      "to_input": "text"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000007"
+}

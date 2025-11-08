@@ -1,0 +1,137 @@
+{
+  "name": "Document Chunking and Summarization",
+  "description": "Reads a large document, splits it into chunks, summarizes each chunk with LLM, and outputs results",
+  "nodes": [
+    {
+      "id": "file_input_1",
+      "node_type": "file_input",
+      "position": {
+        "x": 50,
+        "y": 150
+      },
+      "config": {
+        "file_path": "examples/sample-data/long_document.txt",
+        "encoding": "utf8"
+      },
+      "label": "Read Document"
+    },
+    {
+      "id": "splitter_1",
+      "node_type": "text_splitter",
+      "position": {
+        "x": 300,
+        "y": 180
+      },
+      "config": {
+        "chunk_size": 500,
+        "overlap": 100
+      },
+      "label": "Split into Chunks"
+    },
+    {
+      "id": "model_1",
+      "node_type": "model_config",
+      "position": {
+        "x": 300,
+        "y": 50
+      },
+      "config": {
+        "provider": "ollama",
+        "model": "qwen3-coder:480b-cloud",
+        "base_url": "http://localhost:11434",
+        "temperature": 0.5,
+        "max_tokens": 200,
+        "api_key": "",
+        "api_version": "",
+        "deployment_name": "",
+        "embedding_model": "",
+        "provider_options": {},
+        "stream": false,
+        "system_prompt": "Summarize the following text chunk concisely in 1-2 sentences.",
+        "timeout": 60,
+        "top_p": 0.9
+      },
+      "label": "Summarizer Config"
+    },
+    {
+      "id": "llm_1",
+      "node_type": "llm_generate",
+      "position": {
+        "x": 600,
+        "y": 150
+      },
+      "config": {
+        "temperature": 0.5,
+        "max_tokens": 200
+      },
+      "label": "Summarize Chunks"
+    },
+    {
+      "id": "output_summaries",
+      "node_type": "text_output",
+      "position": {
+        "x": 900,
+        "y": 160
+      },
+      "config": {
+        "label": "Chunk Summaries",
+        "format": "plain"
+      },
+      "label": "Display Summaries"
+    },
+    {
+      "id": "file_output_1",
+      "node_type": "file_output",
+      "position": {
+        "x": 900,
+        "y": 280
+      },
+      "config": {
+        "file_path": "summaries.txt",
+        "encoding": "utf8",
+        "append": false
+      },
+      "label": "Save Summaries"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "file_input_1",
+      "from_output": "content",
+      "to_node": "splitter_1",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_2",
+      "from_node": "splitter_1",
+      "from_output": "chunks",
+      "to_node": "llm_1",
+      "to_input": "prompt"
+    },
+    {
+      "id": "conn_3",
+      "from_node": "model_1",
+      "from_output": "config",
+      "to_node": "llm_1",
+      "to_input": "model_config"
+    },
+    {
+      "id": "conn_4",
+      "from_node": "llm_1",
+      "from_output": "response",
+      "to_node": "output_summaries",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_5",
+      "from_node": "llm_1",
+      "from_output": "response",
+      "to_node": "file_output_1",
+      "to_input": "content"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000009"
+}

@@ -1,0 +1,10 @@
+This is a sample document that demonstrates the file input functionality.
+
+The Agency is a powerful workflow builder that allows you to create complex AI-powered workflows using a visual interface. You can combine different types of nodes to process text, make decisions, and generate content using large language models.
+
+Key features include:
+- Visual workflow editor with drag-and-drop
+- Support for multiple LLM providers
+- Container nodes for control flow
+- File I/O operations
+- Text processing and chunking

@@ -220,6 +220,10 @@ pub struct UIWorkflowNode {
     pub position: UIPosition,
     pub config: serde_json::Value,
     pub label: String,
+    #[serde(default)]
+    pub parent_id: Option<String>,
+    #[serde(default)]
+    pub size: Option<UISize>,
 }
 
 /// Position of node in UI canvas
@@ -227,6 +231,13 @@ pub struct UIWorkflowNode {
 pub struct UIPosition {
     pub x: f64,
     pub y: f64,
+}
+
+/// Size of node in UI canvas (for container nodes)
+#[derive(Clone, Serialize, Deserialize, ToSchema)]
+pub struct UISize {
+    pub width: f64,
+    pub height: f64,
 }
 
 /// Connection between nodes in UI
@@ -249,6 +260,8 @@ pub struct UINodeType {
     pub inputs: Vec<UINodeInput>,
     pub outputs: Vec<UINodeOutput>,
     pub config_schema: serde_json::Value,
+    #[serde(default)]
+    pub is_container: bool,
 }
 
 /// Node input definition
@@ -273,6 +286,13 @@ pub struct UINodeOutput {
 pub struct CreateUIWorkflowRequest {
     pub name: String,
     pub description: String,
+    #[serde(default)]
+    pub nodes: Vec<UIWorkflowNode>,
+    #[serde(default)]
+    pub connections: Vec<UIConnection>,
+    /// Optional workflow ID - if not provided, a UUID will be generated
+    #[serde(default)]
+    pub workflow_id: Option<String>,
 }
 
 /// Request to update an existing workflow
@@ -763,13 +783,15 @@ async fn execute_node(
     match node.node_type.as_str() {
         "llm_generate" => {
             // Extract prompt from inputs or config
-            // Handle case where input is an object from file_input ({"content": "...", "error": "..."})
+            // Handle various input formats: direct string, object with "text", "content", or "response"
             let prompt = if let Some(prompt_value) = inputs.get("prompt") {
                 if let Some(s) = prompt_value.as_str() {
                     s.to_string()
                 } else if let Some(obj) = prompt_value.as_object() {
-                    // Extract "content" field from file_input output
-                    obj.get("content")
+                    // Try multiple possible field names: text (from text_input), content (from file_input), response (from llm_generate)
+                    obj.get("text")
+                        .or_else(|| obj.get("content"))
+                        .or_else(|| obj.get("response"))
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string())
                         .unwrap_or_else(|| "".to_string())
@@ -897,6 +919,106 @@ async fn execute_node(
             // Return the configuration
             Ok(node.config.clone())
         },
+        "text_input" => {
+            // Simply return the text from config
+            let text = node.config.get("text")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+
+            Ok(serde_json::json!({
+                "text": text
+            }))
+        },
+        "text_output" => {
+            // Extract text from inputs - could be a string directly or from an object
+            let text = if let Some(text_value) = inputs.get("text") {
+                if let Some(s) = text_value.as_str() {
+                    s.to_string()
+                } else if let Some(obj) = text_value.as_object() {
+                    // Try to extract common fields like "response", "text", "content"
+                    obj.get("response")
+                        .or_else(|| obj.get("text"))
+                        .or_else(|| obj.get("content"))
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| text_value.to_string())
+                } else {
+                    text_value.to_string()
+                }
+            } else {
+                "".to_string()
+            };
+
+            let label = node.config.get("label")
+                .and_then(|v| v.as_str())
+                .unwrap_or("Output");
+
+            let format = node.config.get("format")
+                .and_then(|v| v.as_str())
+                .unwrap_or("plain");
+
+            // Log the output (in a real implementation, this could be stored or displayed)
+            tracing::info!("[{}] {}", label, text);
+
+            Ok(serde_json::json!({
+                "result": text,
+                "label": label,
+                "format": format
+            }))
+        },
+        "if_container" => {
+            // Container node for conditional execution
+            // NOTE: Full implementation requires child node execution based on condition
+            let condition = inputs.get("condition")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+
+            Ok(serde_json::json!({
+                "condition_result": condition,
+                "then_result": null,
+                "else_result": null,
+                "note": "Container nodes require child execution - placeholder result"
+            }))
+        },
+        "while_container" => {
+            // Container node for while loop
+            // NOTE: Full implementation requires iterative child node execution
+            let _condition = inputs.get("condition")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+
+            let max_iterations = node.config.get("max_iterations")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(100);
+
+            Ok(serde_json::json!({
+                "iteration_count": 0,
+                "result": null,
+                "max_iterations": max_iterations,
+                "note": "Container nodes require child execution - placeholder result"
+            }))
+        },
+        "foreach_container" => {
+            // Container node for foreach loop
+            // NOTE: Full implementation requires child node execution for each item
+            let items = inputs.get("items")
+                .and_then(|v| v.as_array())
+                .map(|arr| arr.clone())
+                .unwrap_or_default();
+
+            let max_iterations = node.config.get("max_iterations")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(1000);
+
+            Ok(serde_json::json!({
+                "current_item": null,
+                "current_index": 0,
+                "results": [],
+                "total_items": items.len(),
+                "max_iterations": max_iterations,
+                "note": "Container nodes require child execution - placeholder result"
+            }))
+        },
         _ => {
             // Unknown node type - return empty output
             Ok(serde_json::json!({
@@ -959,11 +1081,11 @@ async fn create_ui_workflow(
 
     let now = chrono::Utc::now();
     let workflow = UIWorkflow {
-        id: uuid::Uuid::new_v4().to_string(),
+        id: request.workflow_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
         name: request.name,
         description: request.description,
-        nodes: vec![],
-        connections: vec![],
+        nodes: request.nodes,
+        connections: request.connections,
         created_at: now,
         updated_at: now,
     };
@@ -1187,10 +1309,16 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                     description: "The prompt to send to the LLM".to_string(),
                 },
                 UINodeInput {
+                    name: "model_config".to_string(),
+                    r#type: "object".to_string(),
+                    required: false,
+                    description: "LLM configuration from Model Configuration node (optional, uses default agent if not provided)".to_string(),
+                },
+                UINodeInput {
                     name: "model".to_string(),
                     r#type: "string".to_string(),
                     required: false,
-                    description: "LLM model to use (optional)".to_string(),
+                    description: "LLM model to use (optional, overrides model from config)".to_string(),
                 },
             ],
             outputs: vec![UINodeOutput {
@@ -1205,16 +1333,19 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                         "type": "number",
                         "minimum": 0,
                         "maximum": 2,
-                        "default": 0.7
+                        "default": 0.7,
+                        "description": "Temperature override (optional, uses config value if not set)"
                     },
                     "max_tokens": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 4096,
-                        "default": 1000
+                        "default": 1000,
+                        "description": "Max tokens override (optional, uses config value if not set)"
                     }
                 }
             }),
+            is_container: false,
         },
     );
 
@@ -1225,7 +1356,7 @@ pub async fn initialize_ui_node_types(state: &AppState) {
             id: "model_config".to_string(),
             name: "Model Configuration".to_string(),
             category: "LLM".to_string(),
-            description: "Configure LLM server connection (Ollama, OpenAI, etc.)".to_string(),
+            description: "Configure LLM provider connection (Ollama, OpenAI, Anthropic, Google, Azure, Groq, Together, Replicate, HuggingFace, Cohere)".to_string(),
             inputs: vec![],
             outputs: vec![UINodeOutput {
                 name: "config".to_string(),
@@ -1235,44 +1366,89 @@ pub async fn initialize_ui_node_types(state: &AppState) {
             config_schema: serde_json::json!({
                 "type": "object",
                 "properties": {
-                    "server_url": {
+                    "provider": {
+                        "type": "string",
+                        "enum": ["ollama", "openai", "anthropic", "google", "azureopenai", "groq", "together", "replicate", "huggingface", "cohere"],
+                        "default": "ollama",
+                        "description": "LLM provider to use"
+                    },
+                    "base_url": {
                         "type": "string",
                         "default": "http://localhost:11434",
-                        "description": "Ollama or LLM server URL"
+                        "description": "Base URL for API calls (auto-filled when provider is selected, can be customized for private endpoints)"
+                    },
+                    "api_key": {
+                        "type": "string",
+                        "default": "",
+                        "description": "API key (required for cloud providers: OpenAI, Anthropic, Google, Azure, Groq, Together, Replicate, HuggingFace, Cohere)"
                     },
                     "model": {
                         "type": "string",
                         "default": "llama2",
-                        "description": "Model name to use"
+                        "description": "Model name (e.g., 'llama2' for Ollama, 'gpt-4' for OpenAI, 'claude-3-opus-20240229' for Anthropic)"
+                    },
+                    "embedding_model": {
+                        "type": "string",
+                        "default": "",
+                        "description": "Optional model name for embeddings (if different from text model)"
                     },
                     "temperature": {
                         "type": "number",
                         "minimum": 0,
                         "maximum": 2,
                         "default": 0.7,
-                        "description": "Temperature for generation"
+                        "description": "Temperature for generation (0-2 for most providers, 0-1 for Anthropic)"
                     },
                     "max_tokens": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 32000,
                         "default": 2048,
-                        "description": "Maximum tokens to generate"
+                        "description": "Maximum tokens to generate (required for Anthropic)"
                     },
                     "top_p": {
                         "type": "number",
                         "minimum": 0,
                         "maximum": 1,
                         "default": 0.9,
-                        "description": "Top-p sampling parameter"
+                        "description": "Top-p sampling parameter (nucleus sampling)"
                     },
                     "stream": {
                         "type": "boolean",
                         "default": false,
                         "description": "Enable streaming responses"
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 600,
+                        "default": 60,
+                        "description": "Request timeout in seconds"
+                    },
+                    "api_version": {
+                        "type": "string",
+                        "default": "2024-02-15-preview",
+                        "description": "API version (for Azure OpenAI)"
+                    },
+                    "deployment_name": {
+                        "type": "string",
+                        "default": "",
+                        "description": "Deployment name (for Azure OpenAI)"
+                    },
+                    "system_prompt": {
+                        "type": "string",
+                        "default": "",
+                        "description": "System prompt (for Anthropic and other providers that support it)"
+                    },
+                    "provider_options": {
+                        "type": "object",
+                        "default": {},
+                        "description": "Additional provider-specific options as JSON object"
                     }
-                }
+                },
+                "required": ["provider", "model"]
             }),
+            is_container: false,
         },
     );
 
@@ -1312,6 +1488,7 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                     }
                 }
             }),
+            is_container: false,
         },
     );
 
@@ -1349,6 +1526,7 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                 description: "Selected output value".to_string(),
             }],
             config_schema: serde_json::json!({}),
+            is_container: false,
         },
     );
 
@@ -1381,6 +1559,7 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                 },
                 "required": ["file_path"]
             }),
+            is_container: false,
         },
     );
 
@@ -1419,6 +1598,327 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                 },
                 "required": ["file_path"]
             }),
+            is_container: false,
+        },
+    );
+
+    // Text Input Node
+    nodes.insert(
+        "text_input".to_string(),
+        UINodeType {
+            id: "text_input".to_string(),
+            name: "Text Input".to_string(),
+            category: "I/O".to_string(),
+            description: "Provide text input to the workflow".to_string(),
+            inputs: vec![],
+            outputs: vec![UINodeOutput {
+                name: "text".to_string(),
+                r#type: "string".to_string(),
+                description: "Text output".to_string(),
+            }],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "type": "string",
+                        "default": "",
+                        "description": "The text to output from this node"
+                    }
+                }
+            }),
+            is_container: false,
+        },
+    );
+
+    // Text Output Node
+    nodes.insert(
+        "text_output".to_string(),
+        UINodeType {
+            id: "text_output".to_string(),
+            name: "Text Output".to_string(),
+            category: "I/O".to_string(),
+            description: "Display or capture text output from the workflow".to_string(),
+            inputs: vec![UINodeInput {
+                name: "text".to_string(),
+                r#type: "string".to_string(),
+                required: true,
+                description: "Text to output or display".to_string(),
+            }],
+            outputs: vec![UINodeOutput {
+                name: "result".to_string(),
+                r#type: "string".to_string(),
+                description: "The text that was output".to_string(),
+            }],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "label": {
+                        "type": "string",
+                        "default": "Output",
+                        "description": "Label for this output"
+                    },
+                    "format": {
+                        "type": "string",
+                        "enum": ["plain", "json", "markdown"],
+                        "default": "plain",
+                        "description": "Output format"
+                    }
+                }
+            }),
+            is_container: false,
+        },
+    );
+
+    // While Loop Node
+    nodes.insert(
+        "while_loop".to_string(),
+        UINodeType {
+            id: "while_loop".to_string(),
+            name: "While Loop".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Execute steps while condition is true".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "condition".to_string(),
+                    r#type: "boolean".to_string(),
+                    required: true,
+                    description: "Loop condition".to_string(),
+                },
+            ],
+            outputs: vec![UINodeOutput {
+                name: "iteration".to_string(),
+                r#type: "number".to_string(),
+                description: "Current iteration number".to_string(),
+            }],
+            config_schema: serde_json::json!({
+            "max_iterations": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000,
+                "default": 100
+            }
+        }),
+            is_container: false,
+        },
+    );
+
+    // For-Each Loop Node
+    nodes.insert(
+        "foreach_loop".to_string(),
+        UINodeType {
+            id: "foreach_loop".to_string(),
+            name: "For-Each Loop".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Iterate over a collection of items".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "items".to_string(),
+                    r#type: "array".to_string(),
+                    required: true,
+                    description: "Array of items to iterate".to_string(),
+                },
+            ],
+            outputs: vec![
+                UINodeOutput {
+                    name: "item".to_string(),
+                    r#type: "any".to_string(),
+                    description: "Current item".to_string(),
+                },
+                UINodeOutput {
+                    name: "index".to_string(),
+                    r#type: "number".to_string(),
+                    description: "Current index".to_string(),
+                },
+            ],
+            config_schema: serde_json::json!({}),
+            is_container: false,
+        },
+    );
+
+    // If/Then/Else Container Node
+    nodes.insert(
+        "if_container".to_string(),
+        UINodeType {
+            id: "if_container".to_string(),
+            name: "If/Then/Else".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Container for conditional execution. Nodes in 'then' branch execute when condition is true, nodes in 'else' branch execute when false".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "condition".to_string(),
+                    r#type: "boolean".to_string(),
+                    required: true,
+                    description: "Boolean condition to evaluate".to_string(),
+                },
+            ],
+            outputs: vec![
+                UINodeOutput {
+                    name: "then_result".to_string(),
+                    r#type: "any".to_string(),
+                    description: "Result from then branch".to_string(),
+                },
+                UINodeOutput {
+                    name: "else_result".to_string(),
+                    r#type: "any".to_string(),
+                    description: "Result from else branch".to_string(),
+                },
+            ],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "branch": {
+                        "type": "string",
+                        "enum": ["then", "else"],
+                        "default": "then",
+                        "description": "Which branch to show (used internally)"
+                    }
+                }
+            }),
+            is_container: true,
+        },
+    );
+
+    // While Loop Container Node
+    nodes.insert(
+        "while_container".to_string(),
+        UINodeType {
+            id: "while_container".to_string(),
+            name: "While Loop Container".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Container for while loop. Nodes inside execute repeatedly while condition is true".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "condition".to_string(),
+                    r#type: "boolean".to_string(),
+                    required: true,
+                    description: "Loop condition".to_string(),
+                },
+            ],
+            outputs: vec![
+                UINodeOutput {
+                    name: "iteration_count".to_string(),
+                    r#type: "number".to_string(),
+                    description: "Total number of iterations executed".to_string(),
+                },
+                UINodeOutput {
+                    name: "result".to_string(),
+                    r#type: "any".to_string(),
+                    description: "Result from last iteration".to_string(),
+                },
+            ],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "max_iterations": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000,
+                        "default": 100,
+                        "description": "Maximum iterations to prevent infinite loops"
+                    }
+                }
+            }),
+            is_container: true,
+        },
+    );
+
+    // For-Each Loop Container Node
+    nodes.insert(
+        "foreach_container".to_string(),
+        UINodeType {
+            id: "foreach_container".to_string(),
+            name: "For-Each Container".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Container for iterating over items. Nodes inside execute once for each item in the collection".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "items".to_string(),
+                    r#type: "array".to_string(),
+                    required: true,
+                    description: "Array of items to iterate".to_string(),
+                },
+            ],
+            outputs: vec![
+                UINodeOutput {
+                    name: "current_item".to_string(),
+                    r#type: "any".to_string(),
+                    description: "Current item in iteration (available to child nodes)".to_string(),
+                },
+                UINodeOutput {
+                    name: "current_index".to_string(),
+                    r#type: "number".to_string(),
+                    description: "Current index (available to child nodes)".to_string(),
+                },
+                UINodeOutput {
+                    name: "results".to_string(),
+                    r#type: "array".to_string(),
+                    description: "Array of results from all iterations".to_string(),
+                },
+            ],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "max_iterations": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000,
+                        "default": 1000,
+                        "description": "Maximum iterations to prevent runaway loops"
+                    }
+                }
+            }),
+            is_container: true,
+        },
+    );
+
+    // System Prompt Node
+    nodes.insert(
+        "system_prompt".to_string(),
+        UINodeType {
+            id: "system_prompt".to_string(),
+            name: "System Prompt".to_string(),
+            category: "LLM".to_string(),
+            description: "Set or modify system prompt for LLM interactions".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "prompt".to_string(),
+                    r#type: "string".to_string(),
+                    required: true,
+                    description: "System prompt text or template".to_string(),
+                },
+            ],
+            outputs: vec![
+                UINodeOutput {
+                    name: "applied_prompt".to_string(),
+                    r#type: "string".to_string(),
+                    description: "The system prompt that was applied".to_string(),
+                },
+                UINodeOutput {
+                    name: "mode".to_string(),
+                    r#type: "string".to_string(),
+                    description: "The mode used to apply the prompt".to_string(),
+                },
+            ],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "string",
+                        "enum": ["set", "prepend", "append", "template"],
+                        "default": "set",
+                        "description": "How to apply the system prompt"
+                    },
+                    "variables": {
+                        "type": "object",
+                        "description": "Template variables for substitution",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": ["mode"]
+            }),
+            is_container: false,
         },
     );
 }

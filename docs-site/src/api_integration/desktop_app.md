@@ -216,7 +216,3 @@ pub fn initialize_ui_node_types(app_state: &AppState) {
     });
 }
 ```
-
-## License
-
-MIT

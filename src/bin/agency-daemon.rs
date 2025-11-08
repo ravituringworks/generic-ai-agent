@@ -171,7 +171,15 @@ async fn run_server(config: DaemonConfig) -> anyhow::Result<()> {
     let agent_config = if config.config_path.exists() {
         AgentConfig::from_file(&config.config_path)?
     } else {
-        info!("Config file not found, using default configuration");
+        if config.config_path == PathBuf::from("config.toml") {
+            tracing::warn!(
+                "config.toml not found, using default configuration. \
+                If you have a custom configuration, please specify it with --config <PATH>"
+            );
+        } else {
+            error!("Configuration file not found at: {:?}", config.config_path);
+            return Err(anyhow::anyhow!("Configuration file not found"));
+        }
         AgentConfig::default()
     };
 

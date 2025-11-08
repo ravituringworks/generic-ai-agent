@@ -1,0 +1,176 @@
+{
+  "name": "Batch Translation with For-Each Loop",
+  "description": "Reads a list of phrases, uses foreach container to translate each with LLM, outputs all translations",
+  "nodes": [
+    {
+      "id": "file_input_1",
+      "node_type": "file_input",
+      "position": {
+        "x": 50,
+        "y": 150
+      },
+      "config": {
+        "file_path": "examples/sample-data/phrases.txt",
+        "encoding": "utf8"
+      },
+      "label": "Read Phrases"
+    },
+    {
+      "id": "splitter_1",
+      "node_type": "text_splitter",
+      "position": {
+        "x": 300,
+        "y": 180
+      },
+      "config": {
+        "chunk_size": 100,
+        "overlap": 0
+      },
+      "label": "Split by Line"
+    },
+    {
+      "id": "foreach_container_1",
+      "node_type": "foreach_container",
+      "position": {
+        "x": 600,
+        "y": 80
+      },
+      "config": {
+        "max_iterations": 50
+      },
+      "label": "Translate Each Phrase",
+      "size": {
+        "width": 550,
+        "height": 350
+      }
+    },
+    {
+      "id": "model_1",
+      "node_type": "model_config",
+      "position": {
+        "x": 630,
+        "y": 120
+      },
+      "config": {
+        "provider": "ollama",
+        "model": "qwen3-coder:480b-cloud",
+        "base_url": "http://localhost:11434",
+        "temperature": 0.3,
+        "max_tokens": 100,
+        "api_key": "",
+        "api_version": "",
+        "deployment_name": "",
+        "embedding_model": "",
+        "provider_options": {},
+        "stream": false,
+        "system_prompt": "Translate the given English text to Spanish. Provide only the translation.",
+        "timeout": 60,
+        "top_p": 0.9
+      },
+      "label": "Translation Model",
+      "parent_id": "foreach_container_1"
+    },
+    {
+      "id": "llm_translate",
+      "node_type": "llm_generate",
+      "position": {
+        "x": 630,
+        "y": 250
+      },
+      "config": {
+        "temperature": 0.3,
+        "max_tokens": 100
+      },
+      "label": "Translate Phrase",
+      "parent_id": "foreach_container_1"
+    },
+    {
+      "id": "item_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 930,
+        "y": 260
+      },
+      "config": {
+        "label": "Current Translation",
+        "format": "plain"
+      },
+      "label": "Show Translation",
+      "parent_id": "foreach_container_1"
+    },
+    {
+      "id": "all_translations",
+      "node_type": "text_output",
+      "position": {
+        "x": 1250,
+        "y": 200
+      },
+      "config": {
+        "label": "All Translations",
+        "format": "plain"
+      },
+      "label": "Display All"
+    },
+    {
+      "id": "file_output_1",
+      "node_type": "file_output",
+      "position": {
+        "x": 1250,
+        "y": 320
+      },
+      "config": {
+        "file_path": "translations.txt",
+        "encoding": "utf8",
+        "append": false
+      },
+      "label": "Save Translations"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "file_input_1",
+      "from_output": "content",
+      "to_node": "splitter_1",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_2",
+      "from_node": "splitter_1",
+      "from_output": "chunks",
+      "to_node": "foreach_container_1",
+      "to_input": "items"
+    },
+    {
+      "id": "conn_loop_config",
+      "from_node": "model_1",
+      "from_output": "config",
+      "to_node": "llm_translate",
+      "to_input": "model_config"
+    },
+    {
+      "id": "conn_loop_translate",
+      "from_node": "llm_translate",
+      "from_output": "response",
+      "to_node": "item_output",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_3",
+      "from_node": "foreach_container_1",
+      "from_output": "results",
+      "to_node": "all_translations",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_4",
+      "from_node": "foreach_container_1",
+      "from_output": "results",
+      "to_node": "file_output_1",
+      "to_input": "content"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000011"
+}

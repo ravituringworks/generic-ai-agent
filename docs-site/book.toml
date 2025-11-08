@@ -1,0 +1,11 @@
+[book]
+authors = ["Turing Works"]
+language = "en"
+src = "src"
+title = "The Agency Documentation"
+description = "Documentation for The Agency AI Agent Framework."
+
+[output.html]
+default-theme = "light"
+git-repository-url = "https://github.com/ravituringworks/the-agency"
+edit-url-template = "https://github.com/ravituringworks/the-agency/edit/main/{path}"
