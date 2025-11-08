@@ -1,0 +1,150 @@
+{
+  "name": "Conditional Routing",
+  "description": "Uses conditional node to route data based on a boolean condition",
+  "nodes": [
+    {
+      "id": "input_1",
+      "node_type": "text_input",
+      "position": {
+        "x": 50,
+        "y": 100
+      },
+      "config": {
+        "text": "Is the sky blue?"
+      },
+      "label": "Question"
+    },
+    {
+      "id": "model_1",
+      "node_type": "model_config",
+      "position": {
+        "x": 50,
+        "y": 230
+      },
+      "config": {
+        "provider": "ollama",
+        "model": "qwen3-coder:480b-cloud",
+        "base_url": "http://localhost:11434",
+        "temperature": 0.3,
+        "max_tokens": 10,
+        "api_key": "",
+        "api_version": "",
+        "deployment_name": "",
+        "embedding_model": "",
+        "provider_options": {},
+        "stream": false,
+        "system_prompt": "Answer only 'true' or 'false' for yes/no questions.",
+        "timeout": 60,
+        "top_p": 0.9
+      },
+      "label": "Yes/No Model"
+    },
+    {
+      "id": "llm_1",
+      "node_type": "llm_generate",
+      "position": {
+        "x": 350,
+        "y": 130
+      },
+      "config": {
+        "temperature": 0.3,
+        "max_tokens": 10
+      },
+      "label": "Get Answer"
+    },
+    {
+      "id": "true_text",
+      "node_type": "text_input",
+      "position": {
+        "x": 350,
+        "y": 280
+      },
+      "config": {
+        "text": "The answer is YES!"
+      },
+      "label": "True Response"
+    },
+    {
+      "id": "false_text",
+      "node_type": "text_input",
+      "position": {
+        "x": 350,
+        "y": 380
+      },
+      "config": {
+        "text": "The answer is NO!"
+      },
+      "label": "False Response"
+    },
+    {
+      "id": "conditional_1",
+      "node_type": "conditional",
+      "position": {
+        "x": 650,
+        "y": 200
+      },
+      "config": {},
+      "label": "Route by Answer"
+    },
+    {
+      "id": "output_1",
+      "node_type": "text_output",
+      "position": {
+        "x": 950,
+        "y": 210
+      },
+      "config": {
+        "label": "Final Output",
+        "format": "plain"
+      },
+      "label": "Display Result"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "input_1",
+      "from_output": "text",
+      "to_node": "llm_1",
+      "to_input": "prompt"
+    },
+    {
+      "id": "conn_2",
+      "from_node": "model_1",
+      "from_output": "config",
+      "to_node": "llm_1",
+      "to_input": "model_config"
+    },
+    {
+      "id": "conn_3",
+      "from_node": "llm_1",
+      "from_output": "response",
+      "to_node": "conditional_1",
+      "to_input": "condition"
+    },
+    {
+      "id": "conn_4",
+      "from_node": "true_text",
+      "from_output": "text",
+      "to_node": "conditional_1",
+      "to_input": "true_value"
+    },
+    {
+      "id": "conn_5",
+      "from_node": "false_text",
+      "from_output": "text",
+      "to_node": "conditional_1",
+      "to_input": "false_value"
+    },
+    {
+      "id": "conn_6",
+      "from_node": "conditional_1",
+      "from_output": "output",
+      "to_node": "output_1",
+      "to_input": "text"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000003"
+}

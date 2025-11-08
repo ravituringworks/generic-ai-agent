@@ -51,8 +51,11 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 
 #### 1. **Header Toolbar**
 - **New Workflow**: Create a new empty workflow
+- **Copy**: Duplicate the current workflow with a new name
 - **Rename**: Rename the current workflow
 - **Save**: Save changes to the current workflow
+- **Import**: Import a workflow from a JSON file
+- **Export**: Export the current workflow to a JSON file
 - **Execute**: Run the workflow
 - **Delete**: Delete the current workflow
 
@@ -62,7 +65,7 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 - LLM (Language Model operations)
 - Data Processing (text manipulation)
 - Control Flow (conditionals, loops)
-- I/O (file operations)
+- I/O (text input/output, file operations)
 
 **Workflows Tab**: View and load saved workflows
 
@@ -340,33 +343,135 @@ Append: false
 
 ---
 
+#### **Text Input**
+Provide text input directly to the workflow without reading from a file.
+
+**Inputs**: None
+
+**Outputs**:
+- `text` (string): Text output
+
+**Configuration**:
+- **text**: The text to output from this node (multi-line supported)
+
+**Use Cases**:
+- Quick testing without creating files
+- Static text for prompts or templates
+- Providing constant values to workflows
+- Initial input for text processing pipelines
+
+**Example**:
+```
+Text: "Hello, world! This is a sample input."
+→ Output: "Hello, world! This is a sample input."
+```
+
+---
+
+#### **Text Output**
+Display or capture text output from the workflow with optional formatting.
+
+**Inputs**:
+- `text` * (string): Text to output or display
+
+**Outputs**:
+- `result` (string): The text that was output
+
+**Configuration**:
+- **label**: Label for this output (default: "Output")
+- **format**: Output format (plain | json | markdown)
+
+**Use Cases**:
+- Viewing intermediate results
+- Debugging workflow data flow
+- Capturing final output without writing to file
+- Logging workflow execution results
+
+**Example**:
+```
+Input Text: "The AI generated this response"
+Label: "AI Response"
+Format: plain
+→ Logs: [AI Response] The AI generated this response
+→ Output Result: "The AI generated this response"
+```
+
+**Tip**: Text Output nodes are great for debugging - add them at various points in your workflow to see what data is flowing through!
+
+---
+
 ## Example Use Cases
 
-### 1. Simple AI Chat
+### 1. Quick Text Processing (Text Input + Text Output)
 
-**Goal**: Generate AI responses using OpenAI
+**Goal**: Simple workflow to test text processing without files
 
 **Nodes**:
-1. Model Configuration (OpenAI)
-2. LLM Generate
+1. Text Input
+2. Text Output
 
 **Setup**:
 ```
+Text Input:
+  - Text: "Hello from the workflow builder!"
+
+Text Output:
+  - Label: "My First Output"
+  - Format: plain
+  - Connect text from Text Input
+
+Execute → View output in execution results
+```
+
+**Perfect For**:
+- Testing the workflow builder
+- Learning how nodes connect
+- Quick prototyping without files
+
+---
+
+### 2. Simple AI Chat with Text Nodes
+
+**Goal**: Generate AI responses with easy input/output
+
+**Nodes**:
+1. Text Input
+2. Model Configuration (OpenAI)
+3. LLM Generate
+4. Text Output
+
+**Setup**:
+```
+Text Input:
+  - Text: "Explain quantum computing in simple terms"
+
 Model Configuration:
   - Provider: openai
   - API Key: sk-your-key
   - Model: gpt-4
 
 LLM Generate:
-  - Prompt: "Explain quantum computing"
+  - Connect prompt from Text Input → text output
   - Connect model_config from Model Configuration
 
-Execute → View response
+Text Output:
+  - Label: "AI Response"
+  - Format: markdown
+  - Connect text from LLM Generate → response output
+
+Execute → View formatted AI response
+```
+
+**Flow**:
+```
+Text Input → LLM Generate → Text Output
+                ↑
+    Model Configuration
 ```
 
 ---
 
-### 2. Multi-Model Comparison
+### 3. Multi-Model Comparison
 
 **Goal**: Compare outputs from different LLM providers
 
@@ -547,6 +652,174 @@ Model Config (Agent 2) → LLM Generate
 #### **Pattern 4: Quality Gate**
 ```
 LLM Generate (draft) → Conditional (quality check) → LLM Generate (refine if needed)
+```
+
+---
+
+## Workflow Management
+
+### Copy Workflow
+
+**Purpose**: Duplicate an existing workflow to create variations or backups
+
+**How to Use**:
+1. Open the workflow you want to copy
+2. Click the **Copy** button in the toolbar
+3. Enter a new name (default: "Copy of [Original Name]")
+4. Optionally update the description
+5. Click **Copy**
+
+**Result**: A new workflow is created with all nodes and connections from the original. You're automatically switched to the new workflow.
+
+**Use Cases**:
+- Creating variations of a workflow (e.g., testing different LLM providers)
+- Making backups before major changes
+- Creating templates from existing workflows
+- Experimenting without affecting the original
+
+**Example**:
+```
+Original: "Customer Support Bot"
+Copy 1: "Copy of Customer Support Bot" → Test with GPT-4
+Copy 2: "Customer Support Bot - Anthropic" → Test with Claude
+Copy 3: "Customer Support Bot - Backup" → Keep safe copy
+```
+
+---
+
+### Export Workflow
+
+**Purpose**: Save a workflow to a JSON file for backup, sharing, or version control
+
+**How to Use**:
+1. Open the workflow you want to export
+2. Click the **Export** button in the toolbar
+3. The workflow is downloaded as a JSON file: `[workflow_name]_workflow.json`
+
+**What's Exported**:
+- Workflow name and description
+- All nodes with their configurations
+- All connections between nodes
+- Export timestamp
+- Format version
+
+**File Format Example**:
+```json
+{
+  "name": "My AI Workflow",
+  "description": "A sample workflow",
+  "nodes": [
+    {
+      "id": "abc123",
+      "node_type": "text_input",
+      "position": { "x": 100, "y": 100 },
+      "config": { "text": "Hello" },
+      "label": "Text Input"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn1",
+      "from_node": "abc123",
+      "from_output": "text",
+      "to_node": "def456",
+      "to_input": "prompt"
+    }
+  ],
+  "exported_at": "2025-11-08T10:30:00.000Z",
+  "version": "1.0"
+}
+```
+
+**Use Cases**:
+- **Backup**: Save workflows before making major changes
+- **Version Control**: Commit workflows to Git for team collaboration
+- **Sharing**: Send workflows to colleagues or community
+- **Migration**: Move workflows between environments
+- **Documentation**: Include workflow files in project repositories
+
+---
+
+### Import Workflow
+
+**Purpose**: Load a workflow from a JSON file
+
+**How to Use**:
+1. Click the **Import** button in the toolbar
+2. Select a workflow JSON file from your computer
+3. The workflow is imported and loaded automatically
+
+**What Happens**:
+- A new workflow is created from the file
+- Name is taken from the file (or "Imported Workflow" if missing)
+- All nodes and connections are recreated
+- You're automatically switched to the imported workflow
+
+**File Requirements**:
+- Must be a valid JSON file
+- Must contain `nodes` and `connections` arrays
+- Should follow the workflow export format
+
+**Error Handling**:
+- Invalid JSON: "Failed to import workflow. Please check the file format."
+- Missing required fields: "Invalid workflow file format"
+
+**Use Cases**:
+- **Restore Backups**: Recover previous workflow versions
+- **Share Workflows**: Import workflows from colleagues
+- **Templates**: Load pre-built workflow templates
+- **Migration**: Move workflows from another environment
+- **Learning**: Import example workflows to study
+
+**Security Note**: Only import workflows from trusted sources, as they may contain executable configurations.
+
+---
+
+### Workflow Collaboration Workflow
+
+**Best Practice for Team Collaboration**:
+
+1. **Setup Version Control**:
+   ```bash
+   mkdir my-workflows
+   cd my-workflows
+   git init
+   ```
+
+2. **Export and Commit**:
+   ```bash
+   # Export workflow via UI → downloads to Downloads/
+   mv ~/Downloads/my_workflow_workflow.json ./workflows/
+   git add workflows/my_workflow_workflow.json
+   git commit -m "Add customer support workflow"
+   git push
+   ```
+
+3. **Team Member Imports**:
+   ```bash
+   git pull
+   # Import via UI: workflows/my_workflow_workflow.json
+   ```
+
+4. **Iterate and Update**:
+   - Make changes in workflow builder
+   - Export updated version
+   - Commit and push changes
+   - Team pulls and imports updates
+
+**Recommended File Structure**:
+```
+project/
+├── workflows/
+│   ├── production/
+│   │   ├── customer_support_workflow.json
+│   │   └── data_processing_workflow.json
+│   ├── templates/
+│   │   ├── basic_llm_template.json
+│   │   └── file_processing_template.json
+│   └── experimental/
+│       └── test_workflow.json
+└── README.md
 ```
 
 ---

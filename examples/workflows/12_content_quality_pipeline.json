@@ -1,0 +1,232 @@
+{
+  "name": "Content Quality Assurance Pipeline",
+  "description": "Multi-stage pipeline: reads content, analyzes quality, conditionally rewrites if poor, outputs improved version",
+  "nodes": [
+    {
+      "id": "file_input_1",
+      "node_type": "file_input",
+      "position": {
+        "x": 50,
+        "y": 200
+      },
+      "config": {
+        "file_path": "examples/sample-data/draft_content.txt",
+        "encoding": "utf8"
+      },
+      "label": "Read Draft"
+    },
+    {
+      "id": "quality_model",
+      "node_type": "model_config",
+      "position": {
+        "x": 50,
+        "y": 70
+      },
+      "config": {
+        "provider": "ollama",
+        "model": "qwen3-coder:480b-cloud",
+        "base_url": "http://localhost:11434",
+        "temperature": 0.3,
+        "max_tokens": 50,
+        "api_key": "",
+        "api_version": "",
+        "deployment_name": "",
+        "embedding_model": "",
+        "provider_options": {},
+        "stream": false,
+        "system_prompt": "Analyze writing quality. Respond 'true' if good quality, 'false' if needs improvement. Consider grammar, clarity, and structure.",
+        "timeout": 60,
+        "top_p": 0.9
+      },
+      "label": "Quality Checker"
+    },
+    {
+      "id": "llm_quality",
+      "node_type": "llm_generate",
+      "position": {
+        "x": 350,
+        "y": 130
+      },
+      "config": {
+        "temperature": 0.3,
+        "max_tokens": 10
+      },
+      "label": "Check Quality"
+    },
+    {
+      "id": "good_content",
+      "node_type": "text_input",
+      "position": {
+        "x": 650,
+        "y": 50
+      },
+      "config": {
+        "text": "PASS"
+      },
+      "label": "Quality Passed"
+    },
+    {
+      "id": "rewriter_model",
+      "node_type": "model_config",
+      "position": {
+        "x": 350,
+        "y": 280
+      },
+      "config": {
+        "provider": "ollama",
+        "model": "qwen3-coder:480b-cloud",
+        "base_url": "http://localhost:11434",
+        "temperature": 0.7,
+        "max_tokens": 1000,
+        "api_key": "",
+        "api_version": "",
+        "deployment_name": "",
+        "embedding_model": "",
+        "provider_options": {},
+        "stream": false,
+        "system_prompt": "Rewrite the text to improve grammar, clarity, and structure. Maintain the original meaning.",
+        "timeout": 60,
+        "top_p": 0.9
+      },
+      "label": "Rewriter Config"
+    },
+    {
+      "id": "llm_rewrite",
+      "node_type": "llm_generate",
+      "position": {
+        "x": 650,
+        "y": 310
+      },
+      "config": {
+        "temperature": 0.7,
+        "max_tokens": 1000
+      },
+      "label": "Rewrite Content"
+    },
+    {
+      "id": "conditional_1",
+      "node_type": "conditional",
+      "position": {
+        "x": 950,
+        "y": 180
+      },
+      "config": {},
+      "label": "Route by Quality"
+    },
+    {
+      "id": "final_text_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 1250,
+        "y": 150
+      },
+      "config": {
+        "label": "Final Content",
+        "format": "plain"
+      },
+      "label": "Display Final"
+    },
+    {
+      "id": "file_output_1",
+      "node_type": "file_output",
+      "position": {
+        "x": 1250,
+        "y": 270
+      },
+      "config": {
+        "file_path": "final_content.txt",
+        "encoding": "utf8",
+        "append": false
+      },
+      "label": "Save Final"
+    },
+    {
+      "id": "quality_log",
+      "node_type": "text_output",
+      "position": {
+        "x": 650,
+        "y": 450
+      },
+      "config": {
+        "label": "Quality Status",
+        "format": "plain"
+      },
+      "label": "Log Quality Check"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "file_input_1",
+      "from_output": "content",
+      "to_node": "llm_quality",
+      "to_input": "prompt"
+    },
+    {
+      "id": "conn_2",
+      "from_node": "quality_model",
+      "from_output": "config",
+      "to_node": "llm_quality",
+      "to_input": "model_config"
+    },
+    {
+      "id": "conn_3",
+      "from_node": "file_input_1",
+      "from_output": "content",
+      "to_node": "llm_rewrite",
+      "to_input": "prompt"
+    },
+    {
+      "id": "conn_4",
+      "from_node": "rewriter_model",
+      "from_output": "config",
+      "to_node": "llm_rewrite",
+      "to_input": "model_config"
+    },
+    {
+      "id": "conn_5",
+      "from_node": "llm_quality",
+      "from_output": "response",
+      "to_node": "conditional_1",
+      "to_input": "condition"
+    },
+    {
+      "id": "conn_6",
+      "from_node": "good_content",
+      "from_output": "text",
+      "to_node": "conditional_1",
+      "to_input": "true_value"
+    },
+    {
+      "id": "conn_7",
+      "from_node": "llm_rewrite",
+      "from_output": "response",
+      "to_node": "conditional_1",
+      "to_input": "false_value"
+    },
+    {
+      "id": "conn_8",
+      "from_node": "conditional_1",
+      "from_output": "output",
+      "to_node": "final_text_output",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_9",
+      "from_node": "conditional_1",
+      "from_output": "output",
+      "to_node": "file_output_1",
+      "to_input": "content"
+    },
+    {
+      "id": "conn_10",
+      "from_node": "llm_quality",
+      "from_output": "response",
+      "to_node": "quality_log",
+      "to_input": "text"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000012"
+}

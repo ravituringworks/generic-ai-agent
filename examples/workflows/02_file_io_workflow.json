@@ -1,0 +1,97 @@
+{
+  "name": "File I/O Workflow",
+  "description": "Demonstrates reading from a file, processing with LLM, and writing to another file",
+  "nodes": [
+    {
+      "id": "file_input_1",
+      "node_type": "file_input",
+      "position": {
+        "x": 50,
+        "y": 150
+      },
+      "config": {
+        "file_path": "examples/sample-data/input.txt",
+        "encoding": "utf8"
+      },
+      "label": "Read Input File"
+    },
+    {
+      "id": "model_1",
+      "node_type": "model_config",
+      "position": {
+        "x": 50,
+        "y": 280
+      },
+      "config": {
+        "provider": "ollama",
+        "model": "qwen3-coder:480b-cloud",
+        "base_url": "http://localhost:11434",
+        "temperature": 0.7,
+        "max_tokens": 2048,
+        "api_key": "",
+        "api_version": "",
+        "deployment_name": "",
+        "embedding_model": "",
+        "provider_options": {},
+        "stream": false,
+        "system_prompt": "You are a helpful assistant that summarizes text concisely.",
+        "timeout": 60,
+        "top_p": 0.9
+      },
+      "label": "Model Config"
+    },
+    {
+      "id": "llm_1",
+      "node_type": "llm_generate",
+      "position": {
+        "x": 350,
+        "y": 180
+      },
+      "config": {
+        "temperature": 0.5,
+        "max_tokens": 500
+      },
+      "label": "Summarize Content"
+    },
+    {
+      "id": "file_output_1",
+      "node_type": "file_output",
+      "position": {
+        "x": 650,
+        "y": 190
+      },
+      "config": {
+        "file_path": "output.txt",
+        "encoding": "utf8",
+        "append": false
+      },
+      "label": "Write Summary"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "file_input_1",
+      "from_output": "content",
+      "to_node": "llm_1",
+      "to_input": "prompt"
+    },
+    {
+      "id": "conn_2",
+      "from_node": "model_1",
+      "from_output": "config",
+      "to_node": "llm_1",
+      "to_input": "model_config"
+    },
+    {
+      "id": "conn_3",
+      "from_node": "llm_1",
+      "from_output": "response",
+      "to_node": "file_output_1",
+      "to_input": "content"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000002"
+}

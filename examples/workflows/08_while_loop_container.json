@@ -1,0 +1,100 @@
+{
+  "name": "While Loop Container",
+  "description": "Demonstrates while loop container that executes child nodes repeatedly while condition is true",
+  "nodes": [
+    {
+      "id": "input_condition",
+      "node_type": "text_input",
+      "position": {
+        "x": 50,
+        "y": 150
+      },
+      "config": {
+        "text": "true"
+      },
+      "label": "Loop Condition"
+    },
+    {
+      "id": "while_container_1",
+      "node_type": "while_container",
+      "position": {
+        "x": 350,
+        "y": 100
+      },
+      "config": {
+        "max_iterations": 10
+      },
+      "label": "While Loop (max 10 iterations)",
+      "size": {
+        "width": 450,
+        "height": 280
+      }
+    },
+    {
+      "id": "iteration_text",
+      "node_type": "text_input",
+      "position": {
+        "x": 380,
+        "y": 170
+      },
+      "config": {
+        "text": "Executing iteration..."
+      },
+      "label": "Iteration Text",
+      "parent_id": "while_container_1"
+    },
+    {
+      "id": "iteration_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 620,
+        "y": 180
+      },
+      "config": {
+        "label": "Current Iteration",
+        "format": "plain"
+      },
+      "label": "Iteration Output",
+      "parent_id": "while_container_1"
+    },
+    {
+      "id": "final_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 900,
+        "y": 210
+      },
+      "config": {
+        "label": "Loop Complete",
+        "format": "plain"
+      },
+      "label": "Final Result"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "input_condition",
+      "from_output": "text",
+      "to_node": "while_container_1",
+      "to_input": "condition"
+    },
+    {
+      "id": "conn_iter",
+      "from_node": "iteration_text",
+      "from_output": "text",
+      "to_node": "iteration_output",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_final",
+      "from_node": "while_container_1",
+      "from_output": "result",
+      "to_node": "final_output",
+      "to_input": "text"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000008"
+}

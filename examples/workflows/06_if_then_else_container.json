@@ -1,0 +1,134 @@
+{
+  "name": "If/Then/Else Container Example",
+  "description": "Demonstrates conditional container node with child nodes executing based on condition",
+  "nodes": [
+    {
+      "id": "input_condition",
+      "node_type": "text_input",
+      "position": {
+        "x": 50,
+        "y": 150
+      },
+      "config": {
+        "text": "true"
+      },
+      "label": "Condition (true/false)"
+    },
+    {
+      "id": "if_container_1",
+      "node_type": "if_container",
+      "position": {
+        "x": 350,
+        "y": 100
+      },
+      "config": {
+        "branch": "then"
+      },
+      "label": "Conditional Logic",
+      "size": {
+        "width": 500,
+        "height": 350
+      }
+    },
+    {
+      "id": "then_input",
+      "node_type": "text_input",
+      "position": {
+        "x": 380,
+        "y": 150
+      },
+      "config": {
+        "text": "Condition is TRUE - executing then branch"
+      },
+      "label": "Then Branch Input",
+      "parent_id": "if_container_1"
+    },
+    {
+      "id": "then_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 620,
+        "y": 160
+      },
+      "config": {
+        "label": "Then Result",
+        "format": "plain"
+      },
+      "label": "Then Output",
+      "parent_id": "if_container_1"
+    },
+    {
+      "id": "else_input",
+      "node_type": "text_input",
+      "position": {
+        "x": 380,
+        "y": 280
+      },
+      "config": {
+        "text": "Condition is FALSE - executing else branch"
+      },
+      "label": "Else Branch Input",
+      "parent_id": "if_container_1"
+    },
+    {
+      "id": "else_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 620,
+        "y": 290
+      },
+      "config": {
+        "label": "Else Result",
+        "format": "plain"
+      },
+      "label": "Else Output",
+      "parent_id": "if_container_1"
+    },
+    {
+      "id": "final_output",
+      "node_type": "text_output",
+      "position": {
+        "x": 950,
+        "y": 250
+      },
+      "config": {
+        "label": "Final Result",
+        "format": "plain"
+      },
+      "label": "Container Output"
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from_node": "input_condition",
+      "from_output": "text",
+      "to_node": "if_container_1",
+      "to_input": "condition"
+    },
+    {
+      "id": "conn_then",
+      "from_node": "then_input",
+      "from_output": "text",
+      "to_node": "then_output",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_else",
+      "from_node": "else_input",
+      "from_output": "text",
+      "to_node": "else_output",
+      "to_input": "text"
+    },
+    {
+      "id": "conn_final",
+      "from_node": "if_container_1",
+      "from_output": "then_result",
+      "to_node": "final_output",
+      "to_input": "text"
+    }
+  ],
+  "exported_at": "2025-01-08T00:00:00.000Z",
+  "version": "1.0",
+  "workflow_id": "00000000-0000-0000-0000-000000000006"
+}

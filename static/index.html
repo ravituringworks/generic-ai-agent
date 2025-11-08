@@ -508,8 +508,11 @@
         <h1>🤖 The Agency - Workflow Builder</h1>
         <div class="toolbar">
             <button class="btn" id="newWorkflowBtn">New Workflow</button>
+            <button class="btn" id="copyWorkflowBtn">Copy</button>
             <button class="btn" id="renameWorkflowBtn">Rename</button>
             <button class="btn" id="saveWorkflowBtn">Save</button>
+            <button class="btn" id="importWorkflowBtn">Import</button>
+            <button class="btn" id="exportWorkflowBtn">Export</button>
             <button class="btn primary" id="executeWorkflowBtn">Execute</button>
             <button class="btn danger" id="deleteWorkflowBtn">Delete</button>
         </div>
@@ -632,6 +635,31 @@
             </div>
         </div>
     </div>
+
+    <div class="modal hidden" id="copyWorkflowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Copy Workflow</div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">New Workflow Name</label>
+                    <input type="text" class="form-input" id="copyWorkflowNameInput" placeholder="Copy of My Workflow">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" id="copyWorkflowDescriptionInput" rows="3" placeholder="Workflow description..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelCopyWorkflowBtn">Cancel</button>
+                <button class="btn primary" id="saveCopyWorkflowBtn">Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for importing workflows -->
+    <input type="file" id="importWorkflowFileInput" accept=".json" style="display: none;">
 
     <script>
         // Detect if running in Tauri or web mode
@@ -972,8 +1000,29 @@
             // Render connections first (so they appear behind nodes)
             connections.forEach(connection => renderConnection(connection));
 
-            // Render nodes
-            nodes.forEach(node => renderNode(node));
+            // Render nodes in order: container nodes first, then regular nodes, then child nodes inside containers
+            // This ensures containers are drawn before their children
+
+            // 1. Render top-level container nodes (no parent_id, is_container=true)
+            nodes.filter(n => !n.parent_id).forEach(node => {
+                const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                if (nodeType && nodeType.is_container) {
+                    renderNode(node);
+                }
+            });
+
+            // 2. Render top-level regular nodes (no parent_id, is_container=false)
+            nodes.filter(n => !n.parent_id).forEach(node => {
+                const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                if (nodeType && !nodeType.is_container) {
+                    renderNode(node);
+                }
+            });
+
+            // 3. Render child nodes (have parent_id) - these will be positioned relative to their containers
+            nodes.filter(n => n.parent_id).forEach(node => {
+                renderNode(node);
+            });
 
             // Update properties panel
             if (selectedNode) {
@@ -994,21 +1043,42 @@
             const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
             if (!nodeType) return;
 
+            // Check if this is a container node
+            const isContainer = nodeType.is_container === true;
+
             // Calculate node dimensions
-            const inputsHeight = nodeType.inputs.length * 30;
-            const outputsHeight = nodeType.outputs.length * 30;
-            const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
-            const nodeWidth = 200;
-            const nodeHeight = 40 + contentHeight;
+            let nodeWidth, nodeHeight;
+            if (isContainer) {
+                // Container nodes use their size or default to larger dimensions
+                nodeWidth = node.size?.width || 400;
+                nodeHeight = node.size?.height || 300;
+            } else {
+                const inputsHeight = nodeType.inputs.length * 30;
+                const outputsHeight = nodeType.outputs.length * 30;
+                const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
+                nodeWidth = 200;
+                nodeHeight = 40 + contentHeight;
+            }
 
             // Node background
             const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             rect.setAttribute('width', nodeWidth);
             rect.setAttribute('height', nodeHeight);
             rect.setAttribute('rx', '8');
-            rect.setAttribute('fill', '#2a2a2a');
-            rect.setAttribute('stroke', selectedNode && selectedNode.id === node.id ? '#00e4ba' : '#00d4aa');
-            rect.setAttribute('stroke-width', selectedNode && selectedNode.id === node.id ? '3' : '2');
+
+            if (isContainer) {
+                // Container nodes have a lighter background and dashed border
+                rect.setAttribute('fill', '#1a1a1a');
+                rect.setAttribute('stroke', selectedNode && selectedNode.id === node.id ? '#00e4ba' : '#7a7a7a');
+                rect.setAttribute('stroke-width', selectedNode && selectedNode.id === node.id ? '3' : '2');
+                rect.setAttribute('stroke-dasharray', '8,4');
+                rect.setAttribute('fill-opacity', '0.3');
+            } else {
+                // Regular nodes
+                rect.setAttribute('fill', '#2a2a2a');
+                rect.setAttribute('stroke', selectedNode && selectedNode.id === node.id ? '#00e4ba' : '#00d4aa');
+                rect.setAttribute('stroke-width', selectedNode && selectedNode.id === node.id ? '3' : '2');
+            }
             nodeElement.appendChild(rect);
 
             // Node header
@@ -1016,7 +1086,7 @@
             headerRect.setAttribute('width', nodeWidth);
             headerRect.setAttribute('height', '30');
             headerRect.setAttribute('rx', '6');
-            headerRect.setAttribute('fill', '#00d4aa');
+            headerRect.setAttribute('fill', isContainer ? '#8a8a00' : '#00d4aa');
             nodeElement.appendChild(headerRect);
 
             const headerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -1041,6 +1111,38 @@
                 deleteNode(node.id);
             });
             nodeElement.appendChild(deleteBtn);
+
+            // Container-specific UI
+            if (isContainer) {
+                // Check if container has child nodes
+                const childNodes = nodes.filter(n => n.parent_id === node.id);
+
+                // If empty, show drop zone hint
+                if (childNodes.length === 0) {
+                    const hintText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    hintText.setAttribute('x', nodeWidth / 2);
+                    hintText.setAttribute('y', nodeHeight / 2);
+                    hintText.setAttribute('fill', '#6a6a6a');
+                    hintText.setAttribute('font-size', '14');
+                    hintText.setAttribute('font-style', 'italic');
+                    hintText.setAttribute('text-anchor', 'middle');
+                    hintText.setAttribute('pointer-events', 'none');
+                    hintText.textContent = 'Drop nodes here';
+                    nodeElement.appendChild(hintText);
+                }
+
+                // Add resize handle in bottom-right corner
+                const resizeHandle = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                resizeHandle.setAttribute('x', nodeWidth - 15);
+                resizeHandle.setAttribute('y', nodeHeight - 15);
+                resizeHandle.setAttribute('width', '12');
+                resizeHandle.setAttribute('height', '12');
+                resizeHandle.setAttribute('fill', '#6a6a6a');
+                resizeHandle.setAttribute('cursor', 'nwse-resize');
+                resizeHandle.setAttribute('class', 'resize-handle');
+                resizeHandle.dataset.nodeId = node.id;
+                nodeElement.appendChild(resizeHandle);
+            }
 
             // Input handles
             nodeType.inputs.forEach((input, index) => {
@@ -1279,17 +1381,25 @@
 
             // Toolbar buttons
             document.getElementById('newWorkflowBtn').addEventListener('click', showNewWorkflowModal);
+            document.getElementById('copyWorkflowBtn').addEventListener('click', showCopyWorkflowModal);
             document.getElementById('renameWorkflowBtn').addEventListener('click', showRenameWorkflowModal);
             document.getElementById('saveWorkflowBtn').addEventListener('click', saveWorkflow);
+            document.getElementById('importWorkflowBtn').addEventListener('click', importWorkflow);
+            document.getElementById('exportWorkflowBtn').addEventListener('click', exportWorkflow);
             document.getElementById('executeWorkflowBtn').addEventListener('click', executeWorkflow);
             document.getElementById('deleteWorkflowBtn').addEventListener('click', deleteWorkflow);
 
             // Modal events
             document.getElementById('cancelNewWorkflowBtn').addEventListener('click', hideNewWorkflowModal);
             document.getElementById('createWorkflowBtn').addEventListener('click', handleCreateWorkflow);
+            document.getElementById('cancelCopyWorkflowBtn').addEventListener('click', hideCopyWorkflowModal);
+            document.getElementById('saveCopyWorkflowBtn').addEventListener('click', handleCopyWorkflow);
             document.getElementById('cancelRenameWorkflowBtn').addEventListener('click', hideRenameWorkflowModal);
             document.getElementById('saveRenameWorkflowBtn').addEventListener('click', handleRenameWorkflow);
             document.getElementById('closeExecutionOutputBtn').addEventListener('click', hideExecutionOutputModal);
+
+            // File input event
+            document.getElementById('importWorkflowFileInput').addEventListener('change', handleImportFile);
 
             // Zoom controls
             document.getElementById('zoomIn').addEventListener('click', () => zoomCanvas(1.2));
@@ -1425,10 +1535,51 @@
             }
 
             // Stop node dragging
-            if (isDraggingNode) {
+            if (isDraggingNode && draggedNode) {
+                // Check if node was dropped into a container
+                const droppedNode = draggedNode;
+                let foundContainer = null;
+
+                // Check all container nodes to see if drop position is within bounds
+                for (const containerNode of nodes) {
+                    const containerType = nodeTypes.find(nt => nt.id === containerNode.node_type);
+                    if (containerType && containerType.is_container && containerNode.id !== droppedNode.id) {
+                        const containerWidth = containerNode.size?.width || 400;
+                        const containerHeight = containerNode.size?.height || 300;
+
+                        // Check if dropped node center is within container bounds
+                        const nodeCenterX = droppedNode.position.x + 100; // assuming node width ~200
+                        const nodeCenterY = droppedNode.position.y + 50; // assuming node height ~100
+
+                        if (nodeCenterX >= containerNode.position.x &&
+                            nodeCenterX <= containerNode.position.x + containerWidth &&
+                            nodeCenterY >= containerNode.position.y + 30 && // Skip header
+                            nodeCenterY <= containerNode.position.y + containerHeight) {
+                            foundContainer = containerNode;
+                            break;
+                        }
+                    }
+                }
+
+                // Update parent_id based on whether node was dropped in container
+                if (foundContainer) {
+                    droppedNode.parent_id = foundContainer.id;
+                    updateStatus(`Node moved into ${foundContainer.label || 'container'}`);
+                } else if (droppedNode.parent_id) {
+                    // Node was moved out of a container
+                    droppedNode.parent_id = null;
+                    updateStatus('Node moved out of container');
+                }
+
+                // Save the workflow after moving nodes
+                if (currentWorkflow) {
+                    saveWorkflow();
+                }
+
                 isDraggingNode = false;
                 draggedNode = null;
                 nodeDragStart = null;
+                renderCanvas();
             }
 
             // Handle palette node drop (mouse-based for WebView)
@@ -1565,6 +1716,11 @@
                 config: config,
                 label: nodeType.name
             };
+
+            // Initialize size for container nodes
+            if (nodeType.is_container) {
+                node.size = { width: 400, height: 300 };
+            }
 
             nodes.push(node);
             renderCanvas();
@@ -1761,6 +1917,141 @@
             } catch (error) {
                 alert('Failed to create workflow');
             }
+        }
+
+        // Copy workflow functions
+        function showCopyWorkflowModal() {
+            if (!currentWorkflow) {
+                updateStatus('No workflow selected to copy');
+                return;
+            }
+
+            document.getElementById('copyWorkflowNameInput').value = `Copy of ${currentWorkflow.name}`;
+            document.getElementById('copyWorkflowDescriptionInput').value = currentWorkflow.description || '';
+            document.getElementById('copyWorkflowModal').classList.remove('hidden');
+            document.getElementById('copyWorkflowNameInput').focus();
+        }
+
+        function hideCopyWorkflowModal() {
+            document.getElementById('copyWorkflowModal').classList.add('hidden');
+            document.getElementById('copyWorkflowNameInput').value = '';
+            document.getElementById('copyWorkflowDescriptionInput').value = '';
+        }
+
+        async function handleCopyWorkflow() {
+            if (!currentWorkflow) {
+                alert('No workflow selected');
+                return;
+            }
+
+            const name = document.getElementById('copyWorkflowNameInput').value.trim();
+            const description = document.getElementById('copyWorkflowDescriptionInput').value.trim();
+
+            if (!name) {
+                alert('Workflow name is required');
+                return;
+            }
+
+            try {
+                // Create a copy of the current workflow with new name
+                const workflowCopy = {
+                    name: name,
+                    description: description,
+                    nodes: JSON.parse(JSON.stringify(nodes)), // Deep copy nodes
+                    connections: JSON.parse(JSON.stringify(connections)) // Deep copy connections
+                };
+
+                // Create new workflow
+                const result = await apiCall('create_workflow', workflowCopy);
+
+                // Load the new workflow
+                await loadWorkflow(result.id);
+                hideCopyWorkflowModal();
+                updateStatus(`Copied workflow: ${name}`);
+            } catch (error) {
+                console.error('Failed to copy workflow:', error);
+                alert('Failed to copy workflow');
+            }
+        }
+
+        // Export workflow function
+        function exportWorkflow() {
+            if (!currentWorkflow) {
+                updateStatus('No workflow selected to export');
+                return;
+            }
+
+            try {
+                // Create export object with all workflow data
+                const exportData = {
+                    name: currentWorkflow.name,
+                    description: currentWorkflow.description || '',
+                    nodes: nodes,
+                    connections: connections,
+                    exported_at: new Date().toISOString(),
+                    version: '1.0'
+                };
+
+                // Convert to JSON string
+                const jsonString = JSON.stringify(exportData, null, 2);
+
+                // Create blob and download
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentWorkflow.name.replace(/[^a-z0-9]/gi, '_')}_workflow.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                updateStatus(`Exported workflow: ${currentWorkflow.name}`);
+            } catch (error) {
+                console.error('Failed to export workflow:', error);
+                alert('Failed to export workflow');
+            }
+        }
+
+        // Import workflow functions
+        function importWorkflow() {
+            // Trigger the hidden file input
+            document.getElementById('importWorkflowFileInput').click();
+        }
+
+        async function handleImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const importData = JSON.parse(text);
+
+                // Validate import data
+                if (!importData.nodes || !importData.connections) {
+                    throw new Error('Invalid workflow file format');
+                }
+
+                // Create a new workflow with the imported data
+                const workflowData = {
+                    name: importData.name || 'Imported Workflow',
+                    description: importData.description || `Imported from ${file.name}`,
+                    nodes: importData.nodes,
+                    connections: importData.connections
+                };
+
+                const result = await apiCall('create_workflow', workflowData);
+
+                // Load the new workflow
+                await loadWorkflow(result.id);
+                updateStatus(`Imported workflow: ${workflowData.name}`);
+            } catch (error) {
+                console.error('Failed to import workflow:', error);
+                alert('Failed to import workflow. Please check the file format.');
+            }
+
+            // Reset file input
+            event.target.value = '';
         }
 
         // Utility functions
