@@ -6,4 +6,5 @@ fn main() {
 #[cfg(not(feature = "tauri"))]
 fn main() {
     // No Tauri build steps needed
+    println!("No Tauri build steps needed");
 }

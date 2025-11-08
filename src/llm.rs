@@ -151,6 +151,7 @@ impl OllamaClient {
     pub fn new(config: LlmConfig) -> Self {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(config.timeout))
+            .redirect(reqwest::redirect::Policy::none())
             .pool_max_idle_per_host(10)
             .pool_idle_timeout(Duration::from_secs(90))
             .tcp_keepalive(Duration::from_secs(60))
@@ -169,6 +170,7 @@ impl OllamaClient {
     pub async fn new_with_cache(config: LlmConfig) -> Result<Self> {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(config.timeout))
+            .redirect(reqwest::redirect::Policy::none())
             .pool_max_idle_per_host(10)
             .pool_idle_timeout(Duration::from_secs(90))
             .tcp_keepalive(Duration::from_secs(60))

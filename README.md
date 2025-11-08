@@ -5,15 +5,16 @@
 
 A comprehensive, extensible AI agent framework built in Rust that integrates:
 
-- **🤖 Multi-Provider LLMs** - OpenAI, Anthropic, Google, Groq, Together AI, Azure OpenAI, Ollama
-- **💾 Vector Store** - Semantic memory and knowledge retrieval
-- **🛠️ MCP Client** - Model Context Protocol for calling external tools
-- **⚡ Workflow Engine** - Orchestrates reasoning, memory, and tool usage
-- **🌐 A2A Communication** - Agent-to-Agent communication for multi-agent systems
-- **🔄 State Management** - Pause, resume, and persistent agent state
-- **🗃️ Unified Storage** - Centralized data management across components
-- **🧠 Knowledge Management** - Organizational learning and external knowledge ingestion
-- **⚡ Saga Workflows** - Distributed transaction patterns for complex operations
+- **Multi-Provider LLMs** - OpenAI, Anthropic, Google, Groq, Together AI, Azure OpenAI, Ollama
+- **Vector Store** - Semantic memory and knowledge retrieval
+- **MCP Client** - Model Context Protocol for calling external tools
+- **Workflow Engine** - Orchestrates reasoning, memory, and tool usage
+- **A2A Communication** - Agent-to-Agent communication for multi-agent systems
+- **State Management** - Pause, resume, and persistent agent state
+- **Unified Storage** - Centralized data management across components
+- **Knowledge Management** - Organizational learning and external knowledge ingestion
+- **Saga Workflows** - Distributed transaction patterns for complex operations
+- **Workflow Builder** - Visual drag-and-drop workflow designer with desktop app
 
 ## ✨ Features
 
@@ -40,18 +41,18 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
 
 ### Advanced Features
 
-- **🌐 Agent-to-Agent Communication**: Multi-protocol support (HTTP, WebSocket, Redis, RabbitMQ)
-- **🔍 Service Discovery**: Capability-based agent discovery and health monitoring
-- **🔒 Security**: Authentication, encryption, rate limiting, and access control
-- **⏸️ State Management**: Pause, resume, and checkpoint agent execution
-- **🗄️ Unified Storage**: Centralized data management with multiple backend support
-- **📊 Real-time Collaboration**: Multi-agent workflows and task distribution
-- **🔄 Load Balancing**: Automatic request distribution across agent networks
-- **🧠 Organizational Learning**: Knowledge capture from every task with persistent memory
-- **🌐 External Knowledge**: Web scraping, document ingestion, and content consolidation
-- **⚡ Saga Transactions**: Distributed workflows with compensation and rollback
+- **Agent-to-Agent Communication**: Multi-protocol support (HTTP, WebSocket, Redis, RabbitMQ)
+- **Service Discovery**: Capability-based agent discovery and health monitoring
+- **Security**: Authentication, encryption, rate limiting, and access control
+- **⏸State Management**: Pause, resume, and checkpoint agent execution
+- **Unified Storage**: Centralized data management with multiple backend support
+- **Real-time Collaboration**: Multi-agent workflows and task distribution
+- **Load Balancing**: Automatic request distribution across agent networks
+- **Organizational Learning**: Knowledge capture from every task with persistent memory
+- **External Knowledge**: Web scraping, document ingestion, and content consolidation
+- **Saga Transactions**: Distributed workflows with compensation and rollback
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -106,6 +107,65 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+## Workflow Builder
+
+The Agency includes a powerful visual Workflow Builder that allows you to create complex AI agent workflows through an intuitive drag-and-drop interface.
+
+![Workflow Builder Interface](./images//Workflow_Builder.png)
+
+### Key Features
+
+- **Visual Node Editor**: Drag-and-drop interface with various node types (LLM, tools, conditions, loops)
+- **Real-time Validation**: Instant feedback on workflow logic and connections
+- **Persistent Storage**: Workflows automatically saved to SQLite database
+- **Desktop Application**: Native desktop app with auto-daemon management
+- **Cross-Platform**: Runs on macOS, Linux, and Windows
+
+### Getting Started with Workflow Builder
+
+#### Option 1: Development Mode
+
+```bash
+# Start daemon (if not already running)
+cargo run --bin agency-daemon --release
+
+# In another terminal, start Workflow Builder
+cargo run --bin workflow-builder --features tauri
+
+#### Option 2: Build Desktop App
+
+# Build standalone desktop application
+cargo tauri build --bin workflow-builder --features tauri
+
+# Run the built app
+# macOS: open "target/release/bundle/macos/The Agency - Workflow Builder.app"
+# Linux: ./target/release/bundle/appimage/the-agency-workflow-builder
+# Windows: target/release/bundle/msi/The-Agency-Workflow-Builder.msi
+
+#### Option 3: Web Interface
+
+# Start daemon and access web interface
+cargo run --bin agency-daemon --release
+# Open http://localhost:8080/workflow-ui in your browser
+
+### Available Node Types
+
+• LLM Nodes: Text generation, chat completion, embeddings
+• Tool Nodes: System info, file operations, web search
+• Control Flow: Conditions, loops, parallel execution
+• Data Processing: Text manipulation, data transformation
+• Integration: MCP servers, external APIs, databases
+
+### Workflow Examples
+
+The Workflow Builder comes with pre-built templates for common tasks:
+
+• Document processing pipelines
+• Multi-agent coordination
+• Data analysis workflows
+• Customer service automation
+• Research and summarization
 
 ### Multi-Provider LLM Support
 
@@ -268,6 +328,7 @@ if result.is_err() {
 ```
 
 **Features:**
+
 - **Distributed Transactions**: Multi-step operations across services
 - **Automatic Compensation**: Rollback failed operations with custom logic
 - **Fault Tolerance**: Graceful handling of partial failures
@@ -418,7 +479,7 @@ This starts an interactive chat session with:
 - Tool usage examples
 - Statistics monitoring
 
-## 🌐 REST API & Daemon
+## REST API & Daemon
 
 The Agency can run as a background daemon with a REST API for integration with other applications.
 
@@ -658,7 +719,7 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for detailed deployment instructions.
 5. **Response Assembly**: Final response is assembled from LLM output, tool results, and memory
 6. **Memory Storage**: Conversation is stored in vector memory for future retrieval
 
-## 📋 Configuration
+## Configuration
 
 ### Basic Configuration
 
@@ -748,7 +809,12 @@ let agent = AgentBuilder::new()
     .await?;
 ```
 
-## 🔧 MCP Integration
+### Workflow Builder Integration
+
+The Workflow Builder provides a visual interface for creating the same workflows that can be built programmatically. It connects to the agency daemon via HTTP API and
+stores workflows in the same SQLite database used by the other components. This ensures seamless integration between visual design and programmatic workflow execution.
+
+## MCP Integration
 
 The agent supports the Model Context Protocol (MCP) for calling external tools:
 
@@ -789,7 +855,7 @@ The agent can work with any MCP-compatible server:
 - **API Clients**: REST API interactions
 - **Custom Tools**: Your own MCP implementations
 
-## 🌐 Agent-to-Agent Communication
+## Agent-to-Agent Communication
 
 The A2A system enables sophisticated multi-agent architectures where specialized AI agents collaborate:
 
@@ -926,7 +992,7 @@ async fn solve_complex_problem(query: &str) -> Result<String> {
 }
 ```
 
-## 💾 Memory System
+## Memory System
 
 The agent includes a sophisticated memory system for context retention:
 
@@ -963,7 +1029,7 @@ let memory_id = store.store(
 let results = store.search(query_embedding, 10, 0.7).await?;
 ```
 
-## 🛠️ Built-in Tools
+## Built-in Tools
 
 The agent comes with several built-in tools:
 
@@ -985,7 +1051,7 @@ use the_agency::mcp::{ToolResult, ToolContent};
 // or by implementing MCP servers
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Run Unit Tests
 
@@ -1020,7 +1086,7 @@ cargo run --bin agent-example -- --demo-mode
 cargo test integration_tests
 ```
 
-## 📊 Monitoring and Debugging
+## Monitoring and Debugging
 
 ### Agent Statistics
 
@@ -1056,7 +1122,7 @@ tracing_subscriber::fmt::init();
 // - Workflow decisions
 ```
 
-## 🔍 Examples
+## Examples
 
 ### Basic Conversation
 
@@ -1144,7 +1210,7 @@ let final_report = format!(
 );
 ```
 
-## ⚙️ Advanced Usage
+## Advanced Usage
 
 ### Custom Workflow Steps
 
@@ -1206,7 +1272,7 @@ impl LlmClient for CustomLlmClient {
 }
 ```
 
-## 🤝 Contributing
+## Contributing
 
 **We welcome contributions!** Before contributing, please:
 
@@ -1237,13 +1303,13 @@ Areas we're especially looking for help:
 - Real-world integration examples
 - Documentation and tutorials
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Ollama](https://ollama.ai/) - Local LLM inference
 - [OpenAI](https://openai.com/) - GPT models
@@ -1256,46 +1322,47 @@ Copyright © 2025 Ravindra Boddipalli / [Turing Works](https://turingworks.com)
 - [Tokio](https://tokio.rs/) - Async runtime
 - [Serde](https://serde.rs/) - Serialization framework
 
-## 📞 Support & Contact
+## Support & Contact
 
-### 📬 Primary Contact
+### Primary Contact
 
 - **Maintainer**: Ravindra Boddipalli
 - **Email**: [rboddipalli@turingworks.com](mailto:rboddipalli@turingworks.com)
 - **Company**: [Turing Works](https://turingworks.com)
 
-### 📚 Documentation & Resources
+### Documentation & Resources
 
-- 📜 [API Documentation](https://docs.rs/the-agency)
-- 🤖 [Multi-Provider LLM Architecture](docs/MULTI_PROVIDER_ARCHITECTURE.md)
-- 🌐 [A2A Communication Guide](docs/A2A_COMMUNICATION.md)
-- 🔄 [State Management Guide](docs/PAUSE_EXECUTION.md)
-- 🗄️ [Unified Storage Guide](docs/UNIFIED_STORAGE_README.md)
-- 📋 [API Reference](docs/API.md)
-- ⏯️ [Suspend/Resume Guide](docs/SUSPEND_RESUME.md)
-- 🏢 [Multi-Agent Organization Example](docs/ORGANIZATION.md)
-- 🧠 [Knowledge Management Guide](docs/KNOWLEDGE_MANAGEMENT_SUMMARY.md)
-- 🌐 [External Knowledge Learning Example](docs/EXTERNAL_KNOWLEDGE_LEARNING.md)
-- ⚡ [Saga Workflows Guide](docs/SAGA_WORKFLOW.md)
-- 🤝 [Collaborative Workspaces Example](docs/COLLABORATIVE_WORKSPACE.md)
-- 📄 [Document RAG Examples](examples/pdf_rag_with_tables.rs)
-- 🔌 [Multi-Provider Usage Example](examples/multi_provider_usage.rs)
-- 🤖 [Robotics Scientist Agent](examples/robotics_research_engineer_example.rs)
-- 🏢 [Multi-Agent Organization Example](examples/robotech_industries_organization_example.rs)
-- 🤝 [Collaborative Workspaces Example](examples/collaborative_robotics_workspace.rs)
-- 📚 [Knowledge Management](examples/rag_system_comprehensive.rs)
-- ⚡ [Saga Workflows](examples/saga_workflow.rs)
-- 🤖 [Saga LLM Workflows](examples/saga_llm_workflow.rs)
-- 🔄 [Multi-Provider LLM Usage](examples/multi_provider_example.rs)
-- 🌐 [Agent-to-Agent Communication](examples/a2a_communication.rs)
-- 📄 [PDF RAG with Tables](examples/pdf_rag_with_tables.rs)
-- 🗃️ [Unified Storage System](examples/unified_storage_system.rs)
+- [API Documentation](https://docs.rs/the-agency)
+- [Multi-Provider LLM Architecture](docs/MULTI_PROVIDER_ARCHITECTURE.md)
+- [A2A Communication Guide](docs/A2A_COMMUNICATION.md)
+- [State Management Guide](docs/PAUSE_EXECUTION.md)
+- [Unified Storage Guide](docs/UNIFIED_STORAGE_README.md)
+- [API Reference](docs/API.md)
+- [Suspend/Resume Guide](docs/SUSPEND_RESUME.md)
+- [Workflow Builder Guide](docs/DESKTOP_APP.md)
+- [Multi-Agent Organization Example](docs/ORGANIZATION.md)
+- [Knowledge Management Guide](docs/KNOWLEDGE_MANAGEMENT_SUMMARY.md)
+- [External Knowledge Learning Example](docs/EXTERNAL_KNOWLEDGE_LEARNING.md)
+- [Saga Workflows Guide](docs/SAGA_WORKFLOW.md)
+- [Collaborative Workspaces Example](docs/COLLABORATIVE_WORKSPACE.md)
+- [Document RAG Examples](examples/pdf_rag_with_tables.rs)
+- [Multi-Provider Usage Example](examples/multi_provider_usage.rs)
+- [Robotics Scientist Agent](examples/robotics_research_engineer_example.rs)
+- [Multi-Agent Organization Example](examples/robotech_industries_organization_example.rs)
+- [Collaborative Workspaces Example](examples/collaborative_robotics_workspace.rs)
+- [Knowledge Management](examples/rag_system_comprehensive.rs)
+- [Saga Workflows](examples/saga_workflow.rs)
+- [Saga LLM Workflows](examples/saga_llm_workflow.rs)
+- [Multi-Provider LLM Usage](examples/multi_provider_example.rs)
+- [Agent-to-Agent Communication](examples/a2a_communication.rs)
+- [PDF RAG with Tables](examples/pdf_rag_with_tables.rs)
+- [Unified Storage System](examples/unified_storage_system.rs)
 
-### 🐛 Issues & Discussions
+### Issues & Discussions
 
-- 🐛 [Report Issues](https://github.com/ravituringworks/the-agency/issues)
-- 💬 [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)
-- 🚀 [Feature Requests](https://github.com/ravituringworks/the-agency/issues/new?template=feature_request.md)
+- [Report Issues](https://github.com/ravituringworks/the-agency/issues)
+- [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)
+- [Feature Requests](https://github.com/ravituringworks/the-agency/issues/new?template=feature_request.md)
 
 ---
 

@@ -2,7 +2,7 @@
 
 This directory contains comprehensive examples demonstrating various features and capabilities of The Agency framework. Examples are organized by category and complexity level.
 
-## 🚀 Quick Start Examples
+## Quick Start Examples
 
 ### Basic Usage
 - **`minimal_org_test.rs`** - Minimal multi-agent organization test
@@ -13,7 +13,7 @@ This directory contains comprehensive examples demonstrating various features an
 - **`multi_provider_usage.rs`** - Advanced multi-provider configuration
 - **`test_ollama_connection.rs`** - Testing Ollama connectivity
 
-## 🤖 Agent Examples
+## Agent Examples
 
 ### Specialized Agents
 - **`robotics_research_engineer_agent.rs`** - Research engineer for robotics
@@ -26,7 +26,7 @@ This directory contains comprehensive examples demonstrating various features an
 - **`a2a_communication.rs`** - Agent-to-Agent communication protocols
 - **`agent_network_system.rs`** - Complete agent network system
 
-## 🔄 Workflow Examples
+## Workflow Examples
 
 ### Saga Patterns
 - **`saga_workflow.rs`** - Basic saga workflow with compensation
@@ -38,7 +38,7 @@ This directory contains comprehensive examples demonstrating various features an
 - **`control_flow_example.rs`** - Control flow patterns
 - **`control_flow_simple.rs`** - Basic control flow
 
-## 📚 Knowledge & Memory
+## Knowledge & Memory
 
 ### RAG Systems
 - **`rag_system_comprehensive.rs`** - Comprehensive RAG implementation
@@ -49,7 +49,7 @@ This directory contains comprehensive examples demonstrating various features an
 - **`knowledge_rag.rs`** - Knowledge-based RAG (if exists)
 - **`unified_storage_system.rs`** - Unified storage system
 
-## 🏢 Multi-Agent Organization
+## Multi-Agent Organization
 
 ### Collaborative Workspaces
 - **`collaborative_robotics_complex.rs`** - Complex collaborative robotics
@@ -61,7 +61,7 @@ This directory contains comprehensive examples demonstrating various features an
 - **`robotech_industries_organization_example.rs`** - Complete organization example
 - **`humanoid_robot_project.rs`** - Humanoid robot project organization
 
-## 🛠️ Tools & Integration
+## Tools & Integration
 
 ### MCP Integration
 - **`datetime_location_tools.rs`** - Date/time and location tools
@@ -71,7 +71,7 @@ This directory contains comprehensive examples demonstrating various features an
 - **`daemon_api_example.rs`** - Daemon API usage
 - **`api.rs`** - API integration examples
 
-## 🧪 Testing & Configuration
+## Testing & Configuration
 
 ### Test Examples
 - **`test_config.rs`** - Configuration testing
@@ -86,7 +86,7 @@ Located in `examples/docs/`:
 - **ROBOTICS_AGENTS.md** - Robotics agent documentation
 - **WORKSPACE_COMPARISON.md** - Workspace performance comparisons
 
-## 🎯 Running Examples
+## Running Examples
 
 ### Prerequisites
 
@@ -142,39 +142,39 @@ cargo run --example multi_provider_example -- --config path/to/config.toml
 RUST_LOG=debug cargo run --example saga_llm_workflow
 ```
 
-## 📖 Example Categories
+## Example Categories
 
-### 🔰 Beginner Examples
+### Beginner Examples
 - `minimal_org_test.rs` - Start here for basic concepts
 - `simple_coordinator_test.rs` - Simple agent coordination
 - `multi_provider_example.rs` - Basic LLM provider usage
 
-### 🔧 Intermediate Examples
+### Intermediate Examples
 - `saga_workflow.rs` - Workflow patterns
 - `a2a_communication.rs` - Multi-agent communication
 - `rag_system_comprehensive.rs` - Knowledge retrieval
 
-### 🏗️ Advanced Examples
+### Advanced Examples
 - `collaborative_robotics_workspace.rs` - Complex multi-agent systems
 - `robotech_industries_organization_example.rs` - Large-scale organization
 - `pdf_rag_with_tables.rs` - Advanced document processing
 
-## 🏷️ Feature Tags
+## Feature Tags
 
 Examples are tagged with features they demonstrate:
 
-- **🤖 LLM**: Language model integration
-- **🌐 A2A**: Agent-to-Agent communication
-- **💾 Memory**: Vector storage and retrieval
-- **🛠️ Tools**: MCP tool integration
-- **⚡ Workflow**: Workflow orchestration
-- **🔄 Saga**: Distributed transaction patterns
-- **📚 RAG**: Retrieval-augmented generation
-- **🏢 Organization**: Multi-agent organization
-- **📄 PDF**: Document processing
-- **🗃️ Storage**: Data persistence
+- **LLM**: Language model integration
+- **A2A**: Agent-to-Agent communication
+- **Memory**: Vector storage and retrieval
+- **Tools**: MCP tool integration
+- **Workflow**: Workflow orchestration
+- **Saga**: Distributed transaction patterns
+- **RAG**: Retrieval-augmented generation
+- **Organization**: Multi-agent organization
+- **PDF**: Document processing
+- **Storage**: Data persistence
 
-## 🤝 Contributing Examples
+## Contributing Examples
 
 When adding new examples:
 
@@ -184,11 +184,11 @@ When adding new examples:
 4. **Update this README** - Add your example to the appropriate section
 5. **Test thoroughly** - Ensure examples run with default configuration
 
-## 📞 Support
+## Support
 
-- 📖 [Main Documentation](../README.md)
-- 🐛 [Report Issues](https://github.com/ravituringworks/the-agency/issues)
-- 💬 [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)</content>
+- [Main Documentation](../README.md)
+- [Report Issues](https://github.com/ravituringworks/the-agency/issues)
+- [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)</content>
 </xai:function_call">\
 <xai:function_call name="read">
 <parameter name="filePath">examples/docs/README.md
