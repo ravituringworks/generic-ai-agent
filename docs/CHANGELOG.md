@@ -31,14 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fault Tolerance**: Graceful handling of partial failures in distributed systems
 - **State Persistence**: Saga state saved for recovery and auditing
 
-### 🔧 Enhanced
+### 🔧 Enhanced (0.3.0)
 
 - **Multi-Provider LLM**: Full implementation with 7+ providers and automatic fallback
 - **Task-Based Model Selection**: Different LLM models for different task types
 - **Connection Pooling**: Efficient resource management across LLM providers
 - **Response Caching**: Reduced API costs and improved performance
 
-### 📚 Documentation
+### 📚 Documentation (0.3.0)
 
 - **README Updates**: Comprehensive feature overview with core vs example distinction
 - **Architecture Diagrams**: Updated to include knowledge management and saga workflows
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2025-10-02
 
-### 🆕 Added
+### 🆕 Added (0.2.0)
 
 #### Document RAG (Retrieval-Augmented Generation)
 
@@ -77,14 +77,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced memory configuration for document indexing
 - Improved timeout handling for large document processing
 
-### 🔧 Enhanced
+### 🔧 Enhanced (0.2.0)
 
 - **Memory System**: Optimized similarity search thresholds for better retrieval
 - **LLM Integration**: Increased timeout limits for complex document processing
 - **Error Handling**: Improved error messages and fallback mechanisms
 - **Documentation**: Comprehensive API documentation for RAG features
 
-### 📚 Documentation
+### 📚 Documentation (0.2.0)
 
 - Updated README.md with Document RAG examples and usage
 - Enhanced API documentation with PDF processing APIs
@@ -140,7 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Concurrent operations with proper resource management
 - Comprehensive logging and monitoring support
 
-### 📝 Legal & Contribution
+### 📝 Legal & Contribution (0.1.0)
 
 - **MIT License**: Added proper MIT license file
 - **Contribution Guide**: Comprehensive CONTRIBUTING.md with process guidelines

@@ -9,6 +9,7 @@ Enable agents to learn from web content, books, PDFs, documentation, and other e
 ## Current Capabilities
 
 ### ✅ Already Available
+
 1. **MCP Tool Integration** (`src/mcp.rs`)
    - Can integrate external tools via MCP servers
    - HTTP, WebSocket, and stdio transports supported
@@ -25,6 +26,7 @@ Enable agents to learn from web content, books, PDFs, documentation, and other e
    - Question answering
 
 ### ❌ What's Missing
+
 1. **Web scraping/browsing tools**
 2. **Document format parsers** (EPUB, DOCX, etc.)
 3. **Source attribution system**
@@ -134,6 +136,7 @@ impl KnowledgeIngestionPipeline {
 ### 3. Web Browsing Integration (via MCP)
 
 **Using Browser MCP Server**:
+
 ```toml
 # Add to config.toml
 [mcp.servers.browser]
@@ -149,6 +152,7 @@ enabled = true
 ```
 
 **Agent Tool Usage**:
+
 ```rust
 // Agent can now use these tools:
 // - browser_navigate(url)
@@ -220,6 +224,7 @@ impl MultiFormatParser {
 ### 5. Knowledge Consolidation System
 
 **Problem**: Ingesting multiple sources can lead to:
+
 - Duplicate information
 - Contradictory advice
 - Information overload
@@ -265,6 +270,7 @@ pub struct ConsolidatedKnowledge {
 ```
 
 **Synthesis Using LLM**:
+
 ```rust
 async fn synthesize_knowledge(
     &self,
@@ -297,6 +303,7 @@ async fn synthesize_knowledge(
 ## Adaptive Best Practices Limits
 
 ### Current Limitation
+
 ```rust
 // Hardcoded in config
 max_best_practices_per_role = 100
@@ -342,6 +349,7 @@ impl Default for KnowledgeManagementConfig {
 ```
 
 **Automatic Pruning Strategy**:
+
 ```rust
 impl AdaptiveKnowledgeManager {
     pub async fn manage_best_practices(
@@ -548,6 +556,7 @@ pipeline.ingest(
 **Short answer**: It depends on complexity, but likely not for long-term learning.
 
 **Analysis**:
+
 - **100 is reasonable** for a single, focused role in a specific domain
 - **Not adequate** for:
   - Long-running agents
@@ -556,6 +565,7 @@ pipeline.ingest(
   - Multi-domain expertise
 
 **Recommended Approach**:
+
 1. **Start with 100** as soft limit (triggers consolidation)
 2. **Set 500 as hard limit** (triggers pruning)
 3. **Enable auto-consolidation** to merge similar practices
@@ -568,7 +578,8 @@ pipeline.ingest(
 ### Scaling Knowledge Storage
 
 **Storage estimates**:
-```
+
+```text
 100 best practices × 500 bytes avg = 50 KB
 500 best practices × 500 bytes avg = 250 KB
 10,000 knowledge chunks × 1 KB = 10 MB
@@ -576,6 +587,7 @@ pipeline.ingest(
 ```
 
 Even with 100,000 chunks, storage is manageable. The real challenge is:
+
 - **Retrieval speed** (solved with vector indexes)
 - **Knowledge quality** (solved with consolidation)
 - **Relevance** (solved with semantic search)
@@ -585,30 +597,35 @@ Even with 100,000 chunks, storage is manageable. The real challenge is:
 ## Implementation Priorities
 
 ### Phase 1: Foundation (Week 1-2)
+
 - [ ] Add MCP browser/search servers
 - [ ] Implement basic web content fetching
 - [ ] Add HTML/Markdown parsers
 - [ ] Create chunking system
 
 ### Phase 2: Multi-Format Support (Week 3-4)
+
 - [ ] PDF parser integration
 - [ ] EPUB support
 - [ ] DOCX support
 - [ ] Code parser (tree-sitter)
 
 ### Phase 3: Quality & Consolidation (Week 5-6)
+
 - [ ] Quality filtering system
 - [ ] Deduplication logic
 - [ ] Knowledge synthesis via LLM
 - [ ] Source attribution
 
 ### Phase 4: Adaptive Management (Week 7-8)
+
 - [ ] Dynamic limit system
 - [ ] Pruning strategies
 - [ ] Auto-consolidation
 - [ ] Retention scoring
 
 ### Phase 5: Agent Integration (Week 9-10)
+
 - [ ] Autonomous web learning
 - [ ] Document discovery
 - [ ] Knowledge gap detection
@@ -619,12 +636,14 @@ Even with 100,000 chunks, storage is manageable. The real challenge is:
 ## Conclusion
 
 **Yes, agents can learn from external sources** - the framework already supports it through MCP and memory systems. You just need to add:
+
 1. Content fetchers (web, docs)
 2. Format parsers
 3. Quality filters
 4. Consolidation logic
 
 **No, 100 best practices is not a hard limit** - it should be:
+
 - **Soft limit** triggering consolidation
 - **Dynamic** based on usage and quality
 - **Managed automatically** with pruning policies
