@@ -2085,20 +2085,39 @@
         function fitToScreen() {
             if (nodes.length === 0) return;
 
-            const bounds = nodes.reduce((acc, node) => ({
-                minX: Math.min(acc.minX, node.position.x),
-                minY: Math.min(acc.minY, node.position.y),
-                maxX: Math.max(acc.maxX, node.position.x + 200),
-                maxY: Math.max(acc.maxY, node.position.y + 100)
-            }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+            const bounds = nodes.reduce((acc, node) => {
+                const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                const isContainer = nodeType?.is_container === true;
+
+                // Calculate actual node dimensions
+                let nodeWidth, nodeHeight;
+                if (isContainer) {
+                    nodeWidth = node.size?.width || 400;
+                    nodeHeight = node.size?.height || 300;
+                } else {
+                    const inputsHeight = nodeType?.inputs?.length * 30 || 0;
+                    const outputsHeight = nodeType?.outputs?.length * 30 || 0;
+                    const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
+                    nodeWidth = 200;
+                    nodeHeight = 40 + contentHeight;
+                }
+
+                return {
+                    minX: Math.min(acc.minX, node.position.x),
+                    minY: Math.min(acc.minY, node.position.y),
+                    maxX: Math.max(acc.maxX, node.position.x + nodeWidth),
+                    maxY: Math.max(acc.maxY, node.position.y + nodeHeight)
+                };
+            }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
 
             const canvasRect = canvas.getBoundingClientRect();
-            const scaleX = canvasRect.width / (bounds.maxX - bounds.minX + 100);
-            const scaleY = canvasRect.height / (bounds.maxY - bounds.minY + 100);
+            const padding = 100; // Add padding around the workflow
+            const scaleX = canvasRect.width / (bounds.maxX - bounds.minX + padding);
+            const scaleY = canvasRect.height / (bounds.maxY - bounds.minY + padding);
             canvasScale = Math.min(scaleX, scaleY, 1);
 
-            canvasOffset.x = -bounds.minX * canvasScale + 50;
-            canvasOffset.y = -bounds.minY * canvasScale + 50;
+            canvasOffset.x = -bounds.minX * canvasScale + padding / 2;
+            canvasOffset.y = -bounds.minY * canvasScale + padding / 2;
 
             updateCanvasTransform();
         }
