@@ -18,15 +18,17 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 
 ### Prerequisites
 
-1. **Start the Agency Server**:
+1. **Start the Agency Daemon**:
    ```bash
-   cargo run
+   cargo run --bin agency-daemon
    ```
+
+   The daemon will start and listen on `http://127.0.0.1:8080`
 
 2. **Access the Workflow Builder**:
    Open your browser and navigate to:
    ```
-   http://localhost:3000
+   http://127.0.0.1:8080/workflow-ui
    ```
 
 3. **Ensure LLM Provider is Running**:
@@ -674,7 +676,7 @@ POST /workflow-ui/workflows/{id}/execute
 ### Example: Execute via cURL
 
 ```bash
-curl -X POST http://localhost:3000/workflow-ui/workflows/123/execute
+curl -X POST http://127.0.0.1:8080/workflow-ui/workflows/123/execute
 ```
 
 ---

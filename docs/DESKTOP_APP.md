@@ -15,7 +15,7 @@ The Workflow Builder is a Tauri-based desktop application that provides:
 The desktop app consists of two components:
 
 1. **Agency Daemon** (`agency-daemon`)
-   - HTTP server running on `http://localhost:8080`
+   - HTTP server running on `http://127.0.0.1:8080`
    - Provides REST API for workflow management
    - Persists workflows in SQLite database
    - Serves the workflow UI at `/workflow-ui`
@@ -71,7 +71,7 @@ cargo tauri build --bin workflow-builder --features tauri
    - Results appear in the properties panel
 
 4. **Access from Browser**
-   - The workflow UI is also accessible at: `http://localhost:8080/workflow-ui`
+   - The workflow UI is also accessible at: `http://127.0.0.1:8080/workflow-ui`
    - Use this for web-based access or development
 
 ## Features
@@ -128,7 +128,7 @@ lsof -ti:8080 | xargs kill -9
 
 1. Check that the daemon is running:
    ```bash
-   curl http://localhost:8080/health
+   curl http://127.0.0.1:8080/health
    ```
 
 2. Check the database exists:
