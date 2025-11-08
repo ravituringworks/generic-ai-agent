@@ -2,7 +2,19 @@
 
 use std::collections::HashMap;
 use tempfile::tempdir;
-use the_agency::*;
+use the_agency::agent::AgentBuilder;
+use the_agency::config::{self, AgentConfig, MemoryConfig};
+use the_agency::error;
+use the_agency::llm;
+use the_agency::memory;
+use the_agency::memory::MemoryStore;
+use the_agency::mcp;
+use the_agency::tools::BuiltinTools;
+use the_agency::workflow;
+use the_agency::workflow::WorkflowContext;
+use the_agency::workflow::WorkflowStep;
+use the_agency::llm::user_message;
+use the_agency::workflow::{SystemPromptStep, SystemPromptMode, WorkflowDecision, WorkflowBuilder};
 
 /// Test configuration validation
 #[tokio::test]
@@ -270,7 +282,7 @@ async fn test_workflow_engine() {
 /// Test built-in tools
 #[tokio::test]
 async fn test_builtin_tools() {
-    let tools = tools::BuiltinTools::new();
+    let tools = BuiltinTools::new();
 
     let tool_list = tools.list_tools();
     assert!(!tool_list.is_empty());
@@ -399,6 +411,51 @@ async fn test_concurrent_operations() {
     assert_eq!(stats.total_memories, 5);
 }
 
+#[tokio::test]
+async fn test_system_prompt_step_set_mode() {
+    let mut context = WorkflowContext::new(10);
+    context.add_message(user_message("Hello"));
+
+    let step = SystemPromptStep::new("You are a helpful assistant".to_string(), SystemPromptMode::Set);
+    let decision = step.execute(&mut context).await.unwrap();
+
+    assert!(matches!(decision, WorkflowDecision::Continue));
+    assert_eq!(context.get_current_system_prompt(), Some("You are a helpful assistant".to_string()));
+}
+
+#[tokio::test]
+async fn test_system_prompt_step_template_mode() {
+    let mut context = WorkflowContext::new(10);
+    context.add_message(user_message("Help me with Rust"));
+    context.metadata.insert("workflow_name".to_string(), "test_workflow".to_string());
+
+    let mut variables = HashMap::new();
+    variables.insert("role".to_string(), "Rust expert".to_string());
+
+    let step = SystemPromptStep::new(
+        "You are a {{role}} for workflow {{workflow_name}}. User asked: {{user_input}}".to_string(),
+        SystemPromptMode::Template,
+    ).with_template_variables(variables);
+
+    let decision = step.execute(&mut context).await.unwrap();
+
+    assert!(matches!(decision, WorkflowDecision::Continue));
+    let applied_prompt = context.get_current_system_prompt().unwrap();
+    assert!(applied_prompt.contains("Rust expert"));
+    assert!(applied_prompt.contains("test_workflow"));
+    assert!(applied_prompt.contains("Help me with Rust"));
+}
+
+#[tokio::test]
+async fn test_workflow_builder_with_system_prompt() {
+    let workflow = WorkflowBuilder::new("test")
+        .with_system_prompt("You are a test assistant")
+        .build();
+
+    assert_eq!(workflow.steps().len(), 1);
+    assert_eq!(workflow.steps()[0].name(), "system_prompt");
+}
+
 /// Integration test with mocked components
 #[tokio::test]
 async fn test_integration_with_mocks() {
@@ -415,3 +472,5 @@ async fn test_integration_with_mocks() {
     let result = workflow_engine.execute(context).await;
     assert!(result.is_ok());
 }
+
+

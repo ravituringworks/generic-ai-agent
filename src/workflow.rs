@@ -1,7 +1,7 @@
 //! Workflow engine for orchestrating agent behavior
 
 use crate::error::{AgentError, Result};
-use crate::llm::{Message, Role};
+use crate::llm::{Message, Role, system_message};
 use crate::mcp::{ToolCall, ToolResult};
 use crate::memory::SearchResult;
 use async_trait::async_trait;
@@ -72,6 +72,26 @@ pub enum SuspendReason {
     },
 }
 
+/// System prompt modification modes
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SystemPromptMode {
+    /// Replace existing system prompt
+    Set,
+    /// Add before existing system prompt
+    Prepend,
+    /// Add after existing system prompt
+    Append,
+    /// Use template with variable substitution
+    Template,
+}
+
+/// Step that sets or modifies system prompts
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemPromptStep {
+    pub prompt: String,
+    pub mode: SystemPromptMode,
+    pub template_variables: HashMap<String, String>,
+}
 /// Schema definition for step inputs and outputs
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StepSchema {
@@ -193,6 +213,49 @@ pub struct WorkflowBuilder {
     pub metadata: HashMap<String, String>,
     pub concurrency_limit: Option<usize>,
     pub initial_data: Option<serde_json::Value>,
+}
+
+
+impl SystemPromptStep {
+    pub fn new(prompt: String, mode: SystemPromptMode) -> Self {
+        Self {
+            prompt,
+            mode,
+            template_variables: HashMap::new(),
+        }
+    }
+
+    pub fn with_template_variables(mut self, variables: HashMap<String, String>) -> Self {
+        self.template_variables = variables;
+        self
+    }
+
+    /// Process template variables in the prompt
+    fn process_template(&self, context: &WorkflowContext) -> String {
+        let mut result = self.prompt.clone();
+
+        // Replace built-in variables
+        result = result.replace("{{workflow_name}}", &context.metadata.get("workflow_name").unwrap_or(&"unknown".to_string()).clone());
+        result = result.replace("{{step_count}}", &context.step_count.to_string());
+        result = result.replace("{{timestamp}}", &chrono::Utc::now().to_rfc3339());
+
+        // Get last user input if available
+        if let Some(last_user_msg) = context.messages.iter().rev().find(|msg| msg.role == Role::User) {
+            result = result.replace("{{user_input}}", &last_user_msg.content);
+        }
+
+        // Replace custom template variables
+        for (key, value) in &self.template_variables {
+            result = result.replace(&format!("{{{{{}}}}}", key), value);
+        }
+
+        // Replace metadata variables
+        for (key, value) in &context.metadata {
+            result = result.replace(&format!("{{metadata.{}}}", key), value);
+        }
+
+        result
+    }
 }
 
 impl WorkflowBuilder {
@@ -338,6 +401,18 @@ impl WorkflowBuilder {
             engine = engine.add_step(step);
         }
         engine
+    }
+
+    /// Add a system prompt step
+    pub fn with_system_prompt(self, prompt: &str) -> Self {
+        let step = SystemPromptStep::new(prompt.to_string(), SystemPromptMode::Set);
+        self.then(Box::new(step))
+    }
+
+    /// Add a system prompt step with specific mode
+    pub fn with_system_prompt_mode(self, prompt: &str, mode: SystemPromptMode) -> Self {
+        let step = SystemPromptStep::new(prompt.to_string(), mode);
+        self.then(Box::new(step))
     }
 }
 
@@ -638,8 +713,96 @@ impl WorkflowContext {
         self.metadata
             .insert("memories_retrieved".to_string(), "true".to_string());
     }
+
+
+    /// Set or modify system prompt in the messages
+    pub fn set_system_prompt(&mut self, prompt: &str, mode: SystemPromptMode) {
+        match mode {
+            SystemPromptMode::Set => {
+                // Remove existing system messages and add new one
+                self.messages.retain(|msg| msg.role != Role::System);
+                self.messages.insert(0, system_message(prompt));
+            }
+            SystemPromptMode::Prepend => {
+                // Add before existing system messages
+                self.messages.insert(0, system_message(prompt));
+            }
+            SystemPromptMode::Append => {
+                // Add after existing system messages
+                let last_system_idx = self.messages
+                    .iter()
+                    .rposition(|msg| msg.role == Role::System)
+                    .map(|i| i + 1)
+                    .unwrap_or(0);
+                self.messages.insert(last_system_idx, system_message(prompt));
+            }
+            SystemPromptMode::Template => {
+                // For template mode, we process it in the step itself
+                self.messages.insert(0, system_message(prompt));
+            }
+        }
+    }
+
+    /// Get the current system prompt
+    pub fn get_current_system_prompt(&self) -> Option<String> {
+        self.messages
+            .iter()
+            .find(|msg| msg.role == Role::System)
+            .map(|msg| msg.content.clone())
+    }
+
+    /// Get all system prompts (if multiple exist)
+    pub fn get_system_prompts(&self) -> Vec<String> {
+        self.messages
+            .iter()
+            .filter(|msg| msg.role == Role::System)
+            .map(|msg| msg.content.clone())
+            .collect()
+    }
 }
 
+#[async_trait]
+impl WorkflowStep for SystemPromptStep {
+    async fn execute(&self, context: &mut WorkflowContext) -> Result<WorkflowDecision> {
+        debug!("Executing system prompt step with mode: {:?}", self.mode);
+
+        let final_prompt = match self.mode {
+            SystemPromptMode::Template => self.process_template(context),
+            _ => self.prompt.clone(),
+        };
+
+        context.set_system_prompt(&final_prompt, self.mode.clone());
+
+        // Store the applied prompt in metadata for reference
+        context.metadata.insert(
+            "last_system_prompt".to_string(),
+            final_prompt.clone(),
+        );
+
+        info!("System prompt applied: {}", final_prompt);
+        Ok(WorkflowDecision::Continue)
+    }
+
+    fn name(&self) -> &str {
+        "system_prompt"
+    }
+}
+
+#[async_trait]
+impl SuspendableWorkflowStep for SystemPromptStep {
+    async fn can_suspend(&self, _context: &WorkflowContext) -> bool {
+        true // System prompt steps can always be suspended
+    }
+
+    async fn capture_state(&self, _context: &WorkflowContext) -> Result<Option<serde_json::Value>> {
+        Ok(Some(serde_json::json!({
+            "prompt": self.prompt,
+            "mode": self.mode,
+            "template_variables": self.template_variables,
+            "step_type": "system_prompt"
+        })))
+    }
+}
 /// Storage trait for workflow snapshots
 #[async_trait]
 pub trait SnapshotStorage: Send + Sync {
@@ -2015,6 +2178,11 @@ impl WorkflowEngine {
     pub fn add_step(mut self, step: Box<dyn WorkflowStep>) -> Self {
         self.steps.push(step);
         self
+    }
+
+    /// Get a reference to the workflow steps (for testing)
+    pub fn steps(&self) -> &[Box<dyn WorkflowStep>] {
+        &self.steps
     }
 
     pub fn with_default_steps(self) -> Self {

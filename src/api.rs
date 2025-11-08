@@ -1187,10 +1187,16 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                     description: "The prompt to send to the LLM".to_string(),
                 },
                 UINodeInput {
+                    name: "model_config".to_string(),
+                    r#type: "object".to_string(),
+                    required: false,
+                    description: "LLM configuration from Model Configuration node (optional, uses default agent if not provided)".to_string(),
+                },
+                UINodeInput {
                     name: "model".to_string(),
                     r#type: "string".to_string(),
                     required: false,
-                    description: "LLM model to use (optional)".to_string(),
+                    description: "LLM model to use (optional, overrides model from config)".to_string(),
                 },
             ],
             outputs: vec![UINodeOutput {
@@ -1205,13 +1211,15 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                         "type": "number",
                         "minimum": 0,
                         "maximum": 2,
-                        "default": 0.7
+                        "default": 0.7,
+                        "description": "Temperature override (optional, uses config value if not set)"
                     },
                     "max_tokens": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 4096,
-                        "default": 1000
+                        "default": 1000,
+                        "description": "Max tokens override (optional, uses config value if not set)"
                     }
                 }
             }),
@@ -1225,7 +1233,7 @@ pub async fn initialize_ui_node_types(state: &AppState) {
             id: "model_config".to_string(),
             name: "Model Configuration".to_string(),
             category: "LLM".to_string(),
-            description: "Configure LLM server connection (Ollama, OpenAI, etc.)".to_string(),
+            description: "Configure LLM provider connection (Ollama, OpenAI, Anthropic, Google, Azure, Groq, Together, Replicate, HuggingFace, Cohere)".to_string(),
             inputs: vec![],
             outputs: vec![UINodeOutput {
                 name: "config".to_string(),
@@ -1235,43 +1243,87 @@ pub async fn initialize_ui_node_types(state: &AppState) {
             config_schema: serde_json::json!({
                 "type": "object",
                 "properties": {
-                    "server_url": {
+                    "provider": {
+                        "type": "string",
+                        "enum": ["ollama", "openai", "anthropic", "google", "azureopenai", "groq", "together", "replicate", "huggingface", "cohere"],
+                        "default": "ollama",
+                        "description": "LLM provider to use"
+                    },
+                    "base_url": {
                         "type": "string",
                         "default": "http://localhost:11434",
-                        "description": "Ollama or LLM server URL"
+                        "description": "Base URL for API calls (auto-filled when provider is selected, can be customized for private endpoints)"
+                    },
+                    "api_key": {
+                        "type": "string",
+                        "default": "",
+                        "description": "API key (required for cloud providers: OpenAI, Anthropic, Google, Azure, Groq, Together, Replicate, HuggingFace, Cohere)"
                     },
                     "model": {
                         "type": "string",
                         "default": "llama2",
-                        "description": "Model name to use"
+                        "description": "Model name (e.g., 'llama2' for Ollama, 'gpt-4' for OpenAI, 'claude-3-opus-20240229' for Anthropic)"
+                    },
+                    "embedding_model": {
+                        "type": "string",
+                        "default": "",
+                        "description": "Optional model name for embeddings (if different from text model)"
                     },
                     "temperature": {
                         "type": "number",
                         "minimum": 0,
                         "maximum": 2,
                         "default": 0.7,
-                        "description": "Temperature for generation"
+                        "description": "Temperature for generation (0-2 for most providers, 0-1 for Anthropic)"
                     },
                     "max_tokens": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 32000,
                         "default": 2048,
-                        "description": "Maximum tokens to generate"
+                        "description": "Maximum tokens to generate (required for Anthropic)"
                     },
                     "top_p": {
                         "type": "number",
                         "minimum": 0,
                         "maximum": 1,
                         "default": 0.9,
-                        "description": "Top-p sampling parameter"
+                        "description": "Top-p sampling parameter (nucleus sampling)"
                     },
                     "stream": {
                         "type": "boolean",
                         "default": false,
                         "description": "Enable streaming responses"
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 600,
+                        "default": 60,
+                        "description": "Request timeout in seconds"
+                    },
+                    "api_version": {
+                        "type": "string",
+                        "default": "2024-02-15-preview",
+                        "description": "API version (for Azure OpenAI)"
+                    },
+                    "deployment_name": {
+                        "type": "string",
+                        "default": "",
+                        "description": "Deployment name (for Azure OpenAI)"
+                    },
+                    "system_prompt": {
+                        "type": "string",
+                        "default": "",
+                        "description": "System prompt (for Anthropic and other providers that support it)"
+                    },
+                    "provider_options": {
+                        "type": "object",
+                        "default": {},
+                        "description": "Additional provider-specific options as JSON object"
                     }
-                }
+                },
+                "required": ["provider", "model"]
             }),
         },
     );
@@ -1418,6 +1470,120 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                     }
                 },
                 "required": ["file_path"]
+            }),
+        },
+    );
+
+    // While Loop Node
+    nodes.insert(
+        "while_loop".to_string(),
+        UINodeType {
+            id: "while_loop".to_string(),
+            name: "While Loop".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Execute steps while condition is true".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "condition".to_string(),
+                    r#type: "boolean".to_string(),
+                    required: true,
+                    description: "Loop condition".to_string(),
+                },
+            ],
+            outputs: vec![UINodeOutput {
+                name: "iteration".to_string(),
+                r#type: "number".to_string(),
+                description: "Current iteration number".to_string(),
+            }],
+            config_schema: serde_json::json!({
+            "max_iterations": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000,
+                "default": 100
+            }
+        }),
+        },
+    );
+
+    // For-Each Loop Node
+    nodes.insert(
+        "foreach_loop".to_string(),
+        UINodeType {
+            id: "foreach_loop".to_string(),
+            name: "For-Each Loop".to_string(),
+            category: "Control Flow".to_string(),
+            description: "Iterate over a collection of items".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "items".to_string(),
+                    r#type: "array".to_string(),
+                    required: true,
+                    description: "Array of items to iterate".to_string(),
+                },
+            ],
+            outputs: vec![
+                UINodeOutput {
+                    name: "item".to_string(),
+                    r#type: "any".to_string(),
+                    description: "Current item".to_string(),
+                },
+                UINodeOutput {
+                    name: "index".to_string(),
+                    r#type: "number".to_string(),
+                    description: "Current index".to_string(),
+                },
+            ],
+            config_schema: serde_json::json!({}),
+        },
+    );
+
+    // System Prompt Node
+    nodes.insert(
+        "system_prompt".to_string(),
+        UINodeType {
+            id: "system_prompt".to_string(),
+            name: "System Prompt".to_string(),
+            category: "LLM".to_string(),
+            description: "Set or modify system prompt for LLM interactions".to_string(),
+            inputs: vec![
+                UINodeInput {
+                    name: "prompt".to_string(),
+                    r#type: "string".to_string(),
+                    required: true,
+                    description: "System prompt text or template".to_string(),
+                },
+            ],
+            outputs: vec![
+                UINodeOutput {
+                    name: "applied_prompt".to_string(),
+                    r#type: "string".to_string(),
+                    description: "The system prompt that was applied".to_string(),
+                },
+                UINodeOutput {
+                    name: "mode".to_string(),
+                    r#type: "string".to_string(),
+                    description: "The mode used to apply the prompt".to_string(),
+                },
+            ],
+            config_schema: serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "string",
+                        "enum": ["set", "prepend", "append", "template"],
+                        "default": "set",
+                        "description": "How to apply the system prompt"
+                    },
+                    "variables": {
+                        "type": "object",
+                        "description": "Template variables for substitution",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": ["mode"]
             }),
         },
     );

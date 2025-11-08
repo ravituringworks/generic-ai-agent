@@ -332,20 +332,30 @@
             top: 10px;
             right: 10px;
             width: 300px;
+            max-height: calc(100vh - 100px);
             background: #2a2a2a;
             border: 1px solid #404040;
             border-radius: 8px;
-            padding: 1rem;
+            display: flex;
+            flex-direction: column;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .properties-header {
             font-weight: 500;
-            margin-bottom: 1rem;
+            padding: 1rem;
             color: #00d4aa;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #404040;
+            flex-shrink: 0;
+        }
+
+        #propertiesContent {
+            overflow-y: auto;
+            padding: 1rem;
+            flex: 1;
         }
 
         .property-group {
@@ -498,6 +508,7 @@
         <h1>🤖 The Agency - Workflow Builder</h1>
         <div class="toolbar">
             <button class="btn" id="newWorkflowBtn">New Workflow</button>
+            <button class="btn" id="renameWorkflowBtn">Rename</button>
             <button class="btn" id="saveWorkflowBtn">Save</button>
             <button class="btn primary" id="executeWorkflowBtn">Execute</button>
             <button class="btn danger" id="deleteWorkflowBtn">Delete</button>
@@ -596,6 +607,28 @@
             </div>
             <div class="modal-footer">
                 <button class="btn primary" id="closeExecutionOutputBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="renameWorkflowModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Rename Workflow</div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Workflow Name</label>
+                    <input type="text" class="form-input" id="renameWorkflowNameInput" placeholder="My Workflow">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" id="renameWorkflowDescriptionInput" rows="3" placeholder="Workflow description..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelRenameWorkflowBtn">Cancel</button>
+                <button class="btn primary" id="saveRenameWorkflowBtn">Save</button>
             </div>
         </div>
     </div>
@@ -1112,6 +1145,10 @@
             const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
             if (!nodeType) return;
 
+            // For model_config nodes, check current provider to filter parameters
+            const isModelConfig = node.node_type === 'model_config';
+            const currentProvider = isModelConfig ? (node.config['provider'] || 'ollama') : null;
+
             propertiesContent.innerHTML = `
                 <div class="property-group">
                     <label class="property-label">Node Type</label>
@@ -1121,22 +1158,38 @@
                     <label class="property-label">Label</label>
                     <input type="text" class="property-input" value="${node.label || ''}" onchange="updateNodeLabel('${node.id}', this.value)">
                 </div>
+                ${isModelConfig ? `
+                    <div style="background: rgba(0, 212, 170, 0.1); border-left: 3px solid #00d4aa; padding: 0.75rem; margin: 1rem 0; border-radius: 4px;">
+                        <div style="font-size: 0.85rem; color: #00d4aa; font-weight: 500; margin-bottom: 0.25rem;">Provider: ${currentProvider ? currentProvider.toUpperCase() : 'Not Selected'}</div>
+                        <div style="font-size: 0.75rem; color: #b0b0b0;">Showing ${currentProvider ? currentProvider + '-specific' : 'default'} parameters. Required fields are marked with <span style="color: #d44040;">*</span></div>
+                    </div>
+                ` : ''}
             `;
 
             // Add config properties based on schema
             if (nodeType.config_schema) {
                 const schema = nodeType.config_schema;
                 if (schema.properties) {
+
                     Object.keys(schema.properties).forEach(prop => {
                         const propSchema = schema.properties[prop];
                         const currentValue = node.config[prop] || propSchema.default || '';
                         const description = propSchema.description || '';
 
+                        // Skip parameters that should be hidden for this provider
+                        if (isModelConfig && currentProvider && !isParamVisibleForProvider(currentProvider, prop)) {
+                            return; // Skip this parameter
+                        }
+
+                        // Check if parameter is required for this provider
+                        const isRequired = isModelConfig && currentProvider && isParamRequiredForProvider(currentProvider, prop);
+                        const labelSuffix = isRequired ? ' <span style="color: #d44040;">*</span>' : '';
+
                         // Check if this is a file path field
                         if (prop.includes('file') || prop.includes('path')) {
                             propertiesContent.innerHTML += `
                                 <div class="property-group">
-                                    <label class="property-label">${prop}</label>
+                                    <label class="property-label">${prop}${labelSuffix}</label>
                                     <div style="display: flex; gap: 0.5rem;">
                                         <input type="text" class="property-input" id="prop-${node.id}-${prop}"
                                                value="${currentValue}"
@@ -1146,6 +1199,7 @@
                                         <button class="btn" onclick="selectFile('${node.id}', '${prop}')"
                                                 style="padding: 0.5rem; min-width: auto;">Browse</button>
                                     </div>
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         } else if (propSchema.enum) {
@@ -1155,10 +1209,11 @@
                             ).join('');
                             propertiesContent.innerHTML += `
                                 <div class="property-group">
-                                    <label class="property-label">${prop}</label>
+                                    <label class="property-label">${prop}${labelSuffix}</label>
                                     <select class="property-input" onchange="updateNodeConfig('${node.id}', '${prop}', this.value)">
                                         ${options}
                                     </select>
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         } else if (propSchema.type === 'boolean') {
@@ -1171,19 +1226,32 @@
                                                ${isChecked ? 'checked' : ''}
                                                onchange="updateNodeConfig('${node.id}', '${prop}', this.checked)"
                                                style="width: auto; margin-right: 0.5rem;">
-                                        <span class="property-label" style="margin-bottom: 0;">${prop}</span>
+                                        <span class="property-label" style="margin-bottom: 0;">${prop}${labelSuffix}</span>
                                     </label>
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
+                                </div>
+                            `;
+                        } else if (propSchema.type === 'object') {
+                            // JSON object input
+                            const jsonValue = typeof currentValue === 'object' ? JSON.stringify(currentValue, null, 2) : currentValue;
+                            propertiesContent.innerHTML += `
+                                <div class="property-group">
+                                    <label class="property-label">${prop}${labelSuffix}</label>
+                                    <textarea class="property-input" rows="3"
+                                              placeholder="${description}"
+                                              onchange="updateNodeConfig('${node.id}', '${prop}', this.value)">${jsonValue}</textarea>
                                     ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         } else {
                             propertiesContent.innerHTML += `
                                 <div class="property-group">
-                                    <label class="property-label">${prop}</label>
+                                    <label class="property-label">${prop}${labelSuffix}</label>
                                     <input type="${getInputType(propSchema.type)}" class="property-input"
                                            value="${currentValue}"
                                            placeholder="${description}"
                                            onchange="updateNodeConfig('${node.id}', '${prop}', this.value)">
+                                    ${description ? `<div style="font-size: 0.75rem; color: #909090; margin-top: 0.25rem;">${description}</div>` : ''}
                                 </div>
                             `;
                         }
@@ -1211,6 +1279,7 @@
 
             // Toolbar buttons
             document.getElementById('newWorkflowBtn').addEventListener('click', showNewWorkflowModal);
+            document.getElementById('renameWorkflowBtn').addEventListener('click', showRenameWorkflowModal);
             document.getElementById('saveWorkflowBtn').addEventListener('click', saveWorkflow);
             document.getElementById('executeWorkflowBtn').addEventListener('click', executeWorkflow);
             document.getElementById('deleteWorkflowBtn').addEventListener('click', deleteWorkflow);
@@ -1218,6 +1287,8 @@
             // Modal events
             document.getElementById('cancelNewWorkflowBtn').addEventListener('click', hideNewWorkflowModal);
             document.getElementById('createWorkflowBtn').addEventListener('click', handleCreateWorkflow);
+            document.getElementById('cancelRenameWorkflowBtn').addEventListener('click', hideRenameWorkflowModal);
+            document.getElementById('saveRenameWorkflowBtn').addEventListener('click', handleRenameWorkflow);
             document.getElementById('closeExecutionOutputBtn').addEventListener('click', hideExecutionOutputModal);
 
             // Zoom controls
@@ -1459,9 +1530,22 @@
         }
 
         // Workflow operations
-        function addNode(nodeTypeId, x, y) {
+        async function addNode(nodeTypeId, x, y) {
             const nodeType = nodeTypes.find(nt => nt.id === nodeTypeId);
             if (!nodeType) return;
+
+            // Auto-create workflow if none exists
+            if (!currentWorkflow) {
+                try {
+                    const timestamp = new Date().toLocaleString();
+                    await createWorkflow(`Workflow ${timestamp}`, 'Auto-created workflow');
+                    updateStatus('Created new workflow automatically');
+                } catch (error) {
+                    console.error('Failed to auto-create workflow:', error);
+                    updateStatus('Failed to create workflow - please create one manually');
+                    return;
+                }
+            }
 
             // Initialize config with default values from schema
             const config = {};
@@ -1617,6 +1701,51 @@
             document.getElementById('executionOutputModal').classList.add('hidden');
         }
 
+        function showRenameWorkflowModal() {
+            if (!currentWorkflow) {
+                updateStatus('No workflow selected to rename');
+                return;
+            }
+
+            document.getElementById('renameWorkflowNameInput').value = currentWorkflow.name;
+            document.getElementById('renameWorkflowDescriptionInput').value = currentWorkflow.description || '';
+            document.getElementById('renameWorkflowModal').classList.remove('hidden');
+            document.getElementById('renameWorkflowNameInput').focus();
+        }
+
+        function hideRenameWorkflowModal() {
+            document.getElementById('renameWorkflowModal').classList.add('hidden');
+            document.getElementById('renameWorkflowNameInput').value = '';
+            document.getElementById('renameWorkflowDescriptionInput').value = '';
+        }
+
+        async function handleRenameWorkflow() {
+            if (!currentWorkflow) {
+                alert('No workflow selected');
+                return;
+            }
+
+            const name = document.getElementById('renameWorkflowNameInput').value.trim();
+            const description = document.getElementById('renameWorkflowDescriptionInput').value.trim();
+
+            if (!name) {
+                alert('Workflow name is required');
+                return;
+            }
+
+            try {
+                currentWorkflow.name = name;
+                currentWorkflow.description = description;
+                await saveWorkflow();
+                await loadWorkflows();
+                hideRenameWorkflowModal();
+                updateStatus(`Renamed workflow to: ${name}`);
+            } catch (error) {
+                console.error('Failed to rename workflow:', error);
+                alert('Failed to rename workflow');
+            }
+        }
+
         async function handleCreateWorkflow() {
             const name = document.getElementById('workflowNameInput').value.trim();
             const description = document.getElementById('workflowDescriptionInput').value.trim();
@@ -1687,6 +1816,88 @@
             statusMessage.textContent = message;
         }
 
+        // Provider URL mapping
+        const PROVIDER_URLS = {
+            'ollama': 'http://localhost:11434',
+            'openai': 'https://api.openai.com/v1',
+            'anthropic': 'https://api.anthropic.com',
+            'google': 'https://generativelanguage.googleapis.com/v1',
+            'azureopenai': '',  // User must provide their Azure endpoint
+            'groq': 'https://api.groq.com/openai/v1',
+            'together': 'https://api.together.xyz/v1',
+            'replicate': 'https://api.replicate.com/v1',
+            'huggingface': 'https://api-inference.huggingface.co/models',
+            'cohere': 'https://api.cohere.ai/v1'
+        };
+
+        // Provider-specific parameter visibility
+        const PROVIDER_PARAMS = {
+            'ollama': {
+                required: ['provider', 'base_url', 'model'],
+                optional: ['temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model'],
+                hidden: ['api_key', 'api_version', 'deployment_name', 'system_prompt', 'provider_options']
+            },
+            'openai': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt']
+            },
+            'anthropic': {
+                required: ['provider', 'api_key', 'model', 'max_tokens'],
+                optional: ['base_url', 'temperature', 'top_p', 'timeout', 'system_prompt', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'stream', 'embedding_model']
+            },
+            'google': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream', 'embedding_model']
+            },
+            'azureopenai': {
+                required: ['provider', 'api_key', 'deployment_name', 'base_url'],
+                optional: ['model', 'api_version', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['system_prompt']
+            },
+            'groq': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'embedding_model']
+            },
+            'together': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'stream', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt']
+            },
+            'replicate': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream', 'embedding_model']
+            },
+            'huggingface': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream', 'embedding_model']
+            },
+            'cohere': {
+                required: ['provider', 'api_key', 'model'],
+                optional: ['base_url', 'temperature', 'max_tokens', 'top_p', 'timeout', 'embedding_model', 'provider_options'],
+                hidden: ['api_version', 'deployment_name', 'system_prompt', 'stream']
+            }
+        };
+
+        // Helper function to check if a parameter should be visible for a provider
+        function isParamVisibleForProvider(provider, paramName) {
+            const config = PROVIDER_PARAMS[provider];
+            if (!config) return true; // Show all if provider not configured
+            return !config.hidden.includes(paramName);
+        }
+
+        // Helper function to check if a parameter is required for a provider
+        function isParamRequiredForProvider(provider, paramName) {
+            const config = PROVIDER_PARAMS[provider];
+            if (!config) return false;
+            return config.required.includes(paramName);
+        }
+
         // Global functions for HTML event handlers
         window.updateNodeLabel = function(nodeId, label) {
             const node = nodes.find(n => n.id === nodeId);
@@ -1700,6 +1911,21 @@
             const node = nodes.find(n => n.id === nodeId);
             if (node) {
                 node.config[prop] = value;
+
+                // If updating provider field in model_config node, update base_url automatically
+                if (prop === 'provider' && node.node_type === 'model_config') {
+                    const defaultUrl = PROVIDER_URLS[value] || '';
+                    node.config['base_url'] = defaultUrl;
+
+                    // Update the base_url input field if it exists
+                    const baseUrlInput = document.querySelector(`input[onchange*="'base_url'"]`);
+                    if (baseUrlInput) {
+                        baseUrlInput.value = defaultUrl;
+                    }
+
+                    // Re-render properties panel to show updated URL
+                    renderPropertiesPanel(node);
+                }
             }
         };
 
