@@ -19,7 +19,7 @@
 
 use std::fs::File;
 use std::path::PathBuf;
-use the_agency::api::{start_server, AppState};
+use the_agency::api::{initialize_ui_node_types, start_server, AppState};
 use the_agency::config::AgentConfig;
 use tracing::{error, info};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
@@ -179,8 +179,13 @@ async fn run_server(config: DaemonConfig) -> anyhow::Result<()> {
     info!("Initializing agent and workflow engine...");
     let app_state = AppState::new(agent_config).await?;
 
+    // Initialize workflow UI node types
+    info!("Initializing workflow UI node types...");
+    initialize_ui_node_types(&app_state).await;
+
     info!("Agency daemon starting...");
     info!("API server will listen on {}:{}", config.host, config.port);
+    info!("Workflow UI available at: http://{}:{}/workflow-ui", config.host, config.port);
 
     // Setup graceful shutdown
     let (tx, mut rx) = tokio::sync::oneshot::channel();

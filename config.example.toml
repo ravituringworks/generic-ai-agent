@@ -12,7 +12,7 @@
 ollama_url = "http://localhost:11434"
 
 # Default model for text generation
-text_model = "llama3.2"
+text_model = "qwen2.5-coder:3b"
 
 # Model for embeddings
 embedding_model = "nomic-embed-text"
@@ -230,14 +230,14 @@ verbose = false
 [workflow]
 # Enable workflow suspend/resume functionality
 # Set to true to enable pausing and resuming workflows
-enable_suspend_resume = false
+enable_suspend_resume = true
 
 # Note: Workflow snapshots are stored in the same SQLite database as memory
 # (configured in [memory] section). No separate storage needed.
 
 # Enable automatic checkpointing
 # If true, workflow state is automatically saved at regular intervals
-auto_checkpoint = false
+auto_checkpoint = true
 
 # Checkpoint interval (in steps)
 # How many steps between automatic checkpoints

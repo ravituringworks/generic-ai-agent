@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-06
+
+### 🆕 Added
+
+#### Multi-Agent Organization System
+
+- **Organization Framework**: Complete multi-agent organization with 60+ specialized roles
+- **Collaborative Workspaces**: Shared environments for agent collaboration
+- **Agent Coordination**: Task delegation and dependency management across agents
+- **Knowledge Management**: Persistent learning and organizational memory
+- **Saga Workflows**: Distributed transaction patterns with compensation and rollback
+
+#### Enhanced Knowledge Management
+
+- **External Knowledge Ingestion**: Web scraping, document parsing, and content consolidation
+- **Context-Aware Execution**: Agents query past experiences for enhanced performance
+- **Organizational Learning**: Cross-agent knowledge sharing and best practices
+- **Quality Management**: Automatic consolidation and deduplication of knowledge
+
+#### Advanced Workflow Features
+
+- **Saga Transactions**: Distributed operations with automatic rollback on failures
+- **Compensation Logic**: Custom rollback actions for complex multi-step operations
+- **Fault Tolerance**: Graceful handling of partial failures in distributed systems
+- **State Persistence**: Saga state saved for recovery and auditing
+
+### 🔧 Enhanced
+
+- **Multi-Provider LLM**: Full implementation with 7+ providers and automatic fallback
+- **Task-Based Model Selection**: Different LLM models for different task types
+- **Connection Pooling**: Efficient resource management across LLM providers
+- **Response Caching**: Reduced API costs and improved performance
+
+### 📚 Documentation
+
+- **README Updates**: Comprehensive feature overview with core vs example distinction
+- **Architecture Diagrams**: Updated to include knowledge management and saga workflows
+- **Implementation Status**: Updated multi-provider LLM status to reflect completion
+- **Documentation Index**: Maintained comprehensive documentation organization
+
+### 🔄 Changed
+
+- **Feature Classification**: Clear separation between core framework and example implementations
+- **Documentation Structure**: Reorganized docs to reflect current feature status
+
 ## [0.2.0] - 2025-10-02
 
 ### 🆕 Added

@@ -44,9 +44,7 @@ impl RoboticsScientistAgent {
             .build()
             .await?;
 
-        Ok(Self {
-            agent,
-        })
+        Ok(Self { agent })
     }
 
     /// Design reinforcement learning experiments for robotic manipulation

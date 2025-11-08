@@ -128,13 +128,22 @@ Feature: Workflow Engine and State Management
     And results should be collected
     And the workflow should complete after all iterations
 
-  Scenario: Saga pattern for distributed transactions
-    Given I have a saga workflow with 5 operations
-    When I execute the saga
-    And operation 3 fails
-    Then compensating transactions should be triggered
-    And operations 2 and 1 should be rolled back
-    And the system should return to a consistent state
+   Scenario: Saga pattern for distributed transactions
+     Given I have a saga workflow with 5 operations
+     When I execute the saga
+     And operation 3 fails
+     Then compensating transactions should be triggered
+     And operations 2 and 1 should be rolled back
+     And the system should return to a consistent state
+
+   Scenario: Saga pattern with LLM integration
+     Given I have a saga workflow where each step uses LLM calls
+     When I execute the LLM-integrated saga
+     And the analysis step fails due to content validation
+     Then compensating actions should rollback previous LLM-generated content
+     And the research plan should be archived
+     And the analysis results should be deleted
+     And the system should maintain data consistency
 
   Scenario: Workflow cancellation
     Given I have a running workflow

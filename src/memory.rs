@@ -178,7 +178,7 @@ impl MemoryStore for SqliteMemoryStore {
             })?;
 
         // Ensure the directory for the database file exists
-        if let Some(db_path) = database_url.strip_prefix("sqlite:") {
+        if let Some(db_path) = database_url.strip_prefix("sqlite://") {
             // Remove any query parameters to get just the file path
             let db_path = db_path.split('?').next().unwrap_or(db_path);
             if let Some(parent) = std::path::Path::new(db_path).parent() {
