@@ -61,6 +61,7 @@ pub enum KnowledgeCategory {
 ```
 
 **Storage Strategy**:
+
 - Metadata tags: `role`, `category`, `success_score`, `reuse_count`
 - Separate memory collections per role
 - Cross-role shared knowledge pool
@@ -91,6 +92,7 @@ pub struct ArtifactEvaluation {
 ```
 
 **Implementation**:
+
 ```rust
 async fn evaluate_artifact(
     &mut self,
@@ -151,8 +153,10 @@ pub struct BestPractice {
 ```
 
 **Extraction Process**:
+
 1. After successful task completion with high scores
 2. Extract pattern using LLM:
+
 ```rust
 let pattern_prompt = format!(
     "You successfully completed: {}\n\n\
@@ -371,30 +375,35 @@ pub struct RolePerformanceMetrics {
 ## Implementation Plan
 
 ### Phase 1: Foundation (Week 1-2)
+
 - [ ] Enable memory system in collaborative workspace
 - [ ] Implement role-specific memory domains
 - [ ] Add metadata tagging for knowledge categories
 - [ ] Create basic artifact evaluation
 
 ### Phase 2: Knowledge Accumulation (Week 3-4)
+
 - [ ] Implement best practice extraction
 - [ ] Add failure lesson storage
 - [ ] Create successful example library
 - [ ] Build knowledge retrieval system
 
 ### Phase 3: Enhanced Decision-Making (Week 5-6)
+
 - [ ] Implement option generation
 - [ ] Add approach evaluation
 - [ ] Create decision rationale storage
 - [ ] Build similarity search for past attempts
 
 ### Phase 4: Continuous Learning (Week 7-8)
+
 - [ ] Add post-task reflection
 - [ ] Implement performance tracking
 - [ ] Create trend analysis
 - [ ] Build feedback integration
 
 ### Phase 5: Advanced Features (Week 9-10)
+
 - [ ] Dynamic system prompt enhancement
 - [ ] Cross-agent knowledge sharing
 - [ ] Automated knowledge pruning
@@ -404,7 +413,7 @@ pub struct RolePerformanceMetrics {
 
 ## Configuration Changes
 
-### `config.toml` additions:
+### `config.toml` additions
 
 ```toml
 [agent]
@@ -474,18 +483,21 @@ agent.update_performance_metrics(&task, &evaluation).await?;
 ## Expected Outcomes
 
 ### Short-term (1-2 months)
+
 - ✅ Agents retain task-specific learnings
 - ✅ Quality scores improve by 20-30%
 - ✅ Repeated mistakes decrease significantly
 - ✅ Better code reuse and consistency
 
 ### Medium-term (3-6 months)
+
 - ✅ Agents develop specialized expertise
 - ✅ Decision-making quality improves
 - ✅ Cross-agent collaboration more effective
 - ✅ Automated best practice library grows
 
 ### Long-term (6-12 months)
+
 - ✅ Self-optimizing agent teams
 - ✅ Domain expertise comparable to human specialists
 - ✅ Predictable, high-quality outputs
@@ -507,6 +519,7 @@ agent.update_performance_metrics(&task, &evaluation).await?;
 ## Conclusion
 
 By implementing these enhancements, agents will:
+
 1. **Remember** what worked and what didn't
 2. **Learn** from feedback and improve over time
 3. **Evaluate** options before acting

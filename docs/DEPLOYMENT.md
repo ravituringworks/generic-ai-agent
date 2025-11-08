@@ -40,11 +40,13 @@ timeout_seconds = 30
 ### 3. Run the Daemon
 
 **Foreground mode:**
+
 ```bash
 ./target/release/agency-daemon --config config.toml --host 127.0.0.1 --port 8080
 ```
 
 **Background daemon mode (Unix/macOS):**
+
 ```bash
 ./target/release/agency-daemon \
   --daemon \
@@ -56,11 +58,13 @@ timeout_seconds = 30
 ## API Endpoints
 
 ### Health Check
+
 ```bash
 curl http://localhost:8080/health
 ```
 
 ### Process Message
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/agent/process \
   -H "Content-Type: application/json" \
@@ -68,6 +72,7 @@ curl -X POST http://localhost:8080/api/v1/agent/process \
 ```
 
 ### Create Workflow
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/workflows \
   -H "Content-Type: application/json" \
@@ -79,6 +84,7 @@ curl -X POST http://localhost:8080/api/v1/workflows \
 ```
 
 ### Resume Workflow
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/workflows/resume \
   -H "Content-Type: application/json" \
@@ -86,11 +92,13 @@ curl -X POST http://localhost:8080/api/v1/workflows/resume \
 ```
 
 ### List Snapshots
+
 ```bash
 curl http://localhost:8080/api/v1/workflows/snapshots
 ```
 
 ### Delete Snapshot
+
 ```bash
 curl -X DELETE http://localhost:8080/api/v1/workflows/snapshots/550e8400-e29b-41d4-a716-446655440000
 ```
@@ -100,6 +108,7 @@ curl -X DELETE http://localhost:8080/api/v1/workflows/snapshots/550e8400-e29b-41
 ### Installation
 
 1. **Build and install the binary:**
+
 ```bash
 cargo build --release --bin agency-daemon
 sudo cp target/release/agency-daemon /usr/local/bin/
@@ -107,6 +116,7 @@ sudo chmod +x /usr/local/bin/agency-daemon
 ```
 
 2. **Create directories:**
+
 ```bash
 sudo mkdir -p /usr/local/etc/agency
 sudo mkdir -p /usr/local/var/lib/agency
@@ -114,11 +124,13 @@ sudo mkdir -p /usr/local/var/log/agency
 ```
 
 3. **Install configuration:**
+
 ```bash
 sudo cp config.toml /usr/local/etc/agency/
 ```
 
 4. **Install launchd plist:**
+
 ```bash
 sudo cp com.theagency.daemon.plist /Library/LaunchDaemons/
 sudo chown root:wheel /Library/LaunchDaemons/com.theagency.daemon.plist
@@ -128,26 +140,31 @@ sudo chmod 644 /Library/LaunchDaemons/com.theagency.daemon.plist
 ### Service Management
 
 **Load and start:**
+
 ```bash
 sudo launchctl load /Library/LaunchDaemons/com.theagency.daemon.plist
 ```
 
 **Stop:**
+
 ```bash
 sudo launchctl stop com.theagency.daemon
 ```
 
 **Unload:**
+
 ```bash
 sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 ```
 
 **Check status:**
+
 ```bash
 sudo launchctl list | grep agency
 ```
 
 **View logs:**
+
 ```bash
 tail -f /usr/local/var/log/agency/stdout.log
 tail -f /usr/local/var/log/agency/stderr.log

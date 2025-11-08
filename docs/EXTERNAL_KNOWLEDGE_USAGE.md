@@ -124,43 +124,43 @@ for chunk in chunks {
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
-│                      External Sources                            │
+│                      External Sources                           │
 │  Web Pages │ Documents │ Code Repos │ RSS Feeds │ APIs          │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│                        WebFetcher                                │
+│                        WebFetcher                               │
 │  • Browser automation (Puppeteer, Playwright)                   │
-│  • HTTP fetch tools                                              │
-│  • Content extraction & truncation                               │
+│  • HTTP fetch tools                                             │
+│  • Content extraction & truncation                              │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│                      ContentChunker                              │
-│  • Text chunking with overlap                                    │
-│  • Markdown-aware splitting                                      │
-│  • Code function boundary preservation                           │
+│                      ContentChunker                             │
+│  • Text chunking with overlap                                   │
+│  • Markdown-aware splitting                                     │
+│  • Code function boundary preservation                          │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│                   KnowledgeConsolidator                          │
-│  • Similarity-based deduplication                                │
-│  • Synthesis of related knowledge                                │
+│                   KnowledgeConsolidator                         │
+│  • Similarity-based deduplication                               │
+│  • Synthesis of related knowledge                               │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│                 AdaptiveKnowledgeManager                         │
-│  • Retention scoring (quality, usage, recency)                   │
-│  • Adaptive pruning (soft/hard limits)                           │
-│  • Per-role knowledge stats                                      │
+│                 AdaptiveKnowledgeManager                        │
+│  • Retention scoring (quality, usage, recency)                  │
+│  • Adaptive pruning (soft/hard limits)                          │
+│  • Per-role knowledge stats                                     │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│                      Vector Memory Store                         │
-│  • Embedded knowledge chunks                                     │
-│  • Semantic retrieval for agent queries                          │
+│                      Vector Memory Store                        │
+│  • Embedded knowledge chunks                                    │
+│  • Semantic retrieval for agent queries                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -238,6 +238,7 @@ println!("Title: {:?}", content.title);
 ```
 
 The fetcher tries these browser tools in order:
+
 1. `browser_navigate` (generic)
 2. `puppeteer_fetch` (Puppeteer-specific)
 3. `playwright_fetch` (Playwright-specific)
@@ -254,6 +255,7 @@ let content = fetcher
 ```
 
 The fetcher tries these HTTP tools:
+
 1. `fetch` (generic HTTP)
 2. `http_get` (GET request)
 3. `curl` (cURL wrapper)
@@ -524,9 +526,11 @@ async fn learn_and_answer(
 **Error**: `No suitable fetch tool available`
 
 **Solution**:
+
 1. Verify MCP server is running
 2. Check `config.toml` has correct MCP server URL
 3. List available tools:
+
    ```rust
    let tools = mcp_client.list_tools();
    println!("Available tools: {:?}", tools);
@@ -537,6 +541,7 @@ async fn learn_and_answer(
 **Error**: `Content truncated from X to Y bytes`
 
 **Solution**:
+
 1. Increase `max_content_size` in FetcherConfig
 2. Or filter large documents before fetching
 
@@ -545,6 +550,7 @@ async fn learn_and_answer(
 **Warning**: `Content chunked: 1000+ chunks`
 
 **Solution**:
+
 1. Reduce chunk overlap
 2. Increase chunk size
 3. Set `max_chunks` in IngestionConfig
@@ -554,6 +560,7 @@ async fn learn_and_answer(
 **Symptom**: Agent memory exceeds hard limit
 
 **Solution**:
+
 1. Lower soft/hard limits in config
 2. Increase pruning frequency
 3. Improve quality filtering before ingestion
@@ -563,6 +570,7 @@ async fn learn_and_answer(
 **Error**: `Embedding failed: dimension mismatch`
 
 **Solution**:
+
 1. Ensure all chunks use same embedding model
 2. Check chunker produces consistent chunk sizes
 3. Verify embedding model is loaded correctly
@@ -578,6 +586,7 @@ cargo run --example collaborative_robotics_workspace
 ```
 
 This example demonstrates:
+
 - Simulated web content fetching
 - Content chunking and storage
 - Knowledge integration in collaborative agents
@@ -594,6 +603,7 @@ This example demonstrates:
 5. **Tune retention policies** based on usage
 
 For more details, see:
+
 - [EXTERNAL_KNOWLEDGE_LEARNING.md](./EXTERNAL_KNOWLEDGE_LEARNING.md) - Design document
 - [API Documentation](../src/knowledge/) - Module code documentation
 - [MCP Documentation](https://modelcontextprotocol.io/) - MCP protocol details

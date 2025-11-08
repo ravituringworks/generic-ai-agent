@@ -11,15 +11,18 @@ Welcome to The Agency documentation! This index provides an organized overview o
 ## 🏗️ Architecture & Core Features
 
 ### Organization & Coordination
+
 - **[ORGANIZATION.md](./ORGANIZATION.md)** - Multi-agent organization system overview
 - **[COLLABORATIVE_WORKSPACE.md](./COLLABORATIVE_WORKSPACE.md)** - Collaborative workspace features
 - **[ORGANIZATIONAL-LEARNING.md](./ORGANIZATIONAL-LEARNING.md)** - Organizational learning capabilities
 - **[ORGANIZATION-A2A-KNOWLEDGE.md](./ORGANIZATION-A2A-KNOWLEDGE.md)** - Integration of organization, A2A, and knowledge management
 
 ### Agent Communication
+
 - **[A2A_COMMUNICATION.md](./A2A_COMMUNICATION.md)** - Agent-to-Agent (A2A) communication protocol
 
 ### Knowledge Management
+
 - **[KNOWLEDGE_MANAGEMENT_SUMMARY.md](./KNOWLEDGE_MANAGEMENT_SUMMARY.md)** - Complete knowledge management implementation
 - **[AGENT_LEARNING_ENHANCEMENT.md](./AGENT_LEARNING_ENHANCEMENT.md)** - Agent learning enhancements
 - **[EXTERNAL_KNOWLEDGE_LEARNING.md](./EXTERNAL_KNOWLEDGE_LEARNING.md)** - External knowledge sources integration
@@ -36,6 +39,7 @@ Welcome to The Agency documentation! This index provides an organized overview o
 ## 🔧 Advanced Features
 
 ### Workflow Management
+
 - **[PAUSE_EXECUTION.md](./PAUSE_EXECUTION.md)** - Pausing workflow execution
 - **[SUSPEND_RESUME.md](./SUSPEND_RESUME.md)** - Suspend and resume functionality
 - **[UNIFIED_STORAGE_README.md](./UNIFIED_STORAGE_README.md)** - Unified storage system
@@ -66,21 +70,25 @@ Welcome to The Agency documentation! This index provides an organized overview o
 ## 🔍 Documentation by Topic
 
 ### For Getting Started
+
 1. Start with the [main README](../README.md) in the root directory
 2. Follow [QUICKSTART-ORGANIZATION.md](./QUICKSTART-ORGANIZATION.md) for basic usage
 3. Try [KNOWLEDGE_DEMO_QUICKSTART.md](./KNOWLEDGE_DEMO_QUICKSTART.md) for the full demo
 
 ### For Development
+
 1. Review [ORGANIZATION.md](./ORGANIZATION.md) for architecture
 2. Check [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
 3. See [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) for current state
 
 ### For Deployment
+
 1. Read [DEPLOYMENT.md](./DEPLOYMENT.md) for basics
 2. Follow [CROSS_PLATFORM_DEPLOYMENT.md](./CROSS_PLATFORM_DEPLOYMENT.md) for specific platforms
 3. Use [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for API integration
 
 ### For Troubleshooting
+
 1. Check [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) first
 2. Review relevant feature documentation
 3. See [CHANGELOG.md](./CHANGELOG.md) for recent changes
@@ -88,6 +96,7 @@ Welcome to The Agency documentation! This index provides an organized overview o
 ## 📖 Documentation Standards
 
 All documentation follows these standards:
+
 - Written in CommonMark Markdown
 - Includes code examples where applicable
 - Links to related documentation
@@ -96,6 +105,7 @@ All documentation follows these standards:
 ## 🤝 Contributing to Documentation
 
 Found an issue or want to improve the docs? See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
+
 - Reporting documentation bugs
 - Suggesting improvements
 - Submitting documentation PRs

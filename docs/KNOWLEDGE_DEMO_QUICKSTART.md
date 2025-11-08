@@ -17,7 +17,7 @@ cargo run --example robotech_industries_organization_example
 
 The demo simulates RoboTech Industries executing 9 concurrent projects:
 
-```
+```text
 🤖 RoboTech Industries - Multi-Agent Organization Demo
 ==========================================================
 🎯 MISSION: Build 3 Humanoid Robot Variants
@@ -39,30 +39,37 @@ The demo simulates RoboTech Industries executing 9 concurrent projects:
 8. **📦 Product Strategy** (Medium) - 1 task
 9. **🤝 Customer Success** (Low) - 2 tasks
 
-**Total: 20 tasks across 25+ agents**
+### Total: 20 tasks across 25+ agents
 
 ## Key Features Demonstrated
 
 ### 1. Knowledge Capture
+
 Every task execution automatically:
+
 - Creates a structured knowledge entry
 - Stores it in the agent's persistent memory
 - Makes it available for future task context
 
 ### 2. Context-Aware Execution
+
 Before executing tasks, agents:
+
 - Query their memory for similar past experiences
 - Build enhanced prompts with relevant context
 - Execute with improved understanding
 
 ### 3. Multi-Project Coordination
+
 The organization handles:
+
 - Multiple concurrent projects
 - Different priority levels (Critical, High, Medium, Low)
 - Cross-functional team collaboration
 - Complex dependencies and workflows
 
 ### 4. Organizational Structure
+
 - **25+ specialized agents** (engineers, researchers, executives, product managers)
 - **8 collaborative workspaces** (robot variants, manufacturing, executive, product, customer success)
 - **Multiple departments** (R&D, Engineering, Manufacturing, Executive, Product, Sales)
@@ -70,7 +77,8 @@ The organization handles:
 ## Understanding the Output
 
 ### Agent Spawning
-```
+
+```text
 🚀 Spawning AI agents...
   ✓ Spawned: Alice Chen (ResearchEngineerScaling) with learning capabilities
   ✓ Spawned: Bob Martinez (ResearchEngineerAutonomy) with learning capabilities
@@ -78,13 +86,15 @@ The organization handles:
 ```
 
 ### Project Execution
-```
+
+```text
 🏠 Project 1: Robo-1 Home Companion Development
    ✅ Completed 3 Robo-1 development tasks
 ```
 
 ### Final Summary
-```
+
+```text
 📊 Project Summary:
    🏠 Robo-1 Development: 3 tasks (Critical)
    🏗️ Robo-2 Development: 3 tasks (Critical)

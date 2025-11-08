@@ -19,6 +19,7 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 ### Prerequisites
 
 1. **Start the Agency Daemon**:
+
    ```bash
    cargo run --bin agency-daemon
    ```
@@ -27,7 +28,8 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 
 2. **Access the Workflow Builder**:
    Open your browser and navigate to:
-   ```
+
+   ```text
    http://127.0.0.1:8080/workflow-ui
    ```
 
@@ -50,6 +52,7 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 ### Main Components
 
 #### 1. **Header Toolbar**
+
 - **New Workflow**: Create a new empty workflow
 - **Copy**: Duplicate the current workflow with a new name
 - **Rename**: Rename the current workflow
@@ -62,6 +65,7 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 #### 2. **Sidebar**
 
 **Nodes Tab**: Browse available nodes by category
+
 - LLM (Language Model operations)
 - Data Processing (text manipulation)
 - Control Flow (conditionals, loops)
@@ -70,18 +74,21 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 **Workflows Tab**: View and load saved workflows
 
 #### 3. **Canvas**
+
 - Visual workspace for building workflows
 - Drag to pan
 - Scroll to zoom
 - Click nodes to select and configure
 
 #### 4. **Properties Panel** (right side)
+
 - Appears when a node is selected
 - Shows node configuration options
 - **Scrollable** for long forms
 - Auto-updates based on settings
 
 #### 5. **Status Bar** (bottom)
+
 - Shows current operation status
 - Zoom controls (+, -, Fit)
 - Workflow state information
@@ -127,14 +134,17 @@ The Agency Workflow Builder is a visual node-based interface for creating AI-pow
 ### LLM Category
 
 #### **Model Configuration**
+
 Configure LLM provider connections with provider-specific parameters.
 
 **Inputs**: None
 
 **Outputs**:
+
 - `config` (object): LLM configuration object
 
 **Configuration**:
+
 - **provider** * (required): Select LLM provider
   - ollama, openai, anthropic, google, azureopenai, groq, together, replicate, huggingface, cohere
 - **base_url**: API endpoint (auto-filled based on provider)
@@ -153,6 +163,7 @@ Configure LLM provider connections with provider-specific parameters.
 
 **Provider-Specific Behavior**:
 The UI dynamically shows/hides parameters based on selected provider:
+
 - **Ollama**: Shows base_url, model, temperature, max_tokens, top_p, stream, timeout
 - **OpenAI**: Shows api_key, model, temperature, max_tokens, top_p, stream, timeout
 - **Anthropic**: Shows api_key, model, max_tokens* (required), temperature, system_prompt
@@ -170,22 +181,27 @@ Max Tokens: 2048
 ---
 
 #### **LLM Generate**
+
 Generate text using a language model with optional configuration override.
 
 **Inputs**:
+
 - `prompt` * (string): The prompt to send to the LLM
 - `model_config` (object): LLM configuration from Model Configuration node
 - `model` (string): Override model name
 
 **Outputs**:
+
 - `response` (string): Generated text
 
 **Configuration**:
+
 - **temperature**: Override generation temperature (0-2)
 - **max_tokens**: Override maximum tokens (1-4096)
 
 **Example Usage**:
-```
+
+```text
 Prompt: "Write a haiku about AI"
 Temperature: 0.8
 Max Tokens: 100
@@ -492,6 +508,7 @@ Text Input → LLM Generate → Text Output
 **Goal**: Read file, split into chunks, process each chunk
 
 **Nodes**:
+
 1. File Input
 2. Text Splitter
 3. For-Each Loop
@@ -499,7 +516,8 @@ Text Input → LLM Generate → Text Output
 5. File Output (save results)
 
 **Flow**:
-```
+
+```text
 File Input → Text Splitter → For-Each Loop → LLM Generate → File Output
                                 ↑                             |
                                 └─────────────────────────────┘
@@ -512,13 +530,15 @@ File Input → Text Splitter → For-Each Loop → LLM Generate → File Output
 **Goal**: Generate different content based on input length
 
 **Nodes**:
+
 1. File Input
 2. Conditional (check length)
 3. LLM Generate (short prompt)
 4. LLM Generate (long prompt)
 
 **Flow**:
-```
+
+```text
 File Input → Conditional → [if short] → LLM Generate (summary)
                         └→ [if long]  → LLM Generate (detailed analysis)
 ```
@@ -530,6 +550,7 @@ File Input → Conditional → [if short] → LLM Generate (summary)
 **Goal**: Generate research outline, then detailed sections
 
 **Nodes**:
+
 1. Model Configuration
 2. System Prompt (set role: researcher)
 3. LLM Generate (outline)
@@ -539,7 +560,8 @@ File Input → Conditional → [if short] → LLM Generate (summary)
 7. File Output
 
 **Flow**:
-```
+
+```text
 Model Config → System Prompt → LLM Generate → Text Splitter → For-Each → LLM Generate → File Output
      ↓                                                             ↑
      └─────────────────────────────────────────────────────────────┘
@@ -552,16 +574,19 @@ Model Config → System Prompt → LLM Generate → Text Splitter → For-Each �
 **Goal**: Use local Ollama for cheap operations, GPT-4 for critical tasks
 
 **Nodes**:
+
 1. Model Configuration (Ollama) → LLM Generate (draft)
 2. Model Configuration (OpenAI) → LLM Generate (refine)
 3. File Output
 
 **Flow**:
-```
+
+```text
 Ollama Config → LLM Generate (initial draft) → OpenAI Config → LLM Generate (polish) → File Output
 ```
 
 **Benefits**:
+
 - Save API costs by using local model for drafts
 - Use premium model only for final refinement
 
@@ -633,24 +658,28 @@ Ollama Config → LLM Generate (initial draft) → OpenAI Config → LLM Generat
 ### Common Patterns
 
 #### **Pattern 1: Chain of Thought**
-```
+
+```text
 System Prompt (set reasoning mode) → LLM Generate (problem) → LLM Generate (solution)
 ```
 
 #### **Pattern 2: Map-Reduce**
-```
+
+```text
 Text Splitter → For-Each Loop → LLM Generate (process chunk) → Combine results
 ```
 
 #### **Pattern 3: Multi-Agent Simulation**
-```
+
+```text
 Model Config (Agent 1) → LLM Generate
 Model Config (Agent 2) → LLM Generate
 → Combine perspectives
 ```
 
 #### **Pattern 4: Quality Gate**
-```
+
+```text
 LLM Generate (draft) → Conditional (quality check) → LLM Generate (refine if needed)
 ```
 
@@ -663,6 +692,7 @@ LLM Generate (draft) → Conditional (quality check) → LLM Generate (refine if
 **Purpose**: Duplicate an existing workflow to create variations or backups
 
 **How to Use**:
+
 1. Open the workflow you want to copy
 2. Click the **Copy** button in the toolbar
 3. Enter a new name (default: "Copy of [Original Name]")
@@ -672,13 +702,15 @@ LLM Generate (draft) → Conditional (quality check) → LLM Generate (refine if
 **Result**: A new workflow is created with all nodes and connections from the original. You're automatically switched to the new workflow.
 
 **Use Cases**:
+
 - Creating variations of a workflow (e.g., testing different LLM providers)
 - Making backups before major changes
 - Creating templates from existing workflows
 - Experimenting without affecting the original
 
 **Example**:
-```
+
+```text
 Original: "Customer Support Bot"
 Copy 1: "Copy of Customer Support Bot" → Test with GPT-4
 Copy 2: "Customer Support Bot - Anthropic" → Test with Claude
@@ -692,11 +724,13 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
 **Purpose**: Save a workflow to a JSON file for backup, sharing, or version control
 
 **How to Use**:
+
 1. Open the workflow you want to export
 2. Click the **Export** button in the toolbar
 3. The workflow is downloaded as a JSON file: `[workflow_name]_workflow.json`
 
 **What's Exported**:
+
 - Workflow name and description
 - All nodes with their configurations
 - All connections between nodes
@@ -704,6 +738,7 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
 - Format version
 
 **File Format Example**:
+
 ```json
 {
   "name": "My AI Workflow",
@@ -732,6 +767,7 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
 ```
 
 **Use Cases**:
+
 - **Backup**: Save workflows before making major changes
 - **Version Control**: Commit workflows to Git for team collaboration
 - **Sharing**: Send workflows to colleagues or community
@@ -745,26 +781,31 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
 **Purpose**: Load a workflow from a JSON file
 
 **How to Use**:
+
 1. Click the **Import** button in the toolbar
 2. Select a workflow JSON file from your computer
 3. The workflow is imported and loaded automatically
 
 **What Happens**:
+
 - A new workflow is created from the file
 - Name is taken from the file (or "Imported Workflow" if missing)
 - All nodes and connections are recreated
 - You're automatically switched to the imported workflow
 
 **File Requirements**:
+
 - Must be a valid JSON file
 - Must contain `nodes` and `connections` arrays
 - Should follow the workflow export format
 
 **Error Handling**:
+
 - Invalid JSON: "Failed to import workflow. Please check the file format."
 - Missing required fields: "Invalid workflow file format"
 
 **Use Cases**:
+
 - **Restore Backups**: Recover previous workflow versions
 - **Share Workflows**: Import workflows from colleagues
 - **Templates**: Load pre-built workflow templates
@@ -780,6 +821,7 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
 **Best Practice for Team Collaboration**:
 
 1. **Setup Version Control**:
+
    ```bash
    mkdir my-workflows
    cd my-workflows
@@ -787,6 +829,7 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
    ```
 
 2. **Export and Commit**:
+
    ```bash
    # Export workflow via UI → downloads to Downloads/
    mv ~/Downloads/my_workflow_workflow.json ./workflows/
@@ -796,6 +839,7 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
    ```
 
 3. **Team Member Imports**:
+
    ```bash
    git pull
    # Import via UI: workflows/my_workflow_workflow.json
@@ -808,7 +852,8 @@ Copy 3: "Customer Support Bot - Backup" → Keep safe copy
    - Team pulls and imports updates
 
 **Recommended File Structure**:
-```
+
+```text
 project/
 ├── workflows/
 │   ├── production/
@@ -829,26 +874,32 @@ project/
 ### Common Issues
 
 #### **"No workflow selected" when executing**
+
 - **Cause**: Workflow wasn't auto-created
 - **Solution**: Click "New Workflow" button or drag a node to create one
 
 #### **"API key required" error**
+
 - **Cause**: Missing API key for cloud provider
 - **Solution**: Add api_key in Model Configuration node
 
 #### **Connection failed to Ollama**
+
 - **Cause**: Ollama service not running
 - **Solution**: Run `ollama serve` in terminal
 
 #### **Execution timeout**
+
 - **Cause**: LLM taking too long to respond
 - **Solution**: Increase timeout in Model Configuration (default: 60s)
 
 #### **Properties panel overflow**
+
 - **Status**: ✅ Fixed - Properties panel now scrollable
 - **Scroll** to see all configuration options
 
 #### **"Invalid model name" error**
+
 - **Cause**: Model not available for selected provider
 - **Solutions**:
   - OpenAI: Use "gpt-4", "gpt-3.5-turbo"
@@ -856,6 +907,7 @@ project/
   - Ollama: Use `ollama list` to see available models
 
 #### **Node won't connect**
+
 - **Cause**: Type mismatch between output and input
 - **Check**: Output type must match input type
   - string → string ✓
@@ -863,6 +915,7 @@ project/
   - string → object ✗
 
 #### **Workflow not saving**
+
 - **Cause**: Connection to backend lost
 - **Solution**: Refresh page and try again
 - **Prevention**: Save frequently
@@ -872,6 +925,7 @@ project/
 ### Debug Mode
 
 Enable detailed logging by checking browser console (F12):
+
 ```javascript
 // Look for workflow execution logs
 [Workflow] Executing node: llm_generate
@@ -894,21 +948,25 @@ Enable detailed logging by checking browser console (F12):
 ## Advanced Features
 
 ### Auto-Create Workflow
+
 - **Feature**: Automatically creates workflow when first node is dropped
 - **Benefit**: No need to manually create workflow first
 - **Workflow Name**: Auto-generated with timestamp
 
 ### Rename Workflows
+
 - **Button**: "Rename" in toolbar
 - **Fields**: Update name and description
 - **Saves**: Automatically persists to database
 
 ### Provider-Specific Parameters
+
 - **Smart UI**: Shows only relevant parameters for selected provider
 - **Required Fields**: Marked with red asterisk (*)
 - **Auto-Fill URLs**: Base URLs filled automatically when provider changes
 
 ### Scrollable Properties
+
 - **Long Forms**: Properties panel scrolls for nodes with many options
 - **Smooth UX**: Header stays fixed while content scrolls
 
@@ -984,6 +1042,6 @@ Having trouble? Here's how to get help:
 
 ---
 
-**Happy Building! 🚀**
+**Happy Building!**
 
 Built with ❤️ by [Turing Works](https://turingworks.com)

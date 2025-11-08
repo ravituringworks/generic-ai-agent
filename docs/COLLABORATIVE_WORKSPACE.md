@@ -13,9 +13,9 @@ The Collaborative Workspace system enables:
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│                     Workspace Manager                        │
+│                     Workspace Manager                       │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  Shared Filesystem                                    │  │
 │  │  ├── artifacts/     (binary files, models)            │  │
@@ -23,15 +23,15 @@ The Collaborative Workspace system enables:
 │  │  ├── configs/       (YAML, TOML, JSON)                │  │
 │  │  └── reports/       (Markdown, documentation)         │  │
 │  └───────────────────────────────────────────────────────┘  │
-│                                                               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Agent 1    │  │   Agent 2    │  │   Agent 3    │      │
-│  │  Sim Eng.    │  │  Scaling     │  │  Coordinator │      │
-│  │              │  │  Engineer    │  │              │      │
-│  │  - Execute   │  │  - Execute   │  │  - Plan      │      │
-│  │  - Produce   │  │  - Produce   │  │  - Review    │      │
-│  │  - Review    │  │  - Review    │  │  - Report    │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
+│  │   Agent 1    │  │   Agent 2    │  │   Agent 3    │       │
+│  │  Sim Eng.    │  │  Scaling     │  │  Coordinator │       │
+│  │              │  │  Engineer    │  │              │       │
+│  │  - Execute   │  │  - Execute   │  │  - Plan      │       │
+│  │  - Produce   │  │  - Produce   │  │  - Review    │       │
+│  │  - Review    │  │  - Review    │  │  - Report    │       │
+│  └──────────────┘  └──────────────┘  └──────────────┘       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -108,6 +108,7 @@ struct CollaborativeAgent {
 ```
 
 Each agent can:
+
 - **Execute tasks**: Generate artifacts based on requirements
 - **Review artifacts**: Verify correctness and quality
 - **Collaborate**: Work with other agents on shared goals
@@ -320,7 +321,7 @@ cargo run --example collaborative_robotics_workspace
 
 After running the example:
 
-```
+```text
 /tmp/robotics_workspace/humanoid_robot_project/
 ├── artifacts/
 ├── code/
