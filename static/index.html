@@ -1975,7 +1975,7 @@
         }
 
         // Export workflow function
-        function exportWorkflow() {
+        async function exportWorkflow() {
             if (!currentWorkflow) {
                 updateStatus('No workflow selected to export');
                 return;
@@ -1989,24 +1989,40 @@
                     nodes: nodes,
                     connections: connections,
                     exported_at: new Date().toISOString(),
-                    version: '1.0'
+                    version: '1.0',
+                    workflow_id: currentWorkflow.id
                 };
 
                 // Convert to JSON string
                 const jsonString = JSON.stringify(exportData, null, 2);
 
-                // Create blob and download
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${currentWorkflow.name.replace(/[^a-z0-9]/gi, '_')}_workflow.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                if (isTauriMode && window.__TAURI__) {
+                    // Use Tauri save dialog
+                    const filePath = await window.__TAURI__.dialog.save({
+                        defaultPath: `${currentWorkflow.name.replace(/[^a-z0-9]/gi, '_')}_workflow.json`,
+                        filters: [{
+                            name: 'JSON',
+                            extensions: ['json']
+                        }]
+                    });
 
-                updateStatus(`Exported workflow: ${currentWorkflow.name}`);
+                    if (filePath) {
+                        await window.__TAURI__.fs.writeTextFile(filePath, jsonString);
+                        updateStatus(`Exported workflow: ${currentWorkflow.name}`);
+                    }
+                } else {
+                    // Use web browser download
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${currentWorkflow.name.replace(/[^a-z0-9]/gi, '_')}_workflow.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    updateStatus(`Exported workflow: ${currentWorkflow.name}`);
+                }
             } catch (error) {
                 console.error('Failed to export workflow:', error);
                 alert('Failed to export workflow');
@@ -2014,9 +2030,30 @@
         }
 
         // Import workflow functions
-        function importWorkflow() {
-            // Trigger the hidden file input
-            document.getElementById('importWorkflowFileInput').click();
+        async function importWorkflow() {
+            if (isTauriMode && window.__TAURI__) {
+                // Use Tauri open dialog
+                try {
+                    const filePath = await window.__TAURI__.dialog.open({
+                        multiple: false,
+                        filters: [{
+                            name: 'JSON',
+                            extensions: ['json']
+                        }]
+                    });
+
+                    if (filePath) {
+                        const text = await window.__TAURI__.fs.readTextFile(filePath);
+                        await processImportedWorkflow(text, filePath);
+                    }
+                } catch (error) {
+                    console.error('Failed to import workflow:', error);
+                    alert('Failed to import workflow. Please check the file format.');
+                }
+            } else {
+                // Trigger the hidden file input for web browser
+                document.getElementById('importWorkflowFileInput').click();
+            }
         }
 
         async function handleImportFile(event) {
@@ -2025,26 +2062,7 @@
 
             try {
                 const text = await file.text();
-                const importData = JSON.parse(text);
-
-                // Validate import data
-                if (!importData.nodes || !importData.connections) {
-                    throw new Error('Invalid workflow file format');
-                }
-
-                // Create a new workflow with the imported data
-                const workflowData = {
-                    name: importData.name || 'Imported Workflow',
-                    description: importData.description || `Imported from ${file.name}`,
-                    nodes: importData.nodes,
-                    connections: importData.connections
-                };
-
-                const result = await apiCall('create_workflow', workflowData);
-
-                // Load the new workflow
-                await loadWorkflow(result.id);
-                updateStatus(`Imported workflow: ${workflowData.name}`);
+                await processImportedWorkflow(text, file.name);
             } catch (error) {
                 console.error('Failed to import workflow:', error);
                 alert('Failed to import workflow. Please check the file format.');
@@ -2052,6 +2070,30 @@
 
             // Reset file input
             event.target.value = '';
+        }
+
+        async function processImportedWorkflow(text, fileName) {
+            const importData = JSON.parse(text);
+
+            // Validate import data
+            if (!importData.nodes || !importData.connections) {
+                throw new Error('Invalid workflow file format');
+            }
+
+            // Create a new workflow with the imported data
+            const workflowData = {
+                name: importData.name || 'Imported Workflow',
+                description: importData.description || `Imported from ${fileName}`,
+                nodes: importData.nodes,
+                connections: importData.connections,
+                workflow_id: importData.workflow_id
+            };
+
+            const result = await apiCall('create_workflow', workflowData);
+
+            // Load the new workflow
+            await loadWorkflow(result.id);
+            updateStatus(`Imported workflow: ${workflowData.name}`);
         }
 
         // Utility functions
