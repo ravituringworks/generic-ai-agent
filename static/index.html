@@ -197,12 +197,13 @@
             flex: 1;
             position: relative;
             background: #1a1a1a;
-            overflow: hidden;
+            overflow: auto;
+            padding-bottom: 50px; /* Space for status bar */
         }
 
         .canvas {
-            width: 100%;
-            height: 100%;
+            min-width: 100%;
+            min-height: 100%;
             background: radial-gradient(circle at 25% 25%, #2a2a2a 1px, transparent 1px),
                         radial-gradient(circle at 75% 75%, #2a2a2a 1px, transparent 1px);
             background-size: 40px 40px;
@@ -990,6 +991,42 @@
         }
 
         function renderCanvas() {
+            // Calculate required canvas size based on all nodes
+            if (nodes.length > 0) {
+                const padding = 100; // Extra padding around all nodes
+                const bounds = nodes.reduce((acc, node) => {
+                    const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                    const isContainer = nodeType?.is_container === true;
+
+                    // Calculate actual node dimensions
+                    let nodeWidth, nodeHeight;
+                    if (isContainer) {
+                        nodeWidth = node.size?.width || 400;
+                        nodeHeight = node.size?.height || 300;
+                    } else {
+                        const inputsHeight = nodeType?.inputs?.length * 30 || 0;
+                        const outputsHeight = nodeType?.outputs?.length * 30 || 0;
+                        const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
+                        nodeWidth = 200;
+                        nodeHeight = 40 + contentHeight;
+                    }
+
+                    return {
+                        minX: Math.min(acc.minX, node.position.x),
+                        minY: Math.min(acc.minY, node.position.y),
+                        maxX: Math.max(acc.maxX, node.position.x + nodeWidth),
+                        maxY: Math.max(acc.maxY, node.position.y + nodeHeight)
+                    };
+                }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+
+                // Set SVG viewBox to accommodate all nodes with padding
+                const viewBoxWidth = Math.max(bounds.maxX - bounds.minX + padding * 2, 1200);
+                const viewBoxHeight = Math.max(bounds.maxY - bounds.minY + padding * 2, 800);
+                canvas.setAttribute('viewBox', `${bounds.minX - padding} ${bounds.minY - padding} ${viewBoxWidth} ${viewBoxHeight}`);
+                canvas.setAttribute('width', viewBoxWidth);
+                canvas.setAttribute('height', viewBoxHeight);
+            }
+
             // Clear all child elements except defs
             Array.from(canvas.children).forEach(child => {
                 if (child.tagName.toLowerCase() !== 'defs') {
