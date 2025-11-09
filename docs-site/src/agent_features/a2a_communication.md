@@ -2,21 +2,6 @@
 
 The A2A (Agent-to-Agent) communication system enables your AI agents to discover, connect, and communicate with external agents, creating powerful multi-agent networks and collaborative AI systems.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [Configuration](#configuration)
-- [Message Types and Patterns](#message-types-and-patterns)
-- [Service Discovery](#service-discovery)
-- [Security](#security)
-- [Examples](#examples)
-- [API Reference](#api-reference)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
-
 ## Overview
 
 The A2A communication system extends the capabilities of individual AI agents by allowing them to:
@@ -526,7 +511,7 @@ async fn collaborative_problem_solving(query: &str) -> Result<String> {
 pub trait A2AClient: Send + Sync {
     async fn send_message(&self, message: A2AMessage) -> Result<A2AResponse>;
     async fn request(&self, to: AgentId, payload: MessagePayload) -> Result<A2AResponse>;
-    async fn notify(&self, to: AgentId, payload: MessagePayload) -> Result<()>;
+    async fn notify(&self, to: AgentId, payload: MessagePayload) -> Result<()> ;
     async fn broadcast(&self, to_agents: Vec<AgentId>, payload: MessagePayload) -> Result<Vec<A2AResponse>>;
     async fn subscribe(&self, message_types: Vec<MessageType>) -> Result<broadcast::Receiver<A2AMessage>>;
     async fn register(&self, capabilities: AgentCapabilities) -> Result<()>;
@@ -677,3 +662,9 @@ for agent in discovered {
     println!("Agent: {} - Status: {:?}", agent.agent_id.to_string(), agent.status);
 }
 ```
+
+## Conclusion
+
+The A2A communication system enables powerful multi-agent architectures where specialized AI agents can collaborate to solve complex problems. By leveraging service discovery, reliable messaging, and security features, you can build scalable and resilient agent networks that extend far beyond the capabilities of individual agents.
+
+For more examples and advanced usage patterns, see the examples directory and the comprehensive test suite in tests/a2a_tests.rs.

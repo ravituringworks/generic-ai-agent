@@ -3,6 +3,7 @@
 ## Overview
 
 This document describes the enhanced multi-agent organization system that integrates:
+
 1. **A2A (Agent-to-Agent) Protocol** using flume channels for high-performance in-process messaging
 2. **Knowledge Management** for organizational learning and memory
 
@@ -25,6 +26,7 @@ pub struct LocalA2AClient {
 ```
 
 **Features:**
+
 - Bounded flume channels for each agent (default capacity: 100 messages)
 - Support for all A2A message types (Request, Response, Event, Command, Query, Notification)
 - Broadcast capability for multi-agent coordination
@@ -33,6 +35,7 @@ pub struct LocalA2AClient {
 - Statistics tracking
 
 **Usage:**
+
 ```rust
 let config = A2AConfig::default();
 let client = LocalA2AClient::new(config)?;
@@ -84,6 +87,7 @@ pub struct AgentCoordinator {
 ```
 
 **Key Changes:**
+
 - Replaced simple message queue with A2A protocol
 - Added agent ID mapping (organization ID → A2A ID)
 - Integrated knowledge manager for learning
@@ -92,6 +96,7 @@ pub struct AgentCoordinator {
 #### 3. Knowledge Management Integration
 
 Agents now:
+
 1. **Query knowledge before tasks** - Retrieve relevant past experiences
 2. **Store learnings after completion** - Document outcomes and insights
 3. **Use consolidation features** - Merge similar knowledge
@@ -108,7 +113,7 @@ Agents now:
 ┌─────────────────────┐
 │  LocalA2AClient     │
 │  ┌───────────────┐  │
-│  │ Agent Registry │  │
+│  │ Agent Registry│  │
 │  └───────────────┘  │
 │  ┌───────────────┐  │
 │  │ Flume Channels│  │
@@ -191,14 +196,18 @@ if knowledge_manager.needs_consolidation(role).await? {
 ## Message Types
 
 ### TaskAssignment
+
 ```rust
 AgentMessage::TaskAssignment {
     task_id: String,
     task: WorkspaceTask,
     from_agent: String,
 }
+
 ```
+
 Converted to A2A:
+
 ```rust
 MessagePayload::Task {
     task_id,
@@ -212,6 +221,7 @@ MessagePayload::Task {
 ```
 
 ### Collaboration
+
 ```rust
 AgentMessage::Collaboration {
     workspace_id: String,
@@ -219,7 +229,9 @@ AgentMessage::Collaboration {
     from_agent: String,
 }
 ```
+
 Converted to A2A:
+
 ```rust
 MessagePayload::Event {
     event_type: "collaboration",
@@ -232,6 +244,7 @@ MessagePayload::Event {
 ```
 
 ### StatusUpdate
+
 ```rust
 AgentMessage::StatusUpdate {
     agent_id: String,
@@ -241,17 +254,20 @@ AgentMessage::StatusUpdate {
 ```
 
 ### Question/Answer
+
 For inter-agent queries and knowledge sharing.
 
 ## Performance Characteristics
 
 ### Flume Channels
+
 - **Bounded channels** prevent memory exhaustion
 - **MPMC** (Multi-Producer Multi-Consumer) support
 - **Lock-free** for high throughput
 - **Async-aware** with tokio integration
 
 ### Typical Latencies
+
 - Message send: < 1μs (in-memory)
 - Channel capacity: 100 messages (configurable)
 - Broadcast: O(n) where n = number of subscribers
@@ -259,11 +275,13 @@ For inter-agent queries and knowledge sharing.
 ## Configuration
 
 ### Basic Setup
+
 ```rust
 let coordinator = AgentCoordinator::new(organization);
 ```
 
 ### With Knowledge Management
+
 ```rust
 let learning_config = LearningConfig {
     soft_limit_best_practices: 1000,
@@ -280,6 +298,7 @@ let coordinator = AgentCoordinator::new(organization)
 ```
 
 ### Agent Spawn
+
 ```rust
 // Create agent config with memory enabled
 let mut config = AgentConfig::default();
@@ -343,6 +362,7 @@ async fn main() -> Result<()> {
 ## Benefits
 
 ### A2A Integration
+
 ✅ **Type-safe messaging** - Compile-time verification
 ✅ **High performance** - Lock-free channels, < 1μs latency
 ✅ **Scalable** - Support for hundreds of agents
@@ -350,6 +370,7 @@ async fn main() -> Result<()> {
 ✅ **Observable** - Built-in stats and tracing
 
 ### Knowledge Management
+
 ✅ **Organizational learning** - Agents improve over time
 ✅ **Avoid repeated mistakes** - Learn from past failures
 ✅ **Best practice propagation** - Share successful approaches
@@ -359,6 +380,7 @@ async fn main() -> Result<()> {
 ## Future Enhancements
 
 ### Planned Features
+
 - [ ] Distributed A2A using Redis/RabbitMQ for multi-process
 - [ ] Advanced routing strategies (load balancing, circuit breakers)
 - [ ] Knowledge recommendation engine
@@ -368,6 +390,7 @@ async fn main() -> Result<()> {
 - [ ] Expert agent identification and consultation
 
 ### Integration Opportunities
+
 - [ ] Connect to external agent systems via A2A HTTP/WebSocket
 - [ ] Persistent knowledge store (PostgreSQL, Qdrant)
 - [ ] Real-time knowledge consolidation pipeline
@@ -378,6 +401,7 @@ async fn main() -> Result<()> {
 ### From Old Message Queue
 
 **Before:**
+
 ```rust
 let message = AgentMessage::TaskAssignment { ... };
 coordinator.send_message(agent_id, message).await;
@@ -385,6 +409,7 @@ coordinator.process_messages().await?;
 ```
 
 **After:**
+
 ```rust
 let message = AgentMessage::TaskAssignment { ... };
 coordinator.send_message(agent_id, message).await?;
@@ -395,16 +420,19 @@ coordinator.send_message(agent_id, message).await?;
 ### Adding Knowledge Management
 
 1. Enable memory in agent config:
+
 ```rust
 config.agent.use_memory = true;
 ```
 
 2. Use role-specific prompts (includes learning instructions):
+
 ```rust
 config.agent.system_prompt = role.system_prompt();
 ```
 
 3. Create coordinator with knowledge manager:
+
 ```rust
 let coordinator = AgentCoordinator::new(org)
     .with_knowledge_manager(knowledge_manager);

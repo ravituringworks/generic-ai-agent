@@ -7,6 +7,7 @@
 Created a high-performance in-memory A2A client using **flume** channels for inter-agent messaging:
 
 **Key Features:**
+
 - Bounded MPMC (Multi-Producer Multi-Consumer) channels per agent
 - Full A2A protocol support (Request, Response, Event, Command, Query, Notification)
 - Agent registration and discovery
@@ -15,6 +16,7 @@ Created a high-performance in-memory A2A client using **flume** channels for int
 - Async/await compatible with tokio
 
 **Performance:**
+
 - Lock-free message passing
 - Sub-microsecond latency for in-process communication
 - Configurable channel capacity (default: 100 messages)
@@ -23,6 +25,7 @@ Created a high-performance in-memory A2A client using **flume** channels for int
 ### 2. ✅ Enhanced AgentCoordinator (`src/organization/coordinator.rs` - Partially)
 
 **Updated Structure:**
+
 ```rust
 pub struct AgentCoordinator {
     organization: Arc<RwLock<Organization>>,
@@ -34,6 +37,7 @@ pub struct AgentCoordinator {
 ```
 
 **Changes Made:**
+
 - ✅ Added A2A client initialization in constructor
 - ✅ Added `with_knowledge_manager()` builder method
 - ✅ Updated `spawn_agent()` to register with A2A
@@ -46,6 +50,7 @@ pub struct AgentCoordinator {
 ### 3. ✅ Dependencies
 
 Added flume to `Cargo.toml`:
+
 ```toml
 flume = "0.11"
 ```
@@ -53,6 +58,7 @@ flume = "0.11"
 ### 4. ✅ Documentation
 
 Created comprehensive documentation in `docs/ORGANIZATION-A2A-KNOWLEDGE.md`:
+
 - Architecture overview
 - Message flow diagrams
 - Knowledge management workflow
@@ -64,6 +70,7 @@ Created comprehensive documentation in `docs/ORGANIZATION-A2A-KNOWLEDGE.md`:
 ## What Works Now
 
 ### A2A Messaging
+
 ```rust
 // Agents are automatically registered with A2A when spawned
 coordinator.spawn_agent(agent_id, config).await?;
@@ -76,6 +83,7 @@ coordinator.send_message(agent_id, message).await?;
 ```
 
 ### Knowledge Management (Configuration)
+
 ```rust
 // Create coordinator with knowledge manager
 let learning_config = LearningConfig::default();
@@ -90,9 +98,11 @@ let coordinator = AgentCoordinator::new(organization)
 ### High Priority
 
 #### 1. Complete `execute_task()` Integration
+
 **Location:** `src/organization/coordinator.rs`
 
 **Before task execution:**
+
 ```rust
 // Query organizational memory for similar past tasks
 if let Some(km) = &self.knowledge_manager {
@@ -120,9 +130,11 @@ if let Some(km) = &self.knowledge_manager {
 ```
 
 #### 2. Complete `handle_task_completion()` Integration
+
 **Location:** `src/organization/coordinator.rs`
 
 **After task completion:**
+
 ```rust
 // Store learnings in knowledge base
 if let Some(km) = &self.knowledge_manager {
@@ -145,6 +157,7 @@ if let Some(km) = &self.knowledge_manager {
 ```
 
 #### 3. Remove Old Message Queue
+
 **Location:** `src/organization/coordinator.rs`
 
 - Remove `message_queue` field from struct
@@ -152,6 +165,7 @@ if let Some(km) = &self.knowledge_manager {
 - Update any remaining references
 
 #### 4. Add Knowledge Query Helpers
+
 **Location:** New file `src/organization/knowledge_helpers.rs`
 
 ```rust
@@ -197,6 +211,7 @@ pub fn create_knowledge_entry(
 #### 5. Update Example (`examples/robotech_industries_organization_example.rs`)
 
 Add knowledge integration demonstration:
+
 ```rust
 // Setup knowledge manager with config
 let learning_config = LearningConfig {
@@ -218,6 +233,7 @@ println!("Knowledge Stats: {:?}", stats);
 ```
 
 #### 6. Add Integration Tests
+
 **Location:** `tests/organization_a2a_knowledge_tests.rs`
 
 ```rust
@@ -251,17 +267,20 @@ async fn test_knowledge_storage_after_task() {
 ## Testing the Current Implementation
 
 ### Compile Check
+
 ```bash
 cd /Users/ravindraboddipalli/sources/the-agency
 cargo build
 ```
 
 ### Run LocalA2AClient Tests
+
 ```bash
 cargo test --lib organization::a2a_local::tests
 ```
 
 ### Expected Results
+
 - ✅ `test_local_a2a_client_creation` - Client creation succeeds
 - ✅ `test_agent_registration` - Agents can register and be discovered
 - ✅ `test_message_sending` - Messages flow through flume channels
@@ -269,12 +288,14 @@ cargo test --lib organization::a2a_local::tests
 ## Migration Path for Existing Code
 
 ### Before (Old Message Queue)
+
 ```rust
 coordinator.send_message(agent_id, message).await;
 coordinator.process_messages().await?;  // Had to explicitly process
 ```
 
 ### After (A2A Protocol)
+
 ```rust
 coordinator.send_message(agent_id, message).await?;  // Immediate delivery
 // No process_messages() needed!
@@ -294,18 +315,21 @@ coordinator.send_message(agent_id, message).await?;  // Immediate delivery
 ## Key Advantages
 
 ### For Development
+
 1. **Type-safe messaging** - Catch errors at compile time
 2. **Clear async boundaries** - Explicit message passing
 3. **Easy testing** - Mock channels for unit tests
 4. **Observable** - Built-in stats and tracing
 
 ### For Performance
+
 1. **Lock-free** - No contention on message passing
 2. **Zero-copy** - Messages moved, not copied
 3. **Bounded** - Prevents memory exhaustion
 4. **Fast** - Sub-microsecond latency
 
 ### For Features
+
 1. **Broadcast** - Notify multiple agents efficiently
 2. **Discovery** - Find agents by capability
 3. **Priority** - Handle critical messages first
@@ -323,20 +347,26 @@ coordinator.send_message(agent_id, message).await?;  // Immediate delivery
 ## Questions & Answers
 
 ### Q: Why flume over tokio channels?
+
 **A:** Flume provides MPMC (multi-producer multi-consumer) with better performance characteristics and simpler API. It's specifically designed for high-throughput scenarios.
 
 ### Q: Can A2A be used for distributed agents?
+
 **A:** Current implementation is in-memory only. For distributed setups, the A2A protocol can be extended to use Redis/RabbitMQ/HTTP (already supported in `src/a2a.rs`).
 
 ### Q: How does knowledge management improve agents?
+
 **A:** Agents query past experiences before tasks and store learnings after. Over time, they:
+
 - Avoid repeating mistakes
 - Apply proven patterns
 - Build institutional knowledge
 - Improve efficiency
 
 ### Q: What's the memory overhead?
+
 **A:** Minimal:
+
 - Flume channels: ~100 messages × message size
 - A2A registry: ~1KB per agent
 - Knowledge manager: Depends on retention policy (configurable limits)
@@ -362,15 +392,16 @@ coordinator.send_message(agent_id, message).await?;  // Immediate delivery
 | Tests | ⚠️ Partial | A2A tests done, needs integration tests |
 | Example Updates | ❌ Pending | Needs knowledge demonstration |
 
-**Overall Progress: ~70% Complete**
+### Overall Progress: ~70% Complete
 
 ## Conclusion
 
-The foundation for A2A messaging and knowledge management is solidly in place. The LocalA2AClient provides high-performance, type-safe messaging between agents. The coordinator is partially updated to use A2A. 
+The foundation for A2A messaging and knowledge management is solidly in place. The LocalA2AClient provides high-performance, type-safe messaging between agents. The coordinator is partially updated to use A2A.
 
 The remaining work focuses on completing the knowledge integration in task execution - querying memory before tasks and storing learnings after completion. This is straightforward plumbing work using the existing knowledge management APIs.
 
 Once complete, the organization system will support:
+
 - ✅ High-performance agent communication via flume channels
 - ✅ Organizational learning and memory
 - ✅ Knowledge consolidation and lifecycle management

@@ -7,12 +7,14 @@ This advanced example demonstrates a **multi-phase, multi-agent collaborative wo
 ## Key Features
 
 ### 1. Multi-Phase Project Structure
+
 - **Phase 1**: Foundation (Simulation + Configuration) - Can run in parallel
 - **Phase 2**: Control Algorithms - Depends on Phase 1
 - **Phase 3**: Training Infrastructure - Depends on Phase 2  
 - **Phase 4**: Documentation & Reporting - Depends on all previous phases
 
 ### 2. Task Dependency Management
+
 - Automatic dependency resolution
 - Parallel execution of independent tasks
 - Sequential execution for dependent tasks
@@ -21,21 +23,25 @@ This advanced example demonstrates a **multi-phase, multi-agent collaborative wo
 ### 3. Four Specialized Agents
 
 **SimulationEngineer_EMP001**
+
 - Creates 3D simulation environments
 - Implements physics engines and collision detection
 - Generates Python code for robot simulation
 
 **ScalingEngineer_EMP002**
+
 - Builds distributed training pipelines
 - Creates performance optimization code
 - Implements benchmarking and profiling
 
 **ConfigSpecialist_Dana**
+
 - Generates URDF/MJCF robot models
 - Creates ROS configuration files
 - Produces system parameter files
 
 **Coordinator_EMP003**
+
 - Manages project coordination
 - Generates comprehensive reports
 - Creates integration guides
@@ -43,6 +49,7 @@ This advanced example demonstrates a **multi-phase, multi-agent collaborative wo
 ### 4. Diverse Artifact Types
 
 The system produces and tracks:
+
 - **Code**: Python, Rust implementations
 - **Configuration**: URDF, XML, parameter files
 - **Documentation**: Markdown guides
@@ -56,7 +63,8 @@ The system produces and tracks:
 ### Task Breakdown
 
 #### Phase 1: Foundation (Parallel Execution)
-```
+
+```text
 Task 1.1: Create 3D robot simulation environment with physics engine
   Agent: SimulationEngineer_EMP001
   Priority: Critical
@@ -74,7 +82,8 @@ Task 1.3: Create performance profiling and benchmarking framework
 ```
 
 #### Phase 2: Control & Optimization (Depends on Phase 1)
-```
+
+```text
 Task 2.1: Implement inverse kinematics controller
   Agent: SimulationEngineer_EMP001
   Priority: High
@@ -87,7 +96,8 @@ Task 2.2: Optimize simulation performance with vectorization
 ```
 
 #### Phase 3: Training & Benchmarking (Depends on Phase 2)
-```
+
+```text
 Task 3.1: Build distributed training pipeline for RL
   Agent: ScalingEngineer_EMP002
   Priority: High
@@ -100,7 +110,8 @@ Task 3.2: Create comprehensive benchmark suite
 ```
 
 #### Phase 4: Documentation (Depends on All)
-```
+
+```text
 Task 4.1: Generate comprehensive project report
   Agent: Coordinator_EMP003
   Priority: Medium
@@ -150,7 +161,7 @@ cargo run --example collaborative_robotics_complex
 
 ## Workspace Structure
 
-```
+```text
 output/robotics_workspace_complex/
 └── humanoid_manipulation_system/
     ├── code/           # Python/Rust implementations
@@ -165,21 +176,27 @@ output/robotics_workspace_complex/
 ## Advanced Features
 
 ### Dependency Resolution
+
 The workspace automatically:
+
 - Identifies tasks ready to execute
 - Blocks tasks with unmet dependencies
 - Enables parallel execution where possible
 - Maintains phase ordering
 
 ### Cross-Agent Review
+
 Every artifact is:
+
 1. Produced by one agent
 2. Reviewed by a different agent
 3. Verified and marked with reviewer
 4. Saved with full metadata
 
 ### Artifact Tracking
+
 Each artifact includes:
+
 - Unique UUID
 - Producer and reviewer agents
 - Phase number and task ID
@@ -228,6 +245,7 @@ let task6 = WorkspaceTask {
 ## Performance Characteristics
 
 **With Cloud LLM (deepseek-v3.1:671b-cloud)**:
+
 - Phase 1 (3 tasks): ~50-60 seconds (parallel execution)
 - Phase 2 (2 tasks): ~50-60 seconds (parallel execution)
 - Phase 3 (2 tasks): ~50-60 seconds (parallel execution)
@@ -235,12 +253,14 @@ let task6 = WorkspaceTask {
 - **Total**: ~3-4 minutes for 8 tasks
 
 **Agent Task Distribution**:
+
 - SimulationEngineer_EMP001: 2 tasks (Phases 1, 2)
 - ScalingEngineer_EMP002: 4 tasks (Phases 1, 2, 3, 3)
 - ConfigSpecialist_Dana: 1 task (Phase 1)
 - Coordinator_EMP003: 1 task (Phase 4)
 
 **Scaling**:
+
 - Add more agents: Linear scaling
 - Add more parallel tasks: Sub-linear scaling
 - Add more phases: Linear scaling
@@ -263,18 +283,23 @@ let task6 = WorkspaceTask {
 This complex workflow is ideal for:
 
 ✅ **Multi-phase robotics projects**
+
 - Environment setup → Model configuration → Control → Training
 
 ✅ **Software development pipelines**
+
 - Design → Implementation → Testing → Documentation
 
 ✅ **Research workflows**
+
 - Literature review → Experiment design → Execution → Analysis
 
 ✅ **ML model development**
+
 - Data preparation → Model training → Evaluation → Deployment
 
 ✅ **System architecture projects**
+
 - Requirements → Design → Implementation → Integration
 
 ## Next Steps

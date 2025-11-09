@@ -6,11 +6,11 @@ The Agency Platform provides a comprehensive REST API with OpenAPI (Swagger) doc
 
 Once the Agency daemon is running, you can access the OpenAPI specification at:
 
-```
+```text
 http://127.0.0.1:8080/api-docs/openapi.json
 ```
 
-> **Note on Swagger UI**: The service currently uses Axum 0.8, while `utoipa-swagger-ui` v8 requires Axum 0.7. 
+> **Note on Swagger UI**: The service currently uses Axum 0.8, while `utoipa-swagger-ui` v8 requires Axum 0.7.
 > Until `utoipa-swagger-ui` adds Axum 0.8 support, use one of the methods below to view the interactive documentation.
 
 ### Viewing Swagger UI
@@ -23,17 +23,21 @@ You can view the interactive API documentation using:
    - The page will automatically load the API spec from `http://127.0.0.1:8080/api-docs/openapi.json`
 
 2. **Online Swagger Editor**
+
    - Go to https://editor.swagger.io/
    - Click "File" → "Import URL"
    - Enter: `http://127.0.0.1:8080/api-docs/openapi.json`
 
 3. **Swagger UI Docker**
+
    ```bash
    docker run -p 8081:8080 -e SWAGGER_JSON_URL=http://host.docker.internal:8080/api-docs/openapi.json swaggerapi/swagger-ui
    ```
+
    Then access: http://localhost:8081
 
 4. **NPM Swagger UI Watcher**
+
    ```bash
    npm install -g swagger-ui-watcher
    swagger-ui-watcher http://127.0.0.1:8080/api-docs/openapi.json
@@ -43,18 +47,22 @@ You can view the interactive API documentation using:
 
 The Agency API is organized into the following sections:
 
-### Health Check
+### Service Health Check
+
 - `GET /health` - Check service health and version
 
 ### Agent Operations
+
 - `POST /api/v1/agent/process` - Process a message through the agent
 
 ### Workflow Management
+
 - `POST /api/v1/workflows` - Create a new workflow
 - `POST /api/v1/workflows/{id}/suspend` - Suspend a running workflow
 - `POST /api/v1/workflows/resume` - Resume a suspended workflow
 
 ### Workflow Snapshots
+
 - `GET /api/v1/workflows/snapshots` - List all workflow snapshots
 - `GET /api/v1/workflows/snapshots/{id}` - Get a specific snapshot
 - `DELETE /api/v1/workflows/snapshots/{id}` - Delete a snapshot
@@ -73,6 +81,7 @@ curl -X POST http://127.0.0.1:8080/api/v1/agent/process \
 ```
 
 **Response:**
+
 ```json
 {
   "response": "Rust is a systems programming language...",
@@ -94,6 +103,7 @@ curl -X POST http://127.0.0.1:8080/api/v1/workflows \
 ```
 
 **Response:**
+
 ```json
 {
   "workflow_id": "workflow-123",
@@ -134,6 +144,7 @@ curl http://127.0.0.1:8080/health
 ## Schema Definitions
 
 All request and response types include:
+
 - **Field descriptions** - Clear explanation of each field
 - **Examples** - Sample values for each field
 - **Validation rules** - Required fields, types, constraints
@@ -142,6 +153,7 @@ All request and response types include:
 ### Key Schemas
 
 #### ProcessRequest
+
 ```json
 {
   "message": "What is Rust?",      // Required: Message to process
@@ -150,6 +162,7 @@ All request and response types include:
 ```
 
 #### ProcessResponse
+
 ```json
 {
   "response": "Rust is a systems programming language...",
@@ -159,6 +172,7 @@ All request and response types include:
 ```
 
 #### CreateWorkflowRequest
+
 ```json
 {
   "workflow_id": "workflow-123",
@@ -168,6 +182,7 @@ All request and response types include:
 ```
 
 #### ResumeWorkflowRequest
+
 ```json
 {
   "snapshot_id": "550e8400-e29b-41d4-a716-446655440000"  // UUID format
@@ -175,6 +190,7 @@ All request and response types include:
 ```
 
 #### ErrorResponse
+
 ```json
 {
   "error": "Invalid request",
@@ -195,6 +211,7 @@ The API uses standard HTTP status codes:
 ## Authentication
 
 Currently, the API does not require authentication. In production deployments, consider adding:
+
 - API keys
 - JWT tokens
 - OAuth 2.0
@@ -203,6 +220,7 @@ Currently, the API does not require authentication. In production deployments, c
 ## Rate Limiting
 
 No rate limiting is currently implemented. For production use, consider implementing:
+
 - Request throttling
 - IP-based limits
 - User/API key quotas

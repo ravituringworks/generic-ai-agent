@@ -14,28 +14,29 @@ The Organization system provides:
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│                   Organization Daemon                        │
+│                   Organization Daemon                       │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │              Agent Coordinator                         │  │
-│  │  - Message Queue                                       │  │
-│  │  - Task Routing                                        │  │
-│  │  - Workspace Orchestration                             │  │
+│  │              Agent Coordinator                        │  │
+│  │  - Message Queue                                      │  │
+│  │  - Task Routing                                       │  │
+│  │  - Workspace Orchestration                            │  │
 │  └───────────────────────────────────────────────────────┘  │
-│                          │                                   │
-│      ┌───────────────────┼───────────────────┐             │
-│      │                   │                   │             │
-│  ┌───▼────┐      ┌───────▼───────┐  ┌──────▼──────┐      │
-│  │ Agents │      │  Workspaces   │  │    Tasks    │      │
-│  │        │◄────►│               │◄─┤             │      │
-│  └────────┘      └───────────────┘  └─────────────┘      │
+│                          │                                  │
+│      ┌───────────────────┼─────────────────┐                │
+│      │                   │                 │                │
+│  ┌───▼────┐      ┌───────▼───────┐  ┌──────▼──────┐         │
+│  │ Agents │      │  Workspaces   │  │    Tasks    │         │
+│  │        │◄────►│               │◄─┤             │         │
+│  └────────┘      └───────────────┘  └─────────────┘         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Organization Roles
 
 ### 1. Research & AI (7 roles)
+
 - Research Engineer, Scaling
 - Research Engineer, Autonomy
 - Research Engineer, World Models
@@ -45,6 +46,7 @@ The Organization system provides:
 - AI Resident
 
 ### 2. Software Engineering (10 roles)
+
 - Software Engineer, Simulation
 - Software Engineer, Teleoperation
 - Software Engineer, Platforms
@@ -57,24 +59,28 @@ The Organization system provides:
 - Software Engineer, ERP Systems
 
 ### 3. Security (4 roles)
+
 - Product Security Engineer, Operating System
 - Product Security Engineer, Cloud & Infrastructure
 - Product Security Engineer, Cryptography & PKI
 - Network Security Engineer
 
 ### 4. Hardware Engineering (7 roles)
+
 - Electrical Engineer (Entry Level, Battery & Charger, Hardcore, Technical Lead)
 - EMI/EMC Engineer
 - Mechanical Engineer, All Levels
 - R&D Engineer, Humanoid Core Technologies
 
 ### 5. Robotics Engineering (4 roles)
+
 - Senior Robotics Engineer, Controls
 - Senior Robotics Engineer, Software
 - Robotics Engineer, Controls & Testing
 - Senior Audio Systems Engineer
 
 ### 6. Manufacturing & Production (10 roles)
+
 - Manufacturing Engineer
 - Automation Engineer, Manufacturing
 - Test Engineer, Manufacturing
@@ -86,6 +92,7 @@ The Organization system provides:
 - CNC Programmer
 
 ### 7. Supply Chain & Quality (10 roles)
+
 - Global Supply Manager (Structures, Motors & Magnets)
 - Supplier Development Engineer (Structures, Motors & Magnets, EEE)
 - NPI Planner
@@ -95,15 +102,18 @@ The Organization system provides:
 - Data Analyst
 
 ### 8. Infrastructure & IT (2 roles)
+
 - Enterprise Engineer
 - Principal Enterprise IT Engineer
 
 ### 9. Service & Support (3 roles)
+
 - Sr. Service Training Engineer
 - Sr. Robot Service Technician
 - Robot Operator
 
 ### 10. Engineering Specializations (6 roles)
+
 - Softgoods Engineer, Prototyping
 - Wiring & Harnessing Engineer
 - Electrical Engineering Internship
@@ -112,6 +122,7 @@ The Organization system provides:
 - Head of Physical Robot Safety
 
 ### 11. Legal & Finance (3 roles)
+
 - Counsel, Employment & Compensation
 - Counsel, Commercial, Trade & Compliance
 - Payroll Accountant
@@ -215,6 +226,7 @@ cargo run --example robotech_industries_organization_example
 ```
 
 This demonstrates:
+
 - 14 agents across multiple roles
 - 5 collaborative workspaces
 - 8 coordinated tasks
@@ -229,6 +241,7 @@ cargo run --bin organization-daemon
 ```
 
 This shows:
+
 - Real-time agent coordination
 - Message queue processing
 - Multi-workspace task orchestration
@@ -239,6 +252,7 @@ This shows:
 ### 1. Role-Based Agent System
 
 Each agent has a specific organizational role with:
+
 - Predefined capabilities
 - Category classification
 - Typical collaborators
@@ -253,6 +267,7 @@ let collaborators = role.typical_collaborators();  // [ResearchEngineerAutonomy,
 ### 2. Collaborative Workspaces
 
 Workspaces provide:
+
 - Shared context between agents
 - Task organization
 - Artifact storage
@@ -261,6 +276,7 @@ Workspaces provide:
 ### 3. Task Dependencies
 
 Tasks support:
+
 - Priority levels (Low, Medium, High, Critical)
 - Dependencies on other tasks
 - Status tracking (Pending, InProgress, Blocked, UnderReview, Completed)
@@ -269,6 +285,7 @@ Tasks support:
 ### 4. Agent Coordination
 
 The coordinator handles:
+
 - Message routing between agents
 - Task assignment and execution
 - Status updates
@@ -277,6 +294,7 @@ The coordinator handles:
 ### 5. Intelligent Task Routing
 
 Tasks are routed based on:
+
 - Agent role and capabilities
 - Agent availability
 - Workspace membership
@@ -337,6 +355,7 @@ impl OrganizationDaemon {
 ## Future Enhancements
 
 Potential improvements:
+
 - [ ] Persistent organization state (database storage)
 - [ ] Advanced task scheduling algorithms
 - [ ] Load balancing across agents

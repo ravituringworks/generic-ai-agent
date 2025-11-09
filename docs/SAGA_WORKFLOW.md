@@ -113,6 +113,7 @@ cargo run --example saga_workflow
 ```
 
 This demonstrates:
+
 - ✅ **Successful execution**: All steps complete
 - ⚠️ **Failure with compensation**: Payment fails, inventory reservation is released
 - ⚠️ **Confirmation failure**: Email fails, payment is refunded and inventory released
@@ -267,6 +268,7 @@ cargo run --example saga_llm_workflow
 ## Saga Features
 
 ### Retry Logic
+
 ```rust
 let step = SagaStep::new(id, name, action, compensation)
     .with_retries(3)  // Retry up to 3 times on failure
@@ -274,12 +276,14 @@ let step = SagaStep::new(id, name, action, compensation)
 ```
 
 ### Conditional Failure
+
 ```rust
 let step = SagaStep::new(id, name, action, compensation)
     .non_retryable();  // Don't retry this step on failure
 ```
 
 ### State Persistence
+
 ```rust
 // Saga state is automatically tracked
 let context = SagaContext::new("workflow-name".to_string(), workflow_ctx);
@@ -294,43 +298,52 @@ let context = SagaContext::new("workflow-name".to_string(), workflow_ctx);
 ## Use Cases
 
 ### E-commerce
+
 - Inventory reservation → Payment processing → Order fulfillment
 - Compensation: Release inventory, refund payment, cancel order
 
 ### Financial Services
+
 - Account validation → Fund transfer → Transaction recording
 - Compensation: Reverse transfer, restore balances, void transaction
 
 ### AI/ML Pipelines
+
 - Data validation → Model training → Model deployment
 - Compensation: Delete training data, remove model artifacts, rollback deployment
 
 ### Content Management
+
 - Content creation → Review process → Publication
 - Compensation: Archive drafts, remove reviews, unpublish content
 
 ### Research Workflows
+
 - Hypothesis generation → Experiment design → Data analysis → Report writing
 - Compensation: Archive hypotheses, delete experimental data, remove draft reports
 
 ## Best Practices
 
 ### Step Design
+
 - **Idempotent Operations**: Steps should be safe to retry
 - **Minimal Scope**: Each step should do one thing well
 - **Clear Boundaries**: Steps should have well-defined inputs/outputs
 
 ### Compensation Design
+
 - **Reverse Operations**: Compensations should undo the forward operation
 - **Data Preservation**: Consider archiving rather than deleting important data
 - **Notification**: Inform stakeholders of compensation actions
 
 ### Error Handling
+
 - **Specific Errors**: Use descriptive error messages
 - **Retryable vs Non-retryable**: Distinguish between transient and permanent failures
 - **Timeout Management**: Set appropriate timeouts for long-running operations
 
 ### Monitoring
+
 - **Logging**: Log all step executions and compensations
 - **Metrics**: Track success rates, compensation frequency, execution times
 - **Alerts**: Monitor for frequent compensations indicating systemic issues
@@ -355,6 +368,7 @@ let workflow = WorkflowBuilder::new()
 ## Testing Sagas
 
 ### Unit Testing
+
 ```rust
 #[tokio::test]
 async fn test_saga_success() {
@@ -376,6 +390,7 @@ async fn test_saga_compensation() {
 ```
 
 ### Integration Testing
+
 ```rust
 #[tokio::test]
 async fn test_llm_saga_integration() {
@@ -391,15 +406,18 @@ async fn test_llm_saga_integration() {
 ## Performance Considerations
 
 ### Concurrent Execution
+
 - Saga steps can run concurrently when independent
 - Use `tokio::join!` for parallel compensation
 
 ### Resource Management
+
 - Limit concurrent LLM calls to avoid rate limits
 - Use connection pooling for external services
 - Implement circuit breakers for unreliable services
 
 ### State Management
+
 - Persist saga state for long-running workflows
 - Use efficient serialization (e.g., JSON, MessagePack)
 - Implement state compression for large contexts
@@ -408,26 +426,30 @@ async fn test_llm_saga_integration() {
 
 ### Common Issues
 
-**Compensation Failures**
-```
+#### Compensation Failures
+
+```text
 Cause: Compensation logic errors or external service unavailability
 Solution: Make compensations idempotent and handle external failures gracefully
 ```
 
-**Deadlocks**
-```
+#### Deadlocks
+
+```text
 Cause: Circular dependencies between saga steps
 Solution: Design acyclic step dependencies and use timeouts
 ```
 
-**State Corruption**
-```
+#### State Corruption
+
+```text
 Cause: Concurrent access to shared state
 Solution: Use proper locking and atomic operations
 ```
 
-**Memory Leaks**
-```
+#### Memory Leak
+
+```text
 Cause: Large contexts not cleaned up after compensation
 Solution: Implement proper cleanup in compensation handlers
 ```
@@ -435,6 +457,7 @@ Solution: Implement proper cleanup in compensation handlers
 ## Advanced Patterns
 
 ### Nested Sagas
+
 ```rust
 // Parent saga contains child sagas
 let child_saga = create_child_saga();
@@ -452,6 +475,7 @@ let parent_step = SagaStep::new(
 ```
 
 ### Dynamic Sagas
+
 ```rust
 // Build saga based on runtime conditions
 let mut orchestrator = SagaOrchestrator::new();
@@ -466,6 +490,7 @@ if use_premium_service {
 ```
 
 ### Saga Orchestration
+
 ```rust
 // Coordinate multiple independent sagas
 let sagas = vec![saga1, saga2, saga3];
@@ -486,6 +511,7 @@ for saga in sagas {
 ## Migration Guide
 
 ### From Basic Workflows
+
 ```rust
 // Before: Basic workflow
 let workflow = WorkflowBuilder::new()
@@ -505,6 +531,7 @@ let workflow = WorkflowBuilder::new()
 ```
 
 ### From Manual Compensation
+
 ```rust
 // Before: Manual error handling
 match do_operation() {
@@ -542,9 +569,7 @@ Saga patterns provide robust transaction management for complex distributed syst
 - **Performance Optimization**: Concurrent execution and resource management
 
 For more examples, see:
+
 - `examples/saga_workflow.rs` - Basic saga patterns
 - `examples/saga_llm_workflow.rs` - LLM-integrated sagas
-- `src/saga.rs` - Complete saga implementation</content>
-</xai:function_call">\
-<xai:function_call name="run">
-<parameter name="command">cd /Users/ravindraboddipalli/sources/the-agency && cargo build
+- `src/saga.rs` - Complete saga implementation

@@ -11,14 +11,17 @@ The Agency platform now includes a comprehensive REST API interface and daemon s
 A full-featured HTTP API server using Axum framework with the following endpoints:
 
 #### Health & Monitoring
+
 - `GET /health` - Health check endpoint
 
 #### Agent Operations
+
 - `POST /api/v1/agent/process` - Process messages through the agent
   - Request: `{"message": "...", "max_steps": 10}`
   - Response: `{"response": "...", "steps_executed": 1, "completed": true}`
 
 #### Workflow Management
+
 - `POST /api/v1/workflows` - Create new workflow
 - `POST /api/v1/workflows/:id/suspend` - Suspend running workflow
 - `POST /api/v1/workflows/resume` - Resume suspended workflow
@@ -27,6 +30,7 @@ A full-featured HTTP API server using Axum framework with the following endpoint
 - `DELETE /api/v1/workflows/snapshots/:id` - Delete snapshot
 
 **Features:**
+
 - CORS support
 - HTTP tracing/logging
 - Proper error handling with appropriate status codes
@@ -38,6 +42,7 @@ A full-featured HTTP API server using Axum framework with the following endpoint
 A long-running daemon process that:
 
 **Capabilities:**
+
 - Runs REST API server
 - Manages agent lifecycle
 - Handles workflow orchestration
@@ -45,6 +50,7 @@ A long-running daemon process that:
 - Background execution (Unix/macOS only)
 
 **Command-line Options:**
+
 ```bash
 --config <PATH>      # Path to configuration file
 --host <HOST>        # API server host (default: 127.0.0.1)
@@ -55,6 +61,7 @@ A long-running daemon process that:
 ```
 
 **Usage Examples:**
+
 ```bash
 # Foreground mode
 ./agency-daemon --config config.toml --port 8080
@@ -78,6 +85,7 @@ Complete saga orchestration for distributed transactions with automatic compensa
 - **`SagaWorkflowStep`**: Integration with workflow engine
 
 **Features:**
+
 - Automatic retry with exponential backoff
 - Compensation in reverse order on failure
 - State tracking for each step
@@ -85,6 +93,7 @@ Complete saga orchestration for distributed transactions with automatic compensa
 - Comprehensive error handling
 
 **Example:**
+
 ```rust
 let orchestrator = SagaOrchestrator::new()
     .add_step(reserve_inventory_step)
@@ -97,6 +106,7 @@ let result = orchestrator.execute(saga_context).await?;
 ### 4. macOS System Service Integration
 
 **launchd Configuration** (`com.theagency.daemon.plist`):
+
 - Automatic start on boot
 - Automatic restart on crash
 - Proper logging configuration
@@ -104,6 +114,7 @@ let result = orchestrator.execute(saga_context).await?;
 - Environment variable support
 
 **Service Management:**
+
 ```bash
 # Load service
 sudo launchctl load /Library/LaunchDaemons/com.theagency.daemon.plist
@@ -118,6 +129,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 ### 5. Documentation
 
 **docs/DEPLOYMENT.md**: Complete deployment guide covering:
+
 - Quick start instructions
 - API endpoint documentation with curl examples
 - macOS service installation and management
@@ -129,6 +141,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 ### 6. Example Code
 
 **`examples/daemon_api_example.rs`**: Demonstrates:
+
 - API health checks
 - Message processing
 - Workflow creation
@@ -136,12 +149,14 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 - HTTP client usage
 
 **`examples/saga_workflow.rs`**: Shows:
+
 - Complete e-commerce order saga
 - Success and failure scenarios
 - Compensation in action
 - Step retry logic
 
 **`examples/saga_llm_workflow.rs`**: Demonstrates:
+
 - Saga workflows with LLM integration
 - AI-powered research workflows
 - LLM-based compensation and rollback
@@ -149,7 +164,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │         REST API (Axum)                 │
 │  - Health checks                        │
@@ -165,7 +180,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
                │
         ┌──────┴──────┐
         │             │
-┌───────▼─────┐ ┌────▼───────────────┐
+┌───────▼─────┐ ┌───-─▼──────────────┐
 │   Agent     │ │  Workflow Engine   │
 │  - LLM      │ │  - Steps           │
 │  - Memory   │ │  - Suspend/Resume  │
@@ -177,6 +192,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 ## Key Features
 
 ### Long-Running Workflows
+
 - **Suspend/Resume**: Workflows can be paused and resumed
 - **State Persistence**: Snapshot storage (SQLite or file-based)
 - **Event-Driven**: Wait for external events
@@ -184,6 +200,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 - **Human-in-Loop**: Request approval steps
 
 ### Saga Pattern Benefits
+
 - **Atomic Operations**: All-or-nothing semantics
 - **Automatic Rollback**: Compensations run automatically
 - **Retry Logic**: Built-in retry with backoff
@@ -191,6 +208,7 @@ sudo launchctl unload /Library/LaunchDaemons/com.theagency.daemon.plist
 - **Failure Recovery**: Graceful handling of partial failures
 
 ### API Benefits
+
 - **Programmatic Access**: Integrate with any HTTP client
 - **Async Processing**: Non-blocking operations
 - **Workflow Persistence**: Long-running tasks survive restarts
@@ -215,16 +233,19 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 ## Testing
 
 Run the saga example:
+
 ```bash
 cargo run --example saga_workflow
 ```
 
 Start the daemon:
+
 ```bash
 cargo run --bin agency-daemon -- --config config.toml --port 8080
 ```
 
 Test the API (in another terminal):
+
 ```bash
 cargo run --example daemon_api_example
 ```
@@ -232,6 +253,7 @@ cargo run --example daemon_api_example
 ## Next Steps
 
 ### Immediate Enhancements
+
 1. Add authentication/authorization to API
 2. Implement rate limiting
 3. Add Prometheus metrics endpoint
@@ -239,6 +261,7 @@ cargo run --example daemon_api_example
 5. Build Docker container
 
 ### Future Considerations
+
 1. **gRPC API**: High-performance alternative to REST
 2. **WebSocket Support**: Real-time updates
 3. **Distributed Tracing**: OpenTelemetry integration
@@ -261,6 +284,7 @@ cargo run --example daemon_api_example
 ## Conclusion
 
 The Agency platform now has enterprise-grade capabilities:
+
 - ✅ REST API for programmatic access
 - ✅ Long-running workflow support
 - ✅ Saga pattern for distributed transactions
@@ -269,6 +293,7 @@ The Agency platform now has enterprise-grade capabilities:
 - ✅ Working examples
 
 The platform is ready for:
+
 - Microservices integration
 - Complex multi-step workflows
 - Distributed transaction management

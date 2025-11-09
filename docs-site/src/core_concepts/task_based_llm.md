@@ -294,3 +294,10 @@ let task_config = config.llm.get_task_model("code_generation");
 // Use the configuration for this specific request
 // (Implementation depends on how you integrate with the LLM client)
 ```
+
+## See Also
+
+- [Task-Based LLM Configuration](TASK_BASED_LLM.md)
+- [Configuration Guide](../core_concepts/configuration.md)
+- [API Documentation](../api_integration/api_documentation.md)
+- Example Configuration (`config.example.toml`)

@@ -36,7 +36,7 @@ The collaborative workspace example is now **fully functional** and demonstrates
 
 Location: `output/robotics_workspace/humanoid_robot_project/`
 
-```
+```text
 code/
   ├── 758d1a7a-31a5-4a8a-bcce-c2821b59cfc0_implementation.py
   └── 758d1a7a-31a5-4a8a-bcce-c2821b59cfc0_implementation.meta.json
@@ -60,6 +60,7 @@ cargo run --example collaborative_robotics_workspace
 ### 🔧 Technical Details
 
 **Model Configuration**:
+
 - Model: `deepseek-v3.1:671b-cloud` (Ollama cloud model)
 - Max tokens: 1024 (expanded for comprehensive output)
 - Timeout: 60 seconds
@@ -67,6 +68,7 @@ cargo run --example collaborative_robotics_workspace
 - Memory: Disabled (avoids embedding generation overhead)
 
 **Workflow**:
+
 1. Initialize 3 agents with shared SQLite database
 2. Create task: "Create a basic Python class for a robot simulation environment"
 3. SimulationEngineer_EMP001 generates comprehensive Python implementation
@@ -76,6 +78,7 @@ cargo run --example collaborative_robotics_workspace
 7. Task marked as completed with verification status
 
 **Generated Code Features**:
+
 - Complete `RobotSimulation` class (112 lines)
 - Robot position and orientation tracking
 - Circular obstacle collision detection
@@ -86,7 +89,7 @@ cargo run --example collaborative_robotics_workspace
 
 ### 📊 Sample Output
 
-```
+```text
 🚀 Collaborative Robotics Workspace
 ================================================================================
 
@@ -124,6 +127,7 @@ Tasks: 1 total, 1 completed
 ### 🎉 Next Steps
 
 The system is ready for:
+
 - Adding more complex multi-task workflows
 - Implementing actual LLM-based artifact reviews (currently fast-tracked)
 - Testing with different robot simulation tasks

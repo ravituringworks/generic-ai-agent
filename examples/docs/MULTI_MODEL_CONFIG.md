@@ -28,12 +28,14 @@ Each agent uses a model best suited for their work:
 **Used by:** SimulationEngineer
 
 **Why:**
+
 - ✅ Excellent Python code generation
 - ✅ Strong understanding of ML frameworks (PyTorch, NumPy, Ray)
 - ✅ Good at performance-critical code (vectorization, parallel processing)
 - ✅ Understands robotics concepts and physics simulation
 
 **Tasks:**
+
 - 3D simulation environments
 - Inverse kinematics controllers
 - Performance profiling frameworks
@@ -46,12 +48,14 @@ Each agent uses a model best suited for their work:
 **Used by:** ConfigSpecialist
 
 **Why:**
+
 - ✅ Excellent all-around performance
 - ✅ Strong with structured data (XML, URDF)
 - ✅ Fast inference speed
 - ✅ Good balance of code and documentation
 
 **Tasks:**
+
 - URDF robot model generation
 - ROS configuration files
 - System parameter files
@@ -61,18 +65,21 @@ Each agent uses a model best suited for their work:
 **Used by:** ScalingEngineer, Coordinator
 
 **Why:**
+
 - ✓ Excellent complex reasoning and problem-solving
 - ✓ Strong at distributed systems architecture
 - ✓ Good at integrating multiple components
 - ✓ Comprehensive documentation with technical depth
 
 **Tasks (ScalingEngineer):**
+
 - Distributed training pipeline design
 - Performance optimization strategies
 - Benchmark suite architecture
 - Complex system integration
 
 **Tasks (Coordinator):**
+
 - Comprehensive project reports
 - Integration guides across all components
 - Technical documentation with system overview
@@ -121,21 +128,25 @@ let sim_engineer = CollaborativeAgent::new(
 ## 🎯 Benefits of Multi-Model Setup
 
 ### 1. Optimized Quality
+
 - **Code tasks** get coder-specialized models → Better syntax, structure
 - **Documentation tasks** get writing-focused models → Clearer prose
 - **Configuration tasks** get balanced models → Good at structured data
 
 ### 2. Cost Efficiency
+
 - Use smaller/faster models for simpler tasks
 - Use larger models only where needed
 - Balance speed vs quality per task type
 
 ### 3. Specialization
+
 - Each agent uses tools best suited for their expertise
 - Mimics real-world teams with specialized skills
 - Better overall project quality
 
 ### 4. Flexibility
+
 - Easy to swap models per agent
 - Test different combinations
 - Adapt to task requirements
@@ -147,12 +158,14 @@ let sim_engineer = CollaborativeAgent::new(
 ### Code Quality
 
 **Before** (single model - deepseek-v3.1:671b-cloud):
+
 - Simulation code: ⭐⭐⭐⭐⭐
 - Optimization code: ⭐⭐⭐⭐⭐
 - Configurations: ⭐⭐⭐⭐⭐
 - Documentation: ⭐⭐⭐⭐
 
 **After** (specialized models):
+
 - Simulation code: ⭐⭐⭐⭐⭐+ (qwen3-coder excels at Python)
 - Optimization code: ⭐⭐⭐⭐⭐+ (qwen3-coder for ML infra)
 - Configurations: ⭐⭐⭐⭐⭐ (deepseek excellent for URDF)
@@ -172,32 +185,40 @@ let sim_engineer = CollaborativeAgent::new(
 ## 🔄 Alternative Configurations
 
 ### Option 1: All DeepSeek (Current Default)
+
 ```rust
 // Simple, consistent, fast
 config.llm.text_model = "deepseek-v3.1:671b-cloud".to_string();
 ```
+
 **Best for:** Quick prototyping, consistent results
 
 ### Option 2: All Qwen Coder (Code-Focused)
+
 ```rust
 // Maximum code quality
 config.llm.text_model = "qwen3-coder:480b-cloud".to_string();
 ```
+
 **Best for:** Code-heavy projects, ML/robotics work
 
 ### Option 3: Mixed (Current Implementation)
+
 ```rust
 // Specialized per role (see above)
 ```
+
 **Best for:** Production projects, quality optimization
 
 ### Option 4: Performance Optimized
+
 ```rust
 // Fast models
 sim/scaling: "gpt-oss:20b-cloud"  // Fast code gen
 config: "glm-4.6:cloud"            // Balanced
 coord: "minimax-m2:cloud"          // Fast docs
 ```
+
 **Best for:** Time-critical demos, rapid iteration
 
 ---
@@ -320,6 +341,7 @@ cargo run --example collaborative_robotics_complex
 ## 🔮 Future Enhancements
 
 Potential improvements:
+
 - [ ] Dynamic model selection based on task complexity
 - [ ] A/B testing framework for model comparison
 - [ ] Cost tracking and optimization

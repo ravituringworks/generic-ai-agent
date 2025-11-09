@@ -27,18 +27,22 @@ The Agency framework provides two collaborative workspace examples demonstrating
 
 ## Simple Workspace (Basic)
 
-### Use Case
+### Use Case (Basic)
+
 Perfect for **learning** and **prototyping** multi-agent collaboration.
 
-### What It Does
+### What It Does (Basic)
+
 Creates a single robotics simulation class with:
+
 - ✅ Basic Python implementation
 - ✅ Documentation
 - ✅ Cross-agent review
 - ✅ Artifact verification
 
-### Architecture
-```
+### Architecture (Basic)
+
+```text
 SimulationEngineer_EMP001
     ↓ (generates)
 [Python Code + Docs]
@@ -48,14 +52,16 @@ ScalingEngineer_EMP002
 [Verified Artifacts]
 ```
 
-### When to Use
+### When to Use (Basic)
+
 - 🎓 Learning multi-agent systems
 - 🔬 Prototyping collaboration patterns
 - ⚡ Quick demonstrations
 - 🧪 Testing agent interactions
 - 📚 Educational examples
 
-### Run It
+### Running the Simple Workspace
+
 ```bash
 cargo run --example collaborative_robotics_workspace
 ```
@@ -68,31 +74,38 @@ cargo run --example collaborative_robotics_workspace
 
 ## Complex Workspace (Advanced)
 
-### Use Case
+### Use Case (Advanced)
+
 Demonstrates **production-grade** multi-agent workflows for complex projects.
 
-### What It Does
+### What It Does (Advanced)
+
 Builds a complete humanoid robot manipulation system across 4 phases:
 
 #### Phase 1: Foundation (Parallel)
+
 - **SimulationEngineer**: Creates 3D simulation environment
 - **ConfigSpecialist**: Generates URDF robot model
 - Both execute **simultaneously**
 
 #### Phase 2: Control (Sequential)
+
 - **SimulationEngineer**: Implements inverse kinematics controller
 - Waits for Phase 1 completion
 
 #### Phase 3: Training (Sequential)
+
 - **ScalingEngineer**: Builds distributed training pipeline
 - Waits for Phase 2 completion
 
 #### Phase 4: Documentation (Sequential)
+
 - **Coordinator**: Generates comprehensive project report
 - Waits for all phases
 
-### Architecture
-```
+### Architecture (Advanced)
+
+```text
 Phase 1 (Parallel):
     SimulationEngineer_EMP001 → [Environment Code]
     ConfigSpecialist_Dana    → [URDF Model]
@@ -109,28 +122,33 @@ Phase 4 (Sequential):
 
 ### Key Features
 
-**Dependency Management**
+#### Dependency Management
+
 - Automatic dependency resolution
 - Blocked tasks wait for prerequisites
 - Topological sorting for execution order
 
-**Parallel Execution**
+#### Parallel Execution
+
 - Independent tasks run simultaneously
 - Reduces total execution time
 - Maximizes agent utilization
 
-**Diverse Artifacts**
+#### Diverse Artifacts
+
 - Python/Rust code implementations
 - URDF/XML robot configurations
 - Training pipelines and benchmarks
 - Integration guides and reports
 
-**Advanced Tracking**
+#### Advanced Tracking
+
 - Phase-based organization
 - Priority scheduling (Critical → High → Medium → Low)
 - Full artifact lineage
 
-### When to Use
+### When to Use (Advanced)
+
 - 🏭 Production robotics projects
 - 🔄 Multi-stage software pipelines
 - 📊 Research workflows with phases
@@ -138,7 +156,8 @@ Phase 4 (Sequential):
 - 🏗️ System architecture projects
 - 📈 Scalable agent coordination
 
-### Run It
+### Running the Complex Workspace
+
 ```bash
 cargo run --example collaborative_robotics_complex
 ```
@@ -152,6 +171,7 @@ cargo run --example collaborative_robotics_complex
 ## Feature Breakdown
 
 ### Simple Workspace Includes
+
 ✅ Basic multi-agent collaboration  
 ✅ Artifact generation and storage  
 ✅ Cross-agent review workflow  
@@ -160,6 +180,7 @@ cargo run --example collaborative_robotics_complex
 ✅ SQLite persistence  
 
 ### Complex Workspace Adds
+
 ✅ Multi-phase workflows  
 ✅ Task dependency graphs (DAG)  
 ✅ Parallel task execution  
@@ -173,8 +194,9 @@ cargo run --example collaborative_robotics_complex
 
 ## Performance Comparison
 
-### Simple Workspace
-```
+### Simple Workspace Performance
+
+```text
 Initialization:   5s
 Task Execution:  25s
 Review & Save:    5s
@@ -182,8 +204,9 @@ Review & Save:    5s
 Total:          ~30s
 ```
 
-### Complex Workspace
-```
+### Complex Workspace Performance
+
+```text
 Initialization:      5s
 Phase 1 (2 tasks):  45s  ← Parallel execution
 Phase 2 (1 task):   30s
@@ -199,14 +222,16 @@ Total:            ~140s
 
 ## Choosing the Right Workspace
 
-### Start with Simple If:
+### Start with Simple If
+
 - 🌱 New to multi-agent systems
 - 📖 Learning The Agency framework
 - ⚡ Need quick results
 - 🎯 Single-phase workflow
 - 🧪 Prototyping concepts
 
-### Use Complex If:
+### Use Complex If
+
 - 🏭 Building production systems
 - 🔄 Multi-phase projects
 - 📊 Complex dependencies
@@ -231,7 +256,8 @@ Start simple, grow complex:
 ## Common Use Cases by Type
 
 ### Simple Workspace
-```
+
+```text
 ✓ Code generation demos
 ✓ Tutorial examples
 ✓ Single-feature development
@@ -240,7 +266,8 @@ Start simple, grow complex:
 ```
 
 ### Complex Workspace
-```
+
+```text
 ✓ Full robotics stack development
 ✓ ML pipeline orchestration
 ✓ Research project workflows
@@ -255,6 +282,7 @@ Start simple, grow complex:
 Both workspaces are designed to be extended:
 
 ### Add an Agent
+
 ```rust
 let new_agent = CollaborativeAgent::new(
     "SecurityAuditor_Eve".to_string(),
@@ -264,6 +292,7 @@ let new_agent = CollaborativeAgent::new(
 ```
 
 ### Add a Task
+
 ```rust
 let new_task = WorkspaceTask {
     id: Uuid::new_v4().to_string(),
@@ -277,6 +306,7 @@ let new_task = WorkspaceTask {
 ```
 
 ### Add an Artifact Type
+
 ```rust
 enum ArtifactType {
     // Existing types...
@@ -297,7 +327,7 @@ enum ArtifactType {
 
 ---
 
-## Try Both!
+## Try Both
 
 ```bash
 # Simple workspace (30 seconds)

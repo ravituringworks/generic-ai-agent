@@ -32,7 +32,7 @@ This directory contains documentation for all the-agency examples.
 
 All examples now output to a unified `output/` directory at the project root:
 
-```
+```text
 output/
 ├── robotech_organization_output/        # RoboTech Industries demo
 │   ├── reports/

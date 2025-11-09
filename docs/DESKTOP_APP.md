@@ -5,6 +5,7 @@ A native desktop application for creating and managing AI agent workflows.
 ## Overview
 
 The Workflow Builder is a Tauri-based desktop application that provides:
+
 - Visual workflow designer with drag-and-drop node editor
 - Persistent workflow storage in SQLite
 - Automatic daemon management (spawns daemon if not running)
@@ -77,6 +78,7 @@ cargo tauri build --bin workflow-builder --features tauri
 ## Features
 
 ### Visual Workflow Editor
+
 - Drag-and-drop node placement
 - Visual connection drawing
 - Pan and zoom canvas
@@ -84,17 +86,20 @@ cargo tauri build --bin workflow-builder --features tauri
 - Real-time workflow validation
 
 ### Node Types
+
 - **Data Processing**: Text splitters, transformers
 - **LLM**: Language model interactions, text generation
 - **I/O**: File input/output operations
 - **Control Flow**: Conditionals, loops, branches
 
 ### Persistence
+
 - All workflows stored in SQLite database
 - Workflows persist across daemon restarts
 - Located in: `data/memory.db`
 
 ### Daemon Auto-Management
+
 - Desktop app automatically checks if daemon is running
 - Spawns daemon if needed (up to 30 second startup wait)
 - Graceful error handling if daemon fails to start
@@ -127,11 +132,13 @@ lsof -ti:8080 | xargs kill -9
 ### Workflows Not Loading
 
 1. Check that the daemon is running:
+
    ```bash
    curl http://127.0.0.1:8080/health
    ```
 
 2. Check the database exists:
+
    ```bash
    ls -la data/memory.db
    ```
@@ -143,11 +150,13 @@ lsof -ti:8080 | xargs kill -9
 Make sure you have Tauri dependencies installed:
 
 **macOS:**
+
 ```bash
 xcode-select --install
 ```
 
 **Linux (Ubuntu/Debian):**
+
 ```bash
 sudo apt update
 sudo apt install libwebkit2gtk-4.0-dev \
@@ -161,6 +170,7 @@ sudo apt install libwebkit2gtk-4.0-dev \
 ```
 
 **Windows:**
+
 - Install Microsoft Visual Studio C++ Build Tools
 - Install WebView2 (usually pre-installed on Windows 11)
 
@@ -168,7 +178,7 @@ sudo apt install libwebkit2gtk-4.0-dev \
 
 ### File Structure
 
-```
+```text
 src/bin/
 ├── agency-daemon.rs       # HTTP daemon server
 ├── workflow-builder.rs    # Tauri desktop app
