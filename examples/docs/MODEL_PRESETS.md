@@ -16,6 +16,7 @@ The collaborative workspace example supports multiple model presets that allow y
 The presets are defined in `examples/collaborative_workspace_config.toml`:
 
 ### 1. `specialized` (default)
+
 **Description**: Current configuration with specialized models per role
 
 - **SimulationEngineer**: `gpt-oss:120b-cloud` (code generation specialist)
@@ -24,16 +25,19 @@ The presets are defined in `examples/collaborative_workspace_config.toml`:
 - **Coordinator**: `gpt-oss:120b-cloud` (integration reasoning & documentation)
 
 ### 2. `all_gpt_oss`
+
 **Description**: All agents use gpt-oss:120b-cloud for consistent reasoning
 
 - All agents: `gpt-oss:120b-cloud`
 
 ### 3. `all_deepseek`
+
 **Description**: All agents use deepseek for balanced performance
 
 - All agents: `deepseek-v3.1:671b-cloud`
 
 ### 4. `fast`
+
 **Description**: Fast cloud models for quick iteration
 
 - **SimulationEngineer**: `gpt-oss:20b-cloud`
@@ -125,7 +129,7 @@ Each preset supports the following options:
 
 When a preset is applied, you'll see output like:
 
-```
+```text
 🎨 Applying model preset: 'all_deepseek'
    Description: All agents use deepseek for balanced performance
    From config: examples/collaborative_workspace_config.toml
@@ -139,7 +143,7 @@ When a preset is applied, you'll see output like:
 
 If an invalid preset name is provided, the system falls back to the `specialized` configuration and lists available presets:
 
-```
+```text
 ⚠️  Preset 'invalid_name' not found, using default 'specialized' configuration
    Available presets: ["specialized", "all_gpt_oss", "all_deepseek", "fast"]
    From config: examples/collaborative_workspace_config.toml
@@ -155,6 +159,7 @@ The preset system:
 4. **Falls back to hardcoded defaults** if preset not found
 
 The precedence order is:
+
 1. `MODEL_PRESET` environment variable
 2. First CLI argument
 3. Default preset: `specialized`

@@ -7,16 +7,20 @@ This example demonstrates a comprehensive multi-agent organization working to de
 ### The Robot Variants
 
 #### 🏠 Robo-1: Home Companion
+
 **Target Market:** Residential households
 **Capabilities:**
+
 - **Household Chores:** Cleaning, organizing, basic maintenance
 - **Home Security:** Monitoring, alert systems, secure premises
 - **Emotional Companionship:** Social interaction, emotional support, entertainment
 **Key Features:** Safe, quiet operation | Human-friendly design | Privacy-focused
 
 #### 🏗️ Robo-2: Construction Assistant
+
 **Target Market:** Construction industry
 **Capabilities:**
+
 - **All Robo-1 Features** (base platform)
 - **Heavy Lifting:** 50+ kg load handling
 - **Construction Site Operations:** Material transport, tool handling
@@ -24,8 +28,10 @@ This example demonstrates a comprehensive multi-agent organization working to de
 **Key Features:** Heavy-duty actuators | Ruggedized design | Site-hardened
 
 #### 🚒 Robo-3: Rescue Operations
+
 **Target Market:** Emergency services (wildfire, coastguard)
 **Capabilities:**
+
 - **All Robo-1 & Robo-2 Features** (advanced platform)
 - **Extreme Environments:** High-heat resistance (wildfire), water-resistant (coastguard)
 - **Victim Detection:** Thermal imaging, AI-powered search
@@ -39,46 +45,54 @@ This example demonstrates a comprehensive multi-agent organization working to de
 ### 25 Specialized Agents Across 8 Workspaces
 
 #### Development Workspaces (Robot Variants)
+
 1. **Robo-1: Home Companion** - 5 agents
 2. **Robo-2: Construction Assistant** - 5 agents  
 3. **Robo-3: Rescue Operations** - 6 agents (most complex)
 
 #### Support Workspaces
-4. **Manufacturing Excellence** - 3 agents
-5. **Supply Chain & Analytics** - 2 agents
-6. **Executive Leadership** - 4 agents
-7. **Product Strategy** - 3 agents
-8. **Customer & Market Success** - 4 agents
+
+1. **Manufacturing Excellence** - 3 agents
+2. **Supply Chain & Analytics** - 2 agents
+3. **Executive Leadership** - 4 agents
+4. **Product Strategy** - 3 agents
+5. **Customer & Market Success** - 4 agents
 
 ### Key Roles
 
 **Research & AI:**
+
 - EMP001 (Scaling)
 - EMP002 (Autonomy)
 - EMP003 (World Models)
 
 **Software Engineering:**
+
 - EMP004 (Simulation)
 - EMP005 (Platforms)
 - EMP006 (Embedded Systems)
 
 **Hardware:**
+
 - EMP007 (Electrical)
 - EMP008 (Robotics Controls)
 - EMP009 (Mechanical)
 
 **Manufacturing:**
+
 - EMP010 (Manufacturing Engineer)
 - EMP011 (Automation)
 - EMP012 (Quality)
 
 **Executive:**
+
 - EMP015 (CEO)
 - EMP016 (CTO)
 - EMP018 (CPO)
 - EMP017 (VP Engineering)
 
 **Product & Customer:**
+
 - EMP019 (Product Manager)
 - EMP022 (VP Sales)
 - EMP023 (Customer Success)
@@ -88,18 +102,21 @@ This example demonstrates a comprehensive multi-agent organization working to de
 ## Technical Architecture
 
 ### A2A Messaging
+
 - **Protocol:** Local A2A using flume MPMC channels
 - **Performance:** < 1μs latency for agent-to-agent communication
 - **Capacity:** 100 messages per agent channel
 
 ### Knowledge Management
+
 - **Learning:** Agents query past experiences before tasks
 - **Quality Tracking:** Automatic 0.3-0.9 scoring based on success
 - **Task Classification:** Auto-categorize (design, implementation, testing, etc.)
 - **Prompt Enhancement:** Context-aware execution with historical data
 
 ### Task Execution Flow
-```
+
+```text
 1. Task Assignment → A2A message to agent
 2. Knowledge Query → Retrieve similar past tasks
 3. Enhanced Prompt → Build context with history
@@ -113,7 +130,8 @@ This example demonstrates a comprehensive multi-agent organization working to de
 ## Running the Example
 
 ### Prerequisites
-- Ollama running locally (default: http://localhost:11434)
+
+- Ollama running locally (default: <http://localhost:11434>)
 - At least 8GB RAM available
 - Rust toolchain installed
 
@@ -125,7 +143,7 @@ cargo run --example robotech_industries_organization_example
 
 ### Expected Output
 
-```
+```text
 🤖 RoboTech Industries - Multi-Agent Organization Demo
 
 ==========================================================
@@ -207,6 +225,7 @@ cargo run --example robotech_industries_organization_example
 ## Development Tasks by Variant
 
 ### Robo-1 Tasks
+
 1. **Design Home Assistant AI** (Critical)
    - Household chores AI: cleaning, organizing, maintenance
    - Agent: EMP001
@@ -220,32 +239,34 @@ cargo run --example robotech_industries_organization_example
    - Agent: EMP007
 
 ### Robo-2 Tasks
-4. **Design Heavy-Duty Actuator System** (Critical)
+
+1. **Design Heavy-Duty Actuator System** (Critical)
    - 50+ kg lifting capacity
    - Agent: EMP002
 
-5. **Develop Load-Balancing Control System** (Critical)
+2. **Develop Load-Balancing Control System** (Critical)
    - Stable load handling + construction navigation
    - Agent: EMP008
 
-6. **Build Construction Safety Features** (High)
+3. **Build Construction Safety Features** (High)
    - Safety protocols for construction sites
    - Agent: EMP010
 
 ### Robo-3 Tasks
-7. **Design Extreme Environment Systems** (Critical)
+
+1. **Design Extreme Environment Systems** (Critical)
    - High-heat (wildfire) + marine environment protection
    - Agent: EMP003
 
-8. **Build Advanced Perception for Rescue** (Critical)
+2. **Build Advanced Perception for Rescue** (Critical)
    - Victim detection, smoke/water navigation, threat assessment
    - Agent: EMP005
 
-9. **Implement Emergency Response Protocols** (Critical)
+3. **Implement Emergency Response Protocols** (Critical)
    - Fail-safe systems + emergency automation
    - Agent: EMP006
 
-10. **Design Rescue Equipment Integration** (High)
+4. **Design Rescue Equipment Integration** (High)
     - Thermal imaging, water pumps, rescue tools, communications
     - Agent: EMP008
 
@@ -254,18 +275,21 @@ cargo run --example robotech_industries_organization_example
 ## Key Features Demonstrated
 
 ### Multi-Agent Coordination
+
 ✅ 25 agents across 8 workspaces
 ✅ Cross-functional teams
 ✅ Role-specific expertise
 ✅ Concurrent task execution
 
 ### A2A Communication
+
 ✅ High-performance messaging (flume channels)
 ✅ Type-safe agent-to-agent communication
 ✅ Automatic agent registration
 ✅ Message prioritization
 
 ### Organizational Learning
+
 ✅ Knowledge query before tasks
 ✅ Enhanced prompts with history
 ✅ Quality scoring (0.3-0.9)
@@ -273,6 +297,7 @@ cargo run --example robotech_industries_organization_example
 ✅ Learning storage after completion
 
 ### Advanced Capabilities
+
 ✅ 110+ organizational roles available
 ✅ Role-specific system prompts
 ✅ Task dependency management
@@ -284,17 +309,21 @@ cargo run --example robotech_industries_organization_example
 ## Architecture Highlights
 
 ### Performance
+
 - **Latency:** < 1μs per message (in-memory A2A)
 - **Throughput:** Hundreds of agents supported
 - **Memory:** < 1MB for 25 agents
 - **Concurrency:** Lock-free message passing
 
 ### Scalability
+
 - **Horizontal:** Add more agents easily
+
 - **Vertical:** Increase workspace complexity
 - **Distributed:** Can extend to Redis/RabbitMQ A2A
 
 ### Learning
+
 - **Context-Aware:** Tasks executed with historical knowledge
 - **Quality Tracking:** Automatic scoring of outcomes
 - **Continuous Improvement:** Agents learn from past work
@@ -305,6 +334,7 @@ cargo run --example robotech_industries_organization_example
 ## Extending the Example
 
 ### Add More Robot Variants
+
 ```rust
 let robo4_ws = CollaborativeWorkspace::new(
     "Robo-4: Medical Assistant".to_string(),
@@ -313,6 +343,7 @@ let robo4_ws = CollaborativeWorkspace::new(
 ```
 
 ### Add More Agents
+
 ```rust
 let doctor = OrganizationAgent::new(
     "Dr. Smith".to_string(),
@@ -322,6 +353,7 @@ org.add_agent(doctor);
 ```
 
 ### Add Knowledge Management
+
 ```rust
 let learning_config = LearningConfig {
     soft_limit_best_practices: 1000,
@@ -349,6 +381,7 @@ let coordinator = AgentCoordinator::new(org)
 ## Success Criteria
 
 When you run this example successfully, you should see:
+
 - ✅ All 25 agents spawned with learning capabilities
 - ✅ 10 development tasks executed across 3 robot variants
 - ✅ All tasks completed successfully
@@ -364,5 +397,3 @@ When you run this example successfully, you should see:
 - **A2A messaging** is fully functional
 - **Knowledge infrastructure** is in place (query/store)
 - **Learning context** is added to prompts automatically
-
-**Mission Status: Ready for Development! 🚀**

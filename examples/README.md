@@ -5,10 +5,12 @@ This directory contains comprehensive examples demonstrating various features an
 ## Quick Start Examples
 
 ### Basic Usage
+
 - **`minimal_org_test.rs`** - Minimal multi-agent organization test
 - **`simple_coordinator_test.rs`** - Simple agent coordination example
 
 ### LLM Integration
+
 - **`multi_provider_example.rs`** - Multi-provider LLM usage with fallback
 - **`multi_provider_usage.rs`** - Advanced multi-provider configuration
 - **`test_ollama_connection.rs`** - Testing Ollama connectivity
@@ -16,6 +18,7 @@ This directory contains comprehensive examples demonstrating various features an
 ## Agent Examples
 
 ### Specialized Agents
+
 - **`robotics_research_engineer_agent.rs`** - Research engineer for robotics
 - **`robotics_research_engineer_example.rs`** - Complete robotics research workflow
 - **`robotics_scientist_agent.rs`** - Scientific research and analysis agent
@@ -23,16 +26,19 @@ This directory contains comprehensive examples demonstrating various features an
 - **`scaling_engineer_agent.rs`** - System scaling and optimization
 
 ### Agent Communication
+
 - **`a2a_communication.rs`** - Agent-to-Agent communication protocols
 - **`agent_network_system.rs`** - Complete agent network system
 
 ## Workflow Examples
 
 ### Saga Patterns
+
 - **`saga_workflow.rs`** - Basic saga workflow with compensation
 - **`saga_llm_workflow.rs`** - Saga workflow with LLM integration
 
 ### Workflow Integration
+
 - **`workflow_agent_tool_integration.rs`** - Agent and tool integration
 - **`workflow_integration_simple.rs`** - Simple workflow integration
 - **`control_flow_example.rs`** - Control flow patterns
@@ -41,45 +47,54 @@ This directory contains comprehensive examples demonstrating various features an
 ## Knowledge & Memory
 
 ### RAG Systems
+
 - **`rag_system_comprehensive.rs`** - Comprehensive RAG implementation
 - **`rag_system_working.rs`** - Working RAG system example
 - **`pdf_rag_with_tables.rs`** - PDF processing with table extraction
 
 ### Knowledge Management
+
 - **`knowledge_rag.rs`** - Knowledge-based RAG (if exists)
 - **`unified_storage_system.rs`** - Unified storage system
 
 ## Multi-Agent Organization
 
 ### Collaborative Workspaces
+
 - **`collaborative_robotics_complex.rs`** - Complex collaborative robotics
 - **`collaborative_robotics_enhanced.rs`** - Enhanced collaborative features
 - **`collaborative_robotics_workspace.rs`** - Robotics workspace collaboration
 - **`collaborative_workspace_config.toml`** - Workspace configuration
 
 ### Organization Examples
+
 - **`robotech_industries_organization_example.rs`** - Complete organization example
 - **`humanoid_robot_project.rs`** - Humanoid robot project organization
 
 ## Tools & Integration
 
 ### MCP Integration
+
 - **`datetime_location_tools.rs`** - Date/time and location tools
 - **`mcp_integration.feature`** - MCP integration features (BDD)
 
 ### API & Services
+
 - **`daemon_api_example.rs`** - Daemon API usage
 - **`api.rs`** - API integration examples
 
 ## Testing & Configuration
 
 ### Test Examples
+
 - **`test_config.rs`** - Configuration testing
 - **`unit_tests.rs`** - Unit testing examples
 - **`bdd_steps.rs`** - BDD testing steps
 
 ### Documentation Examples
+
 Located in `examples/docs/`:
+
 - **COLLABORATIVE_COMPARISON.md** - Collaborative workspace comparisons
 - **COLLABORATIVE_RESULTS.md** - Results from collaborative experiments
 - **MODEL_PRESETS.md** - LLM model preset configurations
@@ -91,11 +106,13 @@ Located in `examples/docs/`:
 ### Prerequisites
 
 1. **Install Rust** (1.75+):
+
    ```bash
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    ```
 
 2. **Install and run Ollama**:
+
    ```bash
    # Install Ollama
    curl -fsSL https://ollama.ai/install.sh | sh
@@ -106,6 +123,7 @@ Located in `examples/docs/`:
    ```
 
 3. **Build the project**:
+
    ```bash
    cargo build
    ```
@@ -145,16 +163,19 @@ RUST_LOG=debug cargo run --example saga_llm_workflow
 ## Example Categories
 
 ### Beginner Examples
+
 - `minimal_org_test.rs` - Start here for basic concepts
 - `simple_coordinator_test.rs` - Simple agent coordination
 - `multi_provider_example.rs` - Basic LLM provider usage
 
 ### Intermediate Examples
+
 - `saga_workflow.rs` - Workflow patterns
 - `a2a_communication.rs` - Multi-agent communication
 - `rag_system_comprehensive.rs` - Knowledge retrieval
 
 ### Advanced Examples
+
 - `collaborative_robotics_workspace.rs` - Complex multi-agent systems
 - `robotech_industries_organization_example.rs` - Large-scale organization
 - `pdf_rag_with_tables.rs` - Advanced document processing
@@ -188,7 +209,4 @@ When adding new examples:
 
 - [Main Documentation](../README.md)
 - [Report Issues](https://github.com/ravituringworks/the-agency/issues)
-- [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)</content>
-</xai:function_call">\
-<xai:function_call name="read">
-<parameter name="filePath">examples/docs/README.md
+- [Community Discussions](https://github.com/ravituringworks/the-agency/discussions)

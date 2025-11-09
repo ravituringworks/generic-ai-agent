@@ -208,6 +208,7 @@ SELECT id, substr(content, 1, 100), metadata FROM memories;
 ### Metrics to Track
 
 1. **Memory Usage**
+
    ```sql
    SELECT COUNT(*) as total_memories FROM memories;
    SELECT metadata FROM memories WHERE metadata LIKE '%role%';
@@ -240,17 +241,20 @@ See [AGENT_LEARNING_ENHANCEMENT.md](./AGENT_LEARNING_ENHANCEMENT.md) for complet
 ## Expected Behavior
 
 ### First Run
+
 - Agents execute tasks with base knowledge only
 - Memories stored for each task
 - Basic feedback collected
 
 ### Second Run
+
 - Agents retrieve relevant past experience
 - System prompts enriched with learnings
 - Similar tasks benefit from previous attempts
 - Quality and consistency improve
 
 ### After Multiple Runs
+
 - Agents develop role-specific expertise
 - Common patterns reused automatically
 - Mistakes not repeated

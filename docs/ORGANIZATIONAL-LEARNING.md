@@ -7,6 +7,7 @@ The multi-agent organization system in The Agency is designed as a **learning or
 ## Core Concept
 
 Every agent in the organization:
+
 1. **Retrieves** relevant past experiences before starting work
 2. **Applies** learned patterns and best practices
 3. **Documents** outcomes and learnings after completion
@@ -17,7 +18,9 @@ Every agent in the organization:
 Each organizational role has a tailored system prompt that includes:
 
 ### 1. Role-Specific Guidance
+
 Precise instructions for the role's responsibilities and expertise area
+
 - Executive leadership: Strategic decision-making and organizational direction
 - Engineering roles: Technical implementation and best practices
 - Product roles: User-centered design and business value
@@ -25,14 +28,18 @@ Precise instructions for the role's responsibilities and expertise area
 - Design roles: User research and experience optimization
 
 ### 2. Core Capabilities
+
 Skills and expertise specific to each role
+
 - Research Engineers: ML infrastructure, scaling, autonomy
 - Software Engineers: Platforms, simulation, embedded systems
 - Product Managers: Prioritization, user stories, metrics
 - Customer Success: Onboarding, adoption, relationship building
 
 ### 3. Organizational Learning Context
+
 All agents are prompted to:
+
 - Query organizational memory before starting tasks
 - Apply learned patterns from similar past work
 - Document key learnings and decisions
@@ -40,39 +47,46 @@ All agents are prompted to:
 - Contribute to evolving knowledge base
 
 ### 4. Learning Behaviors
+
 Role-category specific learning patterns:
 
 **Executive Leadership:**
+
 - Document strategic decisions and rationale
 - Record outcomes of strategic initiatives
 - Share leadership insights and lessons
 - Build organizational pattern library
 
 **Research & AI:**
+
 - Document experimental results and findings
 - Share successful architectures and approaches
 - Record failure modes and solutions
 - Build repository of research methodologies
 
 **Software Engineering:**
+
 - Document code patterns and best practices
 - Share successful architectures and solutions
 - Record technical debt and resolutions
 - Build library of reusable components
 
 **Manufacturing:**
+
 - Document process improvements and efficiency gains
 - Share quality issue resolutions
 - Record successful troubleshooting approaches
 - Build process optimization knowledge base
 
 **Customer Success & Sales:**
+
 - Document customer pain points and solutions
 - Share successful sales approaches
 - Record customer success patterns
 - Build customer insights repository
 
 **Design & UX:**
+
 - Document user research findings
 - Share successful design patterns
 - Record usability test outcomes
@@ -81,6 +95,7 @@ Role-category specific learning patterns:
 ## Using The Agency Services for Learning
 
 ### Memory System
+
 ```rust
 // Agents automatically have memory enabled
 config.agent.use_memory = true;
@@ -93,14 +108,18 @@ config.agent.use_memory = true;
 ```
 
 ### Knowledge Management
+
 Agents leverage The Agency's knowledge management system:
+
 - **Semantic Search**: Find relevant past work by meaning
 - **Document Ingestion**: Learn from external documentation
 - **Knowledge Consolidation**: Merge similar learnings
 - **Best Practice Extraction**: Identify successful patterns
 
 ### MCP Tools
+
 Agents use Model Context Protocol (MCP) tools for:
+
 - File operations (reading past work artifacts)
 - Database queries (retrieving historical data)
 - External integrations (accessing organizational systems)
@@ -135,6 +154,7 @@ config.agent.system_prompt = system_prompt;
 ## Learning Workflow
 
 ### Before Starting Work
+
 1. Agent receives task assignment
 2. Queries organizational memory for similar past tasks
 3. Retrieves relevant best practices and lessons learned
@@ -142,12 +162,14 @@ config.agent.system_prompt = system_prompt;
 5. Applies successful patterns to current work
 
 ### During Work
+
 1. Makes decisions informed by organizational knowledge
 2. References documented approaches and solutions
 3. Adapts best practices to current context
 4. Notes deviations and their rationale
 
 ### After Completing Work
+
 1. Documents key decisions and their outcomes
 2. Records successful approaches and patterns
 3. Notes challenges encountered and solutions
@@ -157,18 +179,21 @@ config.agent.system_prompt = system_prompt;
 ## Benefits
 
 ### Individual Agent Level
+
 - Avoid repeating past mistakes
 - Leverage proven approaches
 - Make better-informed decisions
 - Accelerate learning curve
 
 ### Team Level
+
 - Share expertise across agents
 - Build collective intelligence
 - Standardize best practices
 - Reduce knowledge silos
 
 ### Organization Level
+
 - Accumulate institutional knowledge
 - Improve over time
 - Scale expertise efficiently
@@ -177,6 +202,7 @@ config.agent.system_prompt = system_prompt;
 ## Integration with Workspaces
 
 Workspaces provide shared context for learning:
+
 - **Workspace Memory**: Shared knowledge within workspace teams
 - **Cross-Workspace Learning**: Insights shared across the organization
 - **Task History**: Past tasks and their outcomes are queryable
@@ -185,6 +211,7 @@ Workspaces provide shared context for learning:
 ## Metrics and Improvement
 
 Track organizational learning effectiveness:
+
 - Knowledge reuse rate
 - Time to complete similar tasks (should decrease)
 - Quality improvements over time
@@ -194,6 +221,7 @@ Track organizational learning effectiveness:
 ## Best Practices
 
 ### For Individual Agents
+
 1. Always query memory before starting new work
 2. Document thoroughly, not just outcomes but reasoning
 3. Use consistent terminology for easier retrieval
@@ -201,6 +229,7 @@ Track organizational learning effectiveness:
 5. Share significant insights proactively
 
 ### For Teams/Workspaces
+
 1. Establish shared vocabularies and taxonomies
 2. Regular knowledge consolidation sessions
 3. Review and refine documented best practices
@@ -208,6 +237,7 @@ Track organizational learning effectiveness:
 5. Conduct post-mortems on failures
 
 ### For Organization
+
 1. Invest in knowledge management infrastructure
 2. Make knowledge search and retrieval effortless
 3. Reward learning and knowledge sharing behaviors
@@ -217,20 +247,26 @@ Track organizational learning effectiveness:
 ## Advanced Features
 
 ### Knowledge Consolidation
+
 The Agency automatically consolidates similar learnings:
-```
+
+```text
 Multiple instances of "successful API design patterns"
 → Consolidated into "API Design Best Practices"
 ```
 
 ### Adaptive Prompts
+
 System prompts can evolve based on organizational learning:
+
 - Most successful patterns become default guidance
 - Common pitfalls are highlighted as warnings
 - Role-specific capabilities expand with experience
 
 ### Cross-Role Learning
+
 Agents learn from other roles when relevant:
+
 - Engineers learn from customer success insights
 - Product learns from engineering constraints
 - Sales learns from support patterns
