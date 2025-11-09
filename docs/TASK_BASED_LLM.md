@@ -58,7 +58,7 @@ system_prompt = "You are an expert software engineer. Write clean, efficient, an
 
 ```toml
 [llm.task_models.creative_writing]
-model = "llama3.2:8b"
+model = "llama3.2"
 max_tokens = 4096
 temperature = 0.9
 keywords = ["story", "poem", "creative", "write", "narrative", "fiction"]
@@ -110,7 +110,7 @@ system_prompt = "You are a professional translator. Provide accurate translation
 
 ```toml
 [llm.task_models.summarization]
-model = "llama3.2:3b"
+model = "llama3.2"
 max_tokens = 1024
 temperature = 0.4
 keywords = ["summarize", "summary", "brief", "overview", "tldr"]
@@ -238,6 +238,7 @@ Common Ollama models for different tasks:
    ollama pull llama3.2
    ollama pull qwen2.5-coder:7b
    ollama pull nomic-embed-text
+   ollama pull qwen3-coder:480b-cloud
    ```
 
 2. **Create configuration file** (`config.toml`):

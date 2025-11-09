@@ -379,14 +379,14 @@ mod tests {
     async fn test_cache_key_generation() {
         let key1 = LlmCache::compute_cache_key(
             "Hello world",
-            "llama3.2",
+            "qwen3-coder:480b-cloud",
             0.7,
             1000,
             Some("You are helpful"),
         );
         let key2 = LlmCache::compute_cache_key(
             "Hello world",
-            "llama3.2",
+            "qwen3-coder:480b-cloud",
             0.7,
             1000,
             Some("You are helpful"),
@@ -396,7 +396,7 @@ mod tests {
 
         let key3 = LlmCache::compute_cache_key(
             "Different message",
-            "llama3.2",
+            "qwen3-coder:480b-cloud",
             0.7,
             1000,
             Some("You are helpful"),
@@ -431,7 +431,7 @@ mod tests {
             .set(
                 key.to_string(),
                 response.to_string(),
-                "llama3.2".to_string(),
+                "qwen3-coder:480b-cloud".to_string(),
                 0.2,
             )
             .await?;
@@ -472,7 +472,7 @@ mod tests {
             .set(
                 "key1".to_string(),
                 "response".to_string(),
-                "llama3.2".to_string(),
+                "qwen3-coder:480b-cloud".to_string(),
                 0.8,
             )
             .await?;
@@ -488,7 +488,7 @@ mod tests {
             .set(
                 "key2".to_string(),
                 "response".to_string(),
-                "llama3.2".to_string(),
+                "qwen3-coder:480b-cloud".to_string(),
                 0.2,
             )
             .await?;

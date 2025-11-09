@@ -118,6 +118,7 @@ async fn main() -> anyhow::Result<()> {
 ### Cache Key Generation
 
 The cache key is computed from:
+
 - Query messages (serialized)
 - Model name
 - Temperature
@@ -129,11 +130,13 @@ This ensures that identical queries with the same parameters return the same cac
 ### Cache Behavior
 
 **Cached Queries:**
+
 - ✅ Queries with temperature ≤ 0.3 (deterministic)
 - ✅ Identical messages and parameters
 - ✅ Within TTL period
 
 **Not Cached:**
+
 - ❌ High temperature queries (> 0.3) - too creative/random
 - ❌ Expired entries (older than TTL)
 - ❌ When cache is disabled
@@ -141,6 +144,7 @@ This ensures that identical queries with the same parameters return the same cac
 ### Eviction Strategy
 
 When the cache reaches `max_entries`:
+
 1. Identifies least recently accessed entries
 2. Removes oldest entries to make room
 3. Logs eviction count
@@ -165,12 +169,14 @@ When the cache reaches `max_entries`:
 ### When to Use Caching
 
 ✅ **Good Use Cases:**
+
 - FAQ/documentation queries
 - Repeated system prompts
 - Deterministic tasks (code analysis, fact checking)
 - Development/testing with repeated queries
 
 ❌ **Avoid Caching For:**
+
 - Creative writing (high temperature)
 - Time-sensitive information
 - User-specific personalized responses
@@ -179,6 +185,7 @@ When the cache reaches `max_entries`:
 ### Recommended Settings
 
 **Development Environment:**
+
 ```toml
 [llm.cache]
 enabled = true
@@ -188,6 +195,7 @@ min_temperature_threshold = 0.3
 ```
 
 **Production Environment:**
+
 ```toml
 [llm.cache]
 enabled = true
@@ -197,6 +205,7 @@ min_temperature_threshold = 0.2  # More conservative
 ```
 
 **Testing Environment:**
+
 ```toml
 [llm.cache]
 enabled = true
@@ -226,10 +235,11 @@ RUST_LOG=the_agency::cache=debug cargo run
 ```
 
 You'll see logs like:
-```
-DEBUG Cache hit! (model: llama3.2, temp: 0.20, hits: 5)
+
+```text
+DEBUG Cache hit! (model: qwen3-coder:480b-cloud, temp: 0.20, hits: 5)
 DEBUG Cache miss for key: abc123def456
-DEBUG Cached response (model: llama3.2, temp: 0.20)
+DEBUG Cached response (model: qwen3-coder:480b-cloud, temp: 0.20)
 INFO Evicted 10 old cache entries (LRU)
 ```
 

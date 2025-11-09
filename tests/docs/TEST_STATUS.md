@@ -194,7 +194,7 @@ export TOGETHER_API_KEY="..."
 ollama serve
 
 # Pull required models
-ollama pull llama3.2
+ollama pull qwen3-coder:480b-cloud
 ollama pull nomic-embed-text
 
 export OLLAMA_RUNNING="true"

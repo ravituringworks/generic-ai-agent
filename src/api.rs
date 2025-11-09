@@ -1384,8 +1384,8 @@ pub async fn initialize_ui_node_types(state: &AppState) {
                     },
                     "model": {
                         "type": "string",
-                        "default": "llama2",
-                        "description": "Model name (e.g., 'llama2' for Ollama, 'gpt-4' for OpenAI, 'claude-3-opus-20240229' for Anthropic)"
+                        "default": "qwen3-coder:480b-cloud",
+                        "description": "Model name (e.g., 'llama3.2' for Ollama, 'gpt-4' for OpenAI, 'claude-3-opus-20240229' for Anthropic)"
                     },
                     "embedding_model": {
                         "type": "string",

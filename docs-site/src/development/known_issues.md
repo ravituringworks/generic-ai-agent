@@ -17,6 +17,7 @@ config.memory.persistent = false;
 **Status:** ✅ FIXED
 
 ### 2. ✅ FIXED: Embedding Generation Type Mismatch
+
 **Problem:** `embed()` returns `EmbeddingResponse` not `Vec<f32>`  
 **Cause:** Incorrect type extraction from LLM response  
 **Solution:** Extract embedding from response struct
@@ -26,6 +27,7 @@ Ok(emb_response) => emb_response.embedding
 **Status:** ✅ FIXED
 
 ### 3. ✅ PARTIALLY FIXED: Ollama Embedding API EOF Errors
+
 **Problem:** EOF errors when generating embeddings during knowledge storage  
 **Error:** `{\"error\":\"do embedding request: Post \"http://127.0.0.1:<PORT>/embedding\": EOF\"}`  
 **Observed Ports:** 49238, 49345, 50980, 65190 (varying random ports)  

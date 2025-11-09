@@ -6,7 +6,7 @@
 # LLM Provider Configuration (supports multiple providers)
 [llm]
 ollama_url = "http://localhost:11434"
-text_model = "llama3.2"
+text_model = "qwen3-coder:480b-cloud"
 embedding_model = "nomic-embed-text"
 max_tokens = 4096
 temperature = 0.7

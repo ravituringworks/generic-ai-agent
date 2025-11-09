@@ -348,6 +348,7 @@ EOF
 ## Configuration Guide
 
 ### Ollama Setup
+
 Most examples use Ollama by default:
 
 ```bash
@@ -358,7 +359,7 @@ ollama serve
 ollama pull qwen3-coder:480b-cloud
 
 # Or use any other model
-ollama pull llama2
+ollama pull llama3.2
 # Then update the 'model' field in Model Configuration nodes
 ```
 

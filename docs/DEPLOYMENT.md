@@ -25,7 +25,7 @@ Create or edit `config.toml`:
 
 ```toml
 [llm]
-model = "llama3.2:latest"
+model = "llama3.2"
 base_url = "http://localhost:11434"
 
 [memory]

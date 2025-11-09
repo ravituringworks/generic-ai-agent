@@ -257,7 +257,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ollama serve
 
 # Pull required models
-ollama pull llama3.2
+ollama pull qwen3-coder:480b-cloud
 ollama pull nomic-embed-text
 
 # Run the example

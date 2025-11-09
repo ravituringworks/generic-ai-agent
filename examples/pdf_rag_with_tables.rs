@@ -540,7 +540,7 @@ impl DocumentRAGSystem {
 
         let llm_config = the_agency::config::LlmConfig {
             ollama_url: "http://localhost:11434".to_string(),
-            text_model: "llama3.2".to_string(),
+            text_model: "qwen3-coder:480b-cloud".to_string(),
             embedding_model: "nomic-embed-text".to_string(),
             max_tokens: 4096,
             temperature: 0.7,

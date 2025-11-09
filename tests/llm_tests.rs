@@ -10,7 +10,7 @@ use the_agency::{
 fn test_llm_config() -> LlmConfig {
     LlmConfig {
         ollama_url: "http://localhost:11434".to_string(),
-        text_model: "llama3.2".to_string(),
+        text_model: "qwen3-coder:480b-cloud".to_string(),
         embedding_model: "nomic-embed-text".to_string(),
         max_tokens: 1000,
         temperature: 0.7,
@@ -87,9 +87,9 @@ async fn test_ollama_client_model_availability() {
     let config = test_llm_config();
     let client = OllamaClient::new(config);
 
-    match client.is_model_available("llama3.2").await {
+    match client.is_model_available("qwen3-coder:480b-cloud").await {
         Ok(available) => {
-            println!("Model llama3.2 available: {}", available);
+            println!("Model qwen3-coder:480b-cloud available: {}", available);
         }
         Err(e) => {
             println!("Could not check model availability: {}", e);
@@ -128,13 +128,13 @@ fn test_generation_response_structure() {
     let response = GenerationResponse {
         text: "Test response".to_string(),
         tokens_used: Some(42),
-        model: "llama3.2".to_string(),
+        model: "qwen3-coder:480b-cloud".to_string(),
         finish_reason: Some("stop".to_string()),
     };
 
     assert_eq!(response.text, "Test response");
     assert_eq!(response.tokens_used, Some(42));
-    assert_eq!(response.model, "llama3.2");
+    assert_eq!(response.model, "qwen3-coder:480b-cloud");
     assert_eq!(response.finish_reason, Some("stop".to_string()));
 }
 

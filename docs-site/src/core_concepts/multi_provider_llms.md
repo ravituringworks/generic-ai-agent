@@ -6,9 +6,9 @@ The Agency now supports multiple LLM providers with minimal code duplication thr
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│                     LlmProvider Trait                        │
+│                     LlmProvider Trait                       │
 │  (generate, embed, list_models, is_model_available, etc.)   │
 └──────────────────────────┬──────────────────────────────────┘
                            │
@@ -37,12 +37,14 @@ The Agency now supports multiple LLM providers with minimal code duplication thr
 ### 1. Base Layer (`providers/base.rs`)
 
 **HttpProviderClient**: Common HTTP client with:
+
 - Timeout handling
 - Error mapping (401, 429, 5xx)
 - JSON serialization/deserialization
 - Reusable across all cloud providers
 
 **OpenAICompatible Trait**: Interface for OpenAI-compatible providers:
+
 - `base_url()` - API endpoint
 - `api_key()` - Authentication
 - `auth_headers()` - Custom headers
@@ -51,7 +53,8 @@ The Agency now supports multiple LLM providers with minimal code duplication thr
 
 ### 2. OpenAI-Compatible Layer (`providers/openai_compatible.rs`)
 
-**OpenAICompatibleProvider<T>**: Generic implementation for any OpenAI-compatible API:
+**OpenAICompatibleProvider< T>**: Generic implementation for any OpenAI-compatible API:
+
 - Handles chat completions
 - Handles embeddings
 - Handles model listing
@@ -63,6 +66,7 @@ The Agency now supports multiple LLM providers with minimal code duplication thr
 Each provider is just an adapter (~50 lines):
 
 **OpenAI** (`providers/openai.rs`):
+
 ```rust
 struct OpenAIAdapter {
     base_url: String,
@@ -76,6 +80,7 @@ impl OpenAICompatible for OpenAIAdapter {
 ```
 
 **Groq** (`providers/openai_variants.rs`):
+
 ```rust
 struct GroqAdapter { api_key: Option<String> }
 
@@ -102,6 +107,7 @@ impl OpenAICompatible for GroqAdapter {
 ## Implemented Providers
 
 ### Currently Implemented
+
 - ✅ **Ollama** - Local inference (existing)
 - ✅ **OpenAI** - GPT-4, GPT-3.5
 - ✅ **Groq** - Fast inference with LPU
@@ -109,6 +115,7 @@ impl OpenAICompatible for GroqAdapter {
 - ✅ **Azure OpenAI** - Enterprise deployment
 
 ### Planned (Same Pattern)
+
 - ⏳ **Anthropic** - Claude 3 (different message format)
 - ⏳ **Google Gemini** - Gemini Pro (different API)
 - ⏳ **Replicate** - Various models
@@ -118,6 +125,7 @@ impl OpenAICompatible for GroqAdapter {
 ## Usage Examples
 
 ### Simple Provider Creation
+
 ```rust
 // From environment variable
 let openai = OpenAIProvider::from_env(
@@ -139,6 +147,7 @@ let groq = GroqProvider::create(config);
 ```
 
 ### Unified Interface
+
 ```rust
 // All providers use the same interface
 let messages = vec![user_message("Hello!")];
@@ -150,6 +159,7 @@ let response3 = together.generate(&messages).await?;
 ```
 
 ### Provider Manager with Fallback
+
 ```rust
 let manager = ProviderManager::new_ollama(config)
     .with_fallback(Arc::new(groq_provider))
@@ -169,6 +179,7 @@ let response = manager.generate(&messages).await?;
 ### For OpenAI-Compatible APIs (5 minutes)
 
 1. Create adapter struct:
+
 ```rust
 struct NewProviderAdapter {
     api_key: Option<String>,
@@ -176,6 +187,7 @@ struct NewProviderAdapter {
 ```
 
 2. Implement trait:
+
 ```rust
 impl OpenAICompatible for NewProviderAdapter {
     fn base_url(&self) -> &str { "https://api.newprovider.com/v1" }
@@ -184,11 +196,13 @@ impl OpenAICompatible for NewProviderAdapter {
 ```
 
 3. Create type alias:
+
 ```rust
 pub type NewProvider = OpenAICompatibleProvider<NewProviderAdapter>;
 ```
 
 4. Add convenience methods:
+
 ```rust
 impl NewProvider {
     pub fn create(config: ProviderConfig) -> Arc<dyn LlmProvider> {

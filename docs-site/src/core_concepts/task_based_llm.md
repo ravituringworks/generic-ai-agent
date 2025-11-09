@@ -5,6 +5,7 @@ The Agency supports configuring different LLM models for different types of task
 ## Overview
 
 Instead of using a single model for all tasks, you can configure:
+
 - **Code generation tasks** → Use specialized coding models (e.g., `qwen2.5-coder`)
 - **Creative writing** → Use models optimized for creative content
 - **Data analysis** → Use models good at logical reasoning
@@ -19,7 +20,7 @@ Instead of using a single model for all tasks, you can configure:
 ```toml
 [llm]
 ollama_url = "http://localhost:11434"
-text_model = "llama3.2"              # Default model
+text_model = "qwen3-coder:480b-cloud"
 embedding_model = "nomic-embed-text"
 max_tokens = 4096
 temperature = 0.7
@@ -57,7 +58,7 @@ system_prompt = "You are an expert software engineer. Write clean, efficient, an
 
 ```toml
 [llm.task_models.creative_writing]
-model = "llama3.2:8b"
+model = "llama3.2"
 max_tokens = 4096
 temperature = 0.9
 keywords = ["story", "poem", "creative", "write", "narrative", "fiction"]
@@ -109,7 +110,7 @@ system_prompt = "You are a professional translator. Provide accurate translation
 
 ```toml
 [llm.task_models.summarization]
-model = "llama3.2:3b"
+model = "llama3.2"
 max_tokens = 1024
 temperature = 0.4
 keywords = ["summarize", "summary", "brief", "overview", "tldr"]
@@ -223,28 +224,32 @@ Common Ollama models for different tasks:
 | Task | Recommended Models |
 |------|-------------------|
 | Code | `qwen2.5-coder:7b`, `codellama:7b`, `deepseek-coder:6.7b` |
-| General | `llama3.2:8b`, `llama3.1:8b`, `mistral:7b` |
+| General | `llama3.2`, `llama3.1:8b`, `mistral:7b` |
 | Math/Logic | `qwen2.5:7b`, `llama3.2:8b` |
-| Creative | `llama3.2:8b`, `mistral:7b` |
+| Creative | `llama3.2`, `mistral:7b` |
 | Multilingual | `aya:8b`, `qwen2.5:7b` |
 | Fast/Efficient | `llama3.2:3b`, `phi3:3.8b` |
 
 ## Example Workflow
 
 1. **Install required models**:
+
    ```bash
    ollama pull llama3.2
    ollama pull qwen2.5-coder:7b
+   ollama pull qwen3-coder:480b-cloud
    ollama pull nomic-embed-text
    ```
 
 2. **Create configuration file** (`config.toml`):
+
    ```bash
    cp config.example.toml config.toml
    # Edit config.toml with your preferences
    ```
 
 3. **Run your agent**:
+
    ```rust
    let config = AgentConfig::from_file("config.toml")?;
    let mut agent = Agent::new(config).await?;

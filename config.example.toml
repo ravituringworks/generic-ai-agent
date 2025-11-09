@@ -10,6 +10,7 @@
 [llm]
 # Primary provider (currently Ollama - local inference)
 ollama_url = "http://localhost:11434"
+server_url = "http://localhost:11434"
 
 # Default model for text generation
 text_model = "qwen2.5-coder:3b"
@@ -130,7 +131,7 @@ keywords = ["code", "program", "function", "class", "debug", "refactor", "implem
 system_prompt = "You are an expert software engineer. Write clean, efficient, and well-documented code."
 
 [llm.task_models.creative_writing]
-model = "llama3.2:8b"
+model = "llama3.2"
 max_tokens = 4096
 temperature = 0.9
 keywords = ["story", "poem", "creative", "write", "narrative", "fiction"]
@@ -158,7 +159,7 @@ keywords = ["translate", "translation", "language"]
 system_prompt = "You are a professional translator. Provide accurate translations while preserving context and tone."
 
 [llm.task_models.summarization]
-model = "llama3.2:3b"
+model = "llama3.2"
 max_tokens = 1024
 temperature = 0.4
 keywords = ["summarize", "summary", "brief", "overview", "tldr"]

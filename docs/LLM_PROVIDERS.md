@@ -317,6 +317,7 @@ export COHERE_API_KEY="..."
 ```
 
 Load in your shell:
+
 ```bash
 source .env
 ```
@@ -339,28 +340,33 @@ source .env
 ## Best Practices
 
 ### 1. Start with Ollama for Development
+
 - Free, fast iteration
 - No API costs during development
 - Easy to test and debug
 
 ### 2. Use Multiple Providers in Production
+
 - Configure fallbacks for reliability
 - Route tasks to best provider
 - Monitor costs and performance
 
 ### 3. Secure API Keys
+
 - Never commit keys to git
 - Use environment variables
 - Rotate keys regularly
 - Use secrets management in production
 
 ### 4. Monitor Usage and Costs
+
 - Track token usage per provider
 - Set up billing alerts
 - Review costs monthly
 - Optimize model selection
 
 ### 5. Test Provider Switching
+
 - Ensure your code works with multiple providers
 - Test fallback scenarios
 - Validate output quality across providers

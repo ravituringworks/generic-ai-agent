@@ -478,7 +478,7 @@ mod tests {
     fn test_ollama_client_creation() {
         let config = LlmConfig::default();
         let client = OllamaClient::new(config);
-        assert_eq!(client.config.text_model, "llama3.2");
+        assert_eq!(client.config.text_model, "qwen3-coder:480b-cloud");
     }
 
     #[test]

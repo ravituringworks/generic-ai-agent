@@ -66,7 +66,7 @@ When you don't know something, you admit it rather than making things up.
         Err(e) => {
             error!("❌ Failed to initialize agent: {}", e);
             eprintln!("Make sure Ollama is running with the required models:");
-            eprintln!("  ollama pull llama3.2");
+            eprintln!("  ollama pull qwen3-coder:480b-cloud");
             eprintln!("  ollama pull nomic-embed-text");
             return Err(e.into());
         }

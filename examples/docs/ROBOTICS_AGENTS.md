@@ -145,6 +145,7 @@ let response = agent.process(&task_description).await?;
 ollama serve
 ollama pull llama3.2          # General model
 ollama pull qwen2.5-coder:7b  # Code generation
+ollama pull qwen3-coder:480b-cloud  # Code generation
 ollama pull qwen2.5:7b        # Technical analysis
 ```
 
@@ -152,7 +153,7 @@ ollama pull qwen2.5:7b        # Technical analysis
 
 ```toml
 [llm]
-text_model = "llama3.2"
+text_model = "qwen3-coder:480b-cloud"
 temperature = 0.7
 
 [llm.cache]

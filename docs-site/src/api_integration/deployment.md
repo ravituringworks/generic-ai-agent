@@ -25,7 +25,7 @@ Create or edit `config.toml`:
 
 ```toml
 [llm]
-model = "llama3.2:latest"
+model = "qwen3-coder:480b-cloud"
 base_url = "http://localhost:11434"
 
 [memory]

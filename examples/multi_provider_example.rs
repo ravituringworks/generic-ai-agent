@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
     // Configuration for primary provider (Ollama - local)
     let ollama_config = LlmConfig {
         ollama_url: "http://localhost:11434".to_string(),
-        text_model: "llama3.2".to_string(),
+        text_model: "qwen3-coder:480b-cloud".to_string(),
         embedding_model: "nomic-embed-text".to_string(),
         max_tokens: 1000,
         temperature: 0.7,
@@ -41,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     println!("📋 Configuring Provider Manager");
-    println!("  • Primary: Ollama (local) - llama3.2");
+    println!("  • Primary: Ollama (local) - qwen3-coder:480b-cloud");
     println!("  • Fallback: Enabled");
     println!("  • Max Retries: {}", manager_config.max_retries);
     println!("  • Retry Delay: {}ms\n", manager_config.retry_delay_ms);
@@ -112,7 +112,7 @@ async fn main() -> anyhow::Result<()> {
     println!("\n🔍 Example 4: Check Model Availability");
     println!("{}", "-".repeat(50));
 
-    let test_models = vec!["llama3.2", "gpt-4", "claude-3"];
+    let test_models = vec!["qwen3-coder:480b-cloud", "gpt-4", "claude-3"];
 
     for model in test_models {
         match provider.is_model_available(model).await {

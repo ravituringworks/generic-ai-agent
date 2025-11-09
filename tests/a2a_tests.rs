@@ -95,7 +95,7 @@ async fn test_agent_registration() {
         protocols: vec!["http".to_string()],
         message_types: vec!["text".to_string(), "task".to_string()],
         metadata: HashMap::from([
-            ("model".to_string(), "llama3.2".to_string()),
+            ("model".to_string(), "qwen3-coder:480b-cloud".to_string()),
             ("version".to_string(), "0.1.0".to_string()),
         ]),
     };

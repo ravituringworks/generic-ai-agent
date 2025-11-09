@@ -15,29 +15,29 @@ Complete guide for deploying The Agency platform on Windows, Linux, and Kubernet
 
 ## Windows Service
 
-### Prerequisites
+### Prerequisites for Windows
 
 - Windows Server 2016+ or Windows 10+
 - Administrator privileges
 - Rust toolchain (for building)
 
-### Building
+### Building the Windows Service
 
 ```powershell
 # Build the Windows service binary
 cargo build --release --bin agency-service
 ```
 
-### Installation
+### Installation (Windows)
 
-**Option 1: Using PowerShell Script (Recommended)**
+#### Option 1: Using PowerShell Script (Recommended)
 
 ```powershell
 # Run as Administrator
 .\scripts\install-windows.ps1
 ```
 
-**Option 2: Manual Installation**
+#### Option 2: Manual Installation (Windows)
 
 ```powershell
 # Create directories
@@ -55,7 +55,7 @@ sc.exe create AgencyService `
     start= auto
 ```
 
-### Service Management
+### Windows Service Management
 
 ```powershell
 # Start service
@@ -78,13 +78,13 @@ Configuration file location: `C:\ProgramData\Agency\config.toml`
 ```toml
 [llm]
 ollama_url = "http://localhost:11434"
-model = "llama3.2:latest"
+model = "qwen3-coder:480b-cloud"
 
 [memory]
 database_url = "C:\\ProgramData\\Agency\\data\\memory.db"
 ```
 
-### Uninstallation
+### Uninstallation (Windows)
 
 ```powershell
 # Stop and remove service
@@ -100,13 +100,13 @@ Remove-Item -Recurse -Force "C:\ProgramData\Agency"
 
 ## Linux systemd
 
-### Prerequisites
+### Prerequisites for Linux
 
 - Linux distribution with systemd (Ubuntu 18.04+, CentOS 7+, Debian 10+, etc.)
 - Root access or sudo privileges
 - Rust toolchain (for building)
 
-### Building
+### Building the Linux Daemon
 
 ```bash
 # Build the daemon binary
@@ -115,14 +115,14 @@ cargo build --release --bin agency-daemon
 
 ### Installation
 
-**Option 1: Using Install Script (Recommended)**
+#### Option 1: Using Install Script (Recommended)
 
 ```bash
 # Run as root
 sudo ./scripts/install-linux.sh
 ```
 
-**Option 2: Manual Installation**
+#### Option 2: Manual Installation
 
 ```bash
 # Create system user
@@ -172,20 +172,20 @@ sudo journalctl -u the-agency -f
 sudo journalctl -u the-agency -n 100
 ```
 
-### Configuration
+### Linux Configuration
 
 Configuration file location: `/etc/the-agency/config.toml`
 
 ```toml
 [llm]
 ollama_url = "http://localhost:11434"
-model = "llama3.2:latest"
+model = "llama3.2"
 
 [memory]
 database_url = "/var/lib/the-agency/memory.db"
 ```
 
-### Uninstallation
+### Uninstallation (Linux)
 
 ```bash
 # Stop and disable service
@@ -210,14 +210,14 @@ sudo systemctl daemon-reload
 
 ## Kubernetes
 
-### Prerequisites
+### Prerequisites for Kubernetes
 
 - Kubernetes cluster (1.19+)
 - kubectl configured
 - Docker for building images
 - Container registry access (optional)
 
-### Building Docker Image
+### Building the Docker Image for Kubernetes
 
 ```bash
 # Build image
@@ -232,14 +232,14 @@ docker push your-registry.com/the-agency:v0.2.0
 
 ### Deployment
 
-**Option 1: Using Deployment Script (Recommended)**
+#### Option 1: Using Deployment Script (Recommended)
 
 ```bash
 # Deploy to Kubernetes
 ./scripts/deploy-k8s.sh
 ```
 
-**Option 2: Manual Deployment**
+### Option 2: Manual Deployment
 
 ```bash
 # Create namespace
@@ -292,7 +292,7 @@ kubectl rollout status deployment/the-agency -n the-agency
 kubectl rollout history deployment/the-agency -n the-agency
 ```
 
-### Configuration
+### Kubernetes Configuration
 
 Update the ConfigMap:
 
@@ -451,7 +451,7 @@ docker-compose down -v
 
 ---
 
-## Configuration
+## Platform Configuration
 
 ### Environment Variables
 
@@ -473,7 +473,7 @@ system_prompt = "You are a helpful AI assistant."
 max_turns = 10
 
 [llm]
-model = "llama3.2:latest"
+model = "llama3.2"
 ollama_url = "http://localhost:11434"
 temperature = 0.7
 max_tokens = 2000
@@ -500,9 +500,10 @@ listen_address = "0.0.0.0:8001"
 
 ## Troubleshooting
 
-### Windows
+### Windows Troubleshooting
 
 **Service won't start:**
+
 ```powershell
 # Check Event Viewer
 Get-EventLog -LogName Application -Source AgencyService -Newest 20
@@ -515,6 +516,7 @@ sc.exe qc AgencyService
 ```
 
 **Port already in use:**
+
 ```powershell
 # Find process using port 8080
 netstat -ano | findstr :8080
@@ -523,9 +525,10 @@ netstat -ano | findstr :8080
 taskkill /PID <pid> /F
 ```
 
-### Linux
+### Linux Troubleshooting
 
 **Service fails to start:**
+
 ```bash
 # Check logs
 sudo journalctl -u the-agency -n 50 --no-pager
@@ -538,6 +541,7 @@ file /usr/local/bin/agency-daemon
 ```
 
 **Permission issues:**
+
 ```bash
 # Fix ownership
 sudo chown -R agency:agency /var/lib/the-agency
@@ -548,9 +552,10 @@ sudo setenforce 0  # Temporarily disable
 sudo ausearch -m avc -ts recent  # Check denials
 ```
 
-### Kubernetes
+### Kubernetes Deployment
 
 **Pods not starting:**
+
 ```bash
 # Describe pod
 kubectl describe pod <pod-name> -n the-agency
@@ -563,6 +568,7 @@ kubectl logs <pod-name> -n the-agency
 ```
 
 **Image pull errors:**
+
 ```bash
 # Check image pull policy
 kubectl get deployment the-agency -n the-agency -o yaml | grep imagePullPolicy
@@ -576,6 +582,7 @@ kubectl create secret docker-registry regcred \
 ```
 
 **Persistent volume issues:**
+
 ```bash
 # Check PVC status
 kubectl get pvc -n the-agency
@@ -590,16 +597,19 @@ kubectl get storageclass
 ### Common Issues
 
 **Cannot connect to Ollama:**
+
 - Verify Ollama is running
 - Check `ollama_url` in config
 - Test connection: `curl http://localhost:11434/api/tags`
 
 **Database errors:**
+
 - Ensure database directory exists and is writable
 - Check disk space
 - Verify database_url path
 
 **API not responding:**
+
 - Check if service is running
 - Verify port is not blocked by firewall
 - Test: `curl http://localhost:8080/health`
@@ -609,18 +619,21 @@ kubectl get storageclass
 ## Security Recommendations
 
 ### Windows
+
 - Run service as limited service account, not LocalSystem
 - Configure Windows Firewall rules
 - Enable audit logging
 - Use HTTPS with reverse proxy
 
 ### Linux
+
 - Use dedicated `agency` user with minimal privileges
 - Configure SELinux/AppArmor policies
 - Enable firewalld/iptables rules
 - Use systemd security features (see the-agency.service)
 
-### Kubernetes
+### Kubernetes Security
+
 - Use Pod Security Standards
 - Enable Network Policies
 - Use Secrets for sensitive data
@@ -635,11 +648,13 @@ kubectl get storageclass
 ### Resource Allocation
 
 **Windows/Linux:**
+
 - Adjust based on expected load
 - Monitor CPU and memory usage
 - Consider SSD for database
 
 **Kubernetes:**
+
 ```yaml
 resources:
   requests:    # Guaranteed resources
@@ -678,4 +693,4 @@ connection_timeout = 30
 - 🔄 [Saga Pattern Guide](API_IMPLEMENTATION.md)
 - 🐛 [Report Issues](https://github.com/ravituringworks/the-agency/issues)
 
-**Built with ❤️ in Rust**
+### Built with ❤️ in Rust

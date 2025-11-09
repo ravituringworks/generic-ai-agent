@@ -69,7 +69,7 @@ A comprehensive, extensible AI agent framework built in Rust that integrates:
    curl -fsSL https://ollama.ai/install.sh | sh
    
    # Pull required models
-   ollama pull llama3.2
+   ollama pull qwen3-coder:480b-cloud
    ollama pull nomic-embed-text
    ```
 
@@ -365,7 +365,7 @@ async fn main() -> anyhow::Result<()> {
     // Initialize LLM client
     let llm_config = the_agency::config::LlmConfig {
         ollama_url: "http://localhost:11434".to_string(),
-        text_model: "llama3.2".to_string(),
+        text_model: "qwen3-coder:480b-cloud".to_string(),
         embedding_model: "nomic-embed-text".to_string(),
         max_tokens: 4096,
         temperature: 0.7,
@@ -727,7 +727,7 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for detailed deployment instructions.
 # LLM Provider Configuration (supports multiple providers)
 [llm]
 ollama_url = "http://localhost:11434"
-text_model = "llama3.2"
+text_model = "qwen3-coder:480b-cloud"
 embedding_model = "nomic-embed-text"
 max_tokens = 4096
 temperature = 0.7

@@ -475,7 +475,7 @@ impl Default for LlmConfig {
     fn default() -> Self {
         Self {
             ollama_url: "http://127.0.0.1:11434".to_string(),
-            text_model: "llama3.2".to_string(),
+            text_model: "qwen3-coder:480b-cloud".to_string(),
             embedding_model: "nomic-embed-text".to_string(),
             max_tokens: 4096,
             temperature: 0.7,
