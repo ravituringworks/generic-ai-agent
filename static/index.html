@@ -564,6 +564,7 @@
             <span id="zoomLevel">100%</span>
             <button class="zoom-btn" id="zoomIn">+</button>
             <button class="zoom-btn" id="fitToScreen">Fit</button>
+            <button class="zoom-btn" id="autoLayout">Auto Layout</button>
         </div>
     </div>
 
@@ -1442,6 +1443,7 @@
             document.getElementById('zoomIn').addEventListener('click', () => zoomCanvas(1.2));
             document.getElementById('zoomOut').addEventListener('click', () => zoomCanvas(0.8));
             document.getElementById('fitToScreen').addEventListener('click', fitToScreen);
+            document.getElementById('autoLayout').addEventListener('click', autoLayoutNodes);
 
             // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyDown);
@@ -2191,14 +2193,124 @@
 
             const canvasRect = canvas.getBoundingClientRect();
             const padding = 100; // Add padding around the workflow
-            const scaleX = canvasRect.width / (bounds.maxX - bounds.minX + padding);
-            const scaleY = canvasRect.height / (bounds.maxY - bounds.minY + padding);
+            const workflowWidth = bounds.maxX - bounds.minX;
+            const workflowHeight = bounds.maxY - bounds.minY;
+
+            // Calculate scale to fit
+            const scaleX = canvasRect.width / (workflowWidth + padding * 2);
+            const scaleY = canvasRect.height / (workflowHeight + padding * 2);
             canvasScale = Math.min(scaleX, scaleY, 1);
 
-            canvasOffset.x = -bounds.minX * canvasScale + padding / 2;
-            canvasOffset.y = -bounds.minY * canvasScale + padding / 2;
+            // Center the workflow in the viewport
+            const scaledWidth = workflowWidth * canvasScale;
+            const scaledHeight = workflowHeight * canvasScale;
+            canvasOffset.x = (canvasRect.width - scaledWidth) / 2 - bounds.minX * canvasScale;
+            canvasOffset.y = (canvasRect.height - scaledHeight) / 2 - bounds.minY * canvasScale;
 
             updateCanvasTransform();
+        }
+
+        function autoLayoutNodes() {
+            if (nodes.length === 0) return;
+
+            // Build dependency graph
+            const incomingConnections = new Map();
+            const outgoingConnections = new Map();
+
+            nodes.forEach(node => {
+                incomingConnections.set(node.id, []);
+                outgoingConnections.set(node.id, []);
+            });
+
+            connections.forEach(conn => {
+                incomingConnections.get(conn.to_node)?.push(conn.from_node);
+                outgoingConnections.get(conn.from_node)?.push(conn.to_node);
+            });
+
+            // Separate container nodes and regular nodes
+            const containerNodes = nodes.filter(n => {
+                const nodeType = nodeTypes.find(nt => nt.id === n.node_type);
+                return nodeType?.is_container && !n.parent_id;
+            });
+
+            const regularNodes = nodes.filter(n => {
+                const nodeType = nodeTypes.find(nt => nt.id === n.node_type);
+                return !nodeType?.is_container && !n.parent_id;
+            });
+
+            // Assign layers using topological sort
+            const layers = [];
+            const nodeLayer = new Map();
+            const visited = new Set();
+
+            // Find start nodes (no incoming connections or only from containers)
+            const startNodes = regularNodes.filter(node => {
+                const incoming = incomingConnections.get(node.id) || [];
+                return incoming.length === 0;
+            });
+
+            // BFS to assign layers
+            const queue = startNodes.map(n => ({ node: n, layer: 0 }));
+            while (queue.length > 0) {
+                const { node, layer } = queue.shift();
+                if (visited.has(node.id)) continue;
+                visited.add(node.id);
+
+                nodeLayer.set(node.id, layer);
+                if (!layers[layer]) layers[layer] = [];
+                layers[layer].push(node);
+
+                // Add outgoing nodes to next layer
+                const outgoing = outgoingConnections.get(node.id) || [];
+                outgoing.forEach(nextNodeId => {
+                    const nextNode = nodes.find(n => n.id === nextNodeId);
+                    if (nextNode && !visited.has(nextNodeId)) {
+                        queue.push({ node: nextNode, layer: layer + 1 });
+                    }
+                });
+            }
+
+            // Layout regular nodes in layers
+            const layerSpacing = 350;
+            const nodeSpacing = 150;
+            const startX = 100;
+            const startY = 100;
+
+            layers.forEach((layerNodes, layerIndex) => {
+                const layerY = startY;
+                layerNodes.forEach((node, nodeIndex) => {
+                    node.position.x = startX + layerIndex * layerSpacing;
+                    node.position.y = layerY + nodeIndex * nodeSpacing;
+                });
+            });
+
+            // Layout container nodes at the bottom
+            let containerY = startY + layers.length * nodeSpacing + 200;
+            containerNodes.forEach((node, index) => {
+                node.position.x = startX;
+                node.position.y = containerY;
+                containerY += (node.size?.height || 300) + 100;
+            });
+
+            // Handle nodes that weren't in the graph (isolated nodes)
+            nodes.forEach(node => {
+                if (!visited.has(node.id) && !node.parent_id) {
+                    const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                    if (!nodeType?.is_container) {
+                        node.position.x = startX + layers.length * layerSpacing;
+                        node.position.y = startY + visited.size * nodeSpacing;
+                        visited.add(node.id);
+                    }
+                }
+            });
+
+            // Re-render and save
+            renderCanvas();
+            if (currentWorkflow) {
+                saveWorkflow();
+            }
+            fitToScreen();
+            updateStatus('Layout applied successfully');
         }
 
         function updateStatus(message) {
