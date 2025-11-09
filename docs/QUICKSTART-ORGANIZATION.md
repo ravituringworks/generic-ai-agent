@@ -7,6 +7,7 @@
 ```
 
 This will:
+
 - Run the complete organization example
 - Generate timestamped outputs in `demo-outputs/`
 - Create comprehensive reports and logs
@@ -14,7 +15,8 @@ This will:
 ## 📂 Demo Outputs
 
 After running the demo, check:
-```
+
+```text
 demo-outputs/organization-YYYYMMDD-HHMMSS/
 ├── organization-execution.log  # Full execution trace
 ├── demo-report.md             # Comprehensive markdown report
@@ -24,11 +26,13 @@ demo-outputs/organization-YYYYMMDD-HHMMSS/
 ## 🎯 What You'll See
 
 ### Organization
+
 - **27 agents** across 18 specialized categories
 - **8 collaborative workspaces**
 - **14 coordinated tasks**
 
 ### Agent Categories
+
 1. Research & AI
 2. Software Engineering
 3. Security
@@ -49,6 +53,7 @@ demo-outputs/organization-YYYYMMDD-HHMMSS/
 18. Design & UX
 
 ### Workspaces
+
 1. **AI & Autonomy Research** - 3 agents
 2. **Software Platform** - 3 agents
 3. **Hardware Integration** - 3 agents
@@ -61,11 +66,13 @@ demo-outputs/organization-YYYYMMDD-HHMMSS/
 ## 💻 Run Examples Manually
 
 ### Organization Example
+
 ```bash
 cargo run --example robotech_industries_organization_example
 ```
 
 ### Organization Daemon
+
 ```bash
 cargo run --bin organization-daemon
 ```
@@ -79,6 +86,7 @@ cargo run --bin organization-daemon
 ## 🔧 Quick Code Examples
 
 ### Create an Organization
+
 ```rust
 use the_agency::{Organization, OrganizationAgent, OrganizationRole};
 
@@ -92,6 +100,7 @@ let agent_id = org.add_agent(agent);
 ```
 
 ### Create a Workspace
+
 ```rust
 use the_agency::CollaborativeWorkspace;
 
@@ -105,6 +114,7 @@ org.assign_agent_to_workspace(&agent_id, &ws_id)?;
 ```
 
 ### Coordinate Tasks
+
 ```rust
 use the_agency::organization::coordinator::AgentCoordinator;
 use the_agency::{WorkspaceTask, TaskPriority};
@@ -128,21 +138,25 @@ coordinator.process_messages().await?;
 ## 🎨 Key Features
 
 ### ✅ Multi-Agent Coordination
+
 - Specialized roles with capabilities
 - Agent status tracking
 - Workspace membership
 
 ### ✅ Task Management
+
 - Priority levels (Critical, High, Medium, Low)
 - Task dependencies
 - Status tracking
 
 ### ✅ Communication
+
 - Message queue
 - Agent-to-agent messaging
 - Status updates
 
 ### ✅ Work Products
+
 - Task completion logs
 - Execution traces
 - Performance metrics
@@ -151,17 +165,20 @@ coordinator.process_messages().await?;
 ## 🐛 Troubleshooting
 
 **Demo script won't run:**
+
 ```bash
 chmod +x scripts/demo-organization.sh
 ```
 
 **Compilation errors:**
+
 ```bash
 cargo clean
 cargo check
 ```
 
 **Can't find outputs:**
+
 ```bash
 ls -la demo-outputs/
 ```

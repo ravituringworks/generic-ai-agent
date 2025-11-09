@@ -15,6 +15,7 @@ The Agency's prompt configuration system allows you to define task prompts in ex
 **Key Principle**: Prompts should define WHAT needs to be built, not HOW to build it.
 
 ### ❌ Old Approach (Hardcoded, Prescriptive)
+
 ```rust
 let task = WorkspaceTask::new(
     "Create BOM".to_string(),
@@ -28,6 +29,7 @@ let task = WorkspaceTask::new(
 **Problem**: Locks agents into specific implementations. No room for creativity or optimization.
 
 ### ✅ New Approach (Config-based, Requirements-driven)
+
 ```toml
 [hardware.compute_platform_analysis]
 title = "Generate Compute Platform Trade-off Analysis"
@@ -52,6 +54,7 @@ NOTE: Agents should generate actual code, NOT pseudocode.
 ```
 
 **Benefits**:
+
 - Agents choose best tools/languages
 - Implementations evolve with technology
 - Prompts remain stable even as code practices change
@@ -59,7 +62,7 @@ NOTE: Agents should generate actual code, NOT pseudocode.
 
 ## Directory Structure
 
-```
+```text
 examples/
 ├── prompts/
 │   ├── README.md                 # This file
@@ -113,6 +116,7 @@ available_variables = [
 ```
 
 Use in prompts:
+
 ```toml
 requirements = """
 Project: {project_name}
@@ -205,6 +209,7 @@ Use this template for your implementation.
 The config includes guidelines for how agents should approach different types of tasks:
 
 ### Code Generation
+
 ```toml
 [agent_guidelines]
 code_generation = """
@@ -220,6 +225,7 @@ When generating code, agents must:
 ```
 
 ### Analysis Generation
+
 ```toml
 analysis_generation = """
 When generating analysis, agents must:
@@ -233,6 +239,7 @@ When generating analysis, agents must:
 ```
 
 ### Documentation Generation
+
 ```toml
 documentation_generation = """
 When generating documentation, agents must:
@@ -302,17 +309,20 @@ response = agent_client.process(task)
 The `robotech_prompts.toml` includes comprehensive 2025 hardware specifications:
 
 ### Compute Platforms
+
 - **Flagship**: NVIDIA Jetson AGX Thor (2000 TOPS, $2499)
 - **Premium**: NVIDIA Jetson AGX Orin 64GB (275 TOPS, $1999)
 - **Standard**: NVIDIA Jetson Orin NX 16GB (100 TOPS, $699)
 - **Budget**: Raspberry Pi 5 + AI Accelerator ($153-392)
 
 ### Microcontrollers
+
 - **High-performance**: STM32H7 (550MHz), NXP i.MX RT1180 (1.2GHz dual-core)
 - **Mid-range**: STM32U5 (ultra-low power), NXP MCXN947
 - **Budget**: RP2350 (dual Cortex-M33 + RISC-V), ESP32-C6 (RISC-V, WiFi 6)
 
 ### Software Stack
+
 - JetPack 7.x (for Thor), JetPack 6.x (for Orin)
 - ROS2 Jazzy/Rolling
 - TensorRT 10+, CUDA 13+
@@ -345,22 +355,27 @@ Keep a changelog in the TOML file:
 ## Best Practices
 
 ### 1. Be Specific About Deliverables
+
 ❌ "Create a report about the platforms"
 ✅ "Generate: (1) comparison spreadsheet with formulas, (2) Python benchmark scripts, (3) cost calculator, (4) decision tree diagram"
 
 ### 2. Include Real Data
+
 ❌ "Analyze various platforms"
 ✅ "Analyze: Thor ($2499, 2000 TOPS), Orin ($1999, 275 TOPS), include DigiKey part numbers"
 
 ### 3. Specify Output Formats
+
 ❌ "Make a comparison"
 ✅ "Create comparison matrix in CSV format with columns: Platform, TOPS, Power, Cost, Lead_Time"
 
 ### 4. Set Quality Standards
+
 ❌ "Write tests"
 ✅ "Generate unit tests with >80% coverage, include integration tests, add CI/CD workflow"
 
 ### 5. Provide Context
+
 ❌ "Select MCUs"
 ✅ "Select MCUs for 25-DOF humanoid robot, 1 kHz motor control, $50-100 budget, 2025 availability"
 
@@ -369,6 +384,7 @@ Keep a changelog in the TOML file:
 ### From Hardcoded Prompts to Config
 
 **Step 1**: Extract prompt text
+
 ```rust
 // Before
 let task = WorkspaceTask::new(
@@ -379,6 +395,7 @@ let task = WorkspaceTask::new(
 ```
 
 **Step 2**: Create TOML entry
+
 ```toml
 [category.my_task]
 title = "My Task"
@@ -390,6 +407,7 @@ Long prompt text here...
 ```
 
 **Step 3**: Load from config (future)
+
 ```rust
 let task_prompt = loader.get_prompt("category.my_task")?;
 let task = WorkspaceTask::from_prompt(&task_prompt)?;
@@ -406,6 +424,7 @@ See `robotech_prompts.toml` for production-ready examples of:
 - Migration guides
 
 Each example demonstrates:
+
 - Clear requirements specification
 - Specific deliverables with formats
 - Real 2025 hardware data
@@ -427,6 +446,7 @@ When adding new prompts:
 ## Support
 
 For questions or issues:
+
 - Check examples in `robotech_prompts.toml`
 - Review agent behavior guidelines
 - Consult the main Agency documentation

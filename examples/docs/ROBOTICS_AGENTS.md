@@ -77,6 +77,7 @@ cargo run --example simulation_engineer_agent
 7. Optimize Flash Attention CUDA kernels
 
 **Run the example**:
+
 ```bash
 cargo run --example scaling_engineer_agent
 ```
@@ -124,7 +125,7 @@ let agent = AgentBuilder::new()
 let response = agent.process(&task_description).await?;
 ```
 
-### Key Features:
+### Key Features
 
 - **Task-specific LLM models**: Automatically select best model per task
 - **Response caching**: Speed up repeated queries
@@ -147,7 +148,7 @@ ollama pull qwen2.5-coder:7b  # Code generation
 ollama pull qwen2.5:7b        # Technical analysis
 ```
 
-2. **Configuration**: Update `config.toml` if needed
+1. **Configuration**: Update `config.toml` if needed
 
 ```toml
 [llm]
@@ -179,6 +180,7 @@ cargo run --example simulation_engineer_agent
 ```
 
 **Scaling Engineer**:
+
 ```bash
 # Full demo with all tasks
 cargo run --example scaling_engineer_agent
@@ -198,7 +200,8 @@ cargo run --example scaling_engineer_agent
 
 ## 📊 Performance Characteristics
 
-### Simulation Engineer Agent
+### Simulation Engineer Agent (Performance)
+
 | Task | Complexity | Avg Response Time* |
 |------|-----------|-------------------|
 | Environment Design | High | 15-30s |
@@ -208,7 +211,7 @@ cargo run --example scaling_engineer_agent
 | Performance Optimization | High | 15-30s |
 | Test Suite Generation | Medium | 10-20s |
 
-### Scaling Engineer Agent
+### Scaling Engineer Agent (Performance)
 
 | Task | Complexity | Avg Response Time* |
 |------|-----------|-------------------|

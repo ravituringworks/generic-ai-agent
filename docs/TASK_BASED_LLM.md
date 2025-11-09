@@ -5,6 +5,7 @@ The Agency supports configuring different LLM models for different types of task
 ## Overview
 
 Instead of using a single model for all tasks, you can configure:
+
 - **Code generation tasks** → Use specialized coding models (e.g., `qwen2.5-coder`)
 - **Creative writing** → Use models optimized for creative content
 - **Data analysis** → Use models good at logical reasoning
@@ -232,6 +233,7 @@ Common Ollama models for different tasks:
 ## Example Workflow
 
 1. **Install required models**:
+
    ```bash
    ollama pull llama3.2
    ollama pull qwen2.5-coder:7b
@@ -239,12 +241,14 @@ Common Ollama models for different tasks:
    ```
 
 2. **Create configuration file** (`config.toml`):
+
    ```bash
    cp config.example.toml config.toml
    # Edit config.toml with your preferences
    ```
 
 3. **Run your agent**:
+
    ```rust
    let config = AgentConfig::from_file("config.toml")?;
    let mut agent = Agent::new(config).await?;
