@@ -2213,6 +2213,27 @@
         function autoLayoutNodes() {
             if (nodes.length === 0) return;
 
+            // Helper function to get node dimensions
+            function getNodeDimensions(node) {
+                const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
+                const isContainer = nodeType?.is_container === true;
+
+                if (isContainer) {
+                    return {
+                        width: node.size?.width || 400,
+                        height: node.size?.height || 300
+                    };
+                } else {
+                    const inputsHeight = (nodeType?.inputs?.length || 0) * 30;
+                    const outputsHeight = (nodeType?.outputs?.length || 0) * 30;
+                    const contentHeight = Math.max(inputsHeight, outputsHeight, 40);
+                    return {
+                        width: 200,
+                        height: 40 + contentHeight
+                    };
+                }
+            }
+
             // Build dependency graph
             const incomingConnections = new Map();
             const outgoingConnections = new Map();
@@ -2227,24 +2248,16 @@
                 outgoingConnections.get(conn.from_node)?.push(conn.to_node);
             });
 
-            // Separate container nodes and regular nodes
-            const containerNodes = nodes.filter(n => {
-                const nodeType = nodeTypes.find(nt => nt.id === n.node_type);
-                return nodeType?.is_container && !n.parent_id;
-            });
-
-            const regularNodes = nodes.filter(n => {
-                const nodeType = nodeTypes.find(nt => nt.id === n.node_type);
-                return !nodeType?.is_container && !n.parent_id;
-            });
+            // Get all top-level nodes (no parent_id) - treat containers and regular nodes equally
+            const topLevelNodes = nodes.filter(n => !n.parent_id);
 
             // Assign layers using topological sort
             const layers = [];
             const nodeLayer = new Map();
             const visited = new Set();
 
-            // Find start nodes (no incoming connections or only from containers)
-            const startNodes = regularNodes.filter(node => {
+            // Find start nodes (no incoming connections)
+            const startNodes = topLevelNodes.filter(node => {
                 const incoming = incomingConnections.get(node.id) || [];
                 return incoming.length === 0;
             });
@@ -2270,37 +2283,32 @@
                 });
             }
 
-            // Layout regular nodes in layers
+            // Layout all nodes in layers
             const layerSpacing = 350;
-            const nodeSpacing = 150;
+            const verticalSpacing = 50;
             const startX = 100;
             const startY = 100;
 
             layers.forEach((layerNodes, layerIndex) => {
-                const layerY = startY;
-                layerNodes.forEach((node, nodeIndex) => {
+                let currentY = startY;
+                layerNodes.forEach((node) => {
+                    const dims = getNodeDimensions(node);
                     node.position.x = startX + layerIndex * layerSpacing;
-                    node.position.y = layerY + nodeIndex * nodeSpacing;
+                    node.position.y = currentY;
+                    currentY += dims.height + verticalSpacing;
                 });
             });
 
-            // Layout container nodes at the bottom
-            let containerY = startY + layers.length * nodeSpacing + 200;
-            containerNodes.forEach((node, index) => {
-                node.position.x = startX;
-                node.position.y = containerY;
-                containerY += (node.size?.height || 300) + 100;
-            });
-
             // Handle nodes that weren't in the graph (isolated nodes)
+            let isolatedX = startX + layers.length * layerSpacing;
+            let isolatedY = startY;
             nodes.forEach(node => {
                 if (!visited.has(node.id) && !node.parent_id) {
-                    const nodeType = nodeTypes.find(nt => nt.id === node.node_type);
-                    if (!nodeType?.is_container) {
-                        node.position.x = startX + layers.length * layerSpacing;
-                        node.position.y = startY + visited.size * nodeSpacing;
-                        visited.add(node.id);
-                    }
+                    const dims = getNodeDimensions(node);
+                    node.position.x = isolatedX;
+                    node.position.y = isolatedY;
+                    isolatedY += dims.height + verticalSpacing;
+                    visited.add(node.id);
                 }
             });
 
